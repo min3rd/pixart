@@ -233,7 +233,9 @@
     "transformBone": "Transform Bone",
     "bindPixels": "Bind Pixels",
     "unbindPixels": "Unbind Pixels",
-    "autoBindPixels": "Auto-bind pixels to bones",
+    "autoBindPixels": "Auto-bind Pixels",
+    "autoBindPixelsHint": "Automatically bind nearby pixels to bones",
+    "clearBindings": "Clear Bindings",
     "pixelBindingRadius": "Binding Radius",
     "interpolation": "Interpolation",
     "linear": "Linear",
@@ -245,6 +247,11 @@
     "zoom": "Zoom",
     "keyframes": "Keyframes",
     "noKeyframes": "No keyframes yet. Click 'Add Keyframe' to create one.",
-    "selectAnimation": "Select an animation to manage keyframes"
+    "selectAnimation": "Select an animation to manage keyframes",
+    "noAnimationSelected": "Please select an animation first",
+    "noFrameSelected": "No frame selected",
+    "noBonesFound": "No bones found. Draw some bones first using the Bone tool.",
+    "pixelsBound": "{{count}} pixels bound to bones",
+    "bindingsCleared": "All pixel bindings cleared"
   }
 }

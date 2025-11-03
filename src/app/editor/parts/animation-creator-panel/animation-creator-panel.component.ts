@@ -9,17 +9,19 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   heroPlay,
   heroStop,
   heroPlus,
   heroTrash,
+  heroLink,
 } from '@ng-icons/heroicons/outline';
 import { EditorKeyframeService } from '../../../services/editor/editor-keyframe.service';
 import { EditorAnimationCollectionService } from '../../../services/editor/editor-animation-collection.service';
 import { EditorBoneService } from '../../../services/editor/editor-bone.service';
+import { EditorDocumentService, isLayer } from '../../../services/editor-document.service';
 
 @Component({
   selector: 'pa-animation-creator-panel',
@@ -33,6 +35,7 @@ import { EditorBoneService } from '../../../services/editor/editor-bone.service'
       heroStop,
       heroPlus,
       heroTrash,
+      heroLink,
     }),
   ],
   host: {
@@ -43,6 +46,8 @@ export class AnimationCreatorPanel implements AfterViewInit {
   readonly keyframeService = inject(EditorKeyframeService);
   readonly animationService = inject(EditorAnimationCollectionService);
   readonly boneService = inject(EditorBoneService);
+  readonly documentService = inject(EditorDocumentService);
+  readonly translocoService = inject(TranslocoService);
 
   @ViewChild('timelineCanvas')
   timelineCanvas?: ElementRef<HTMLCanvasElement>;
@@ -316,5 +321,92 @@ export class AnimationCreatorPanel implements AfterViewInit {
   decreaseZoom() {
     this.zoomLevel.set(Math.max(this.zoomLevel() / 1.5, 0.5));
     this.renderTimeline();
+  }
+
+  autoBindPixels() {
+    const currentAnimation = this.animationService.getCurrentAnimation();
+    if (!currentAnimation) {
+      alert(this.translocoService.translate('animationCreator.noAnimationSelected'));
+      return;
+    }
+
+    const currentFrame = this.documentService.currentFrame();
+    if (!currentFrame) {
+      alert(this.translocoService.translate('animationCreator.noFrameSelected'));
+      return;
+    }
+
+    const bones = this.boneService.getBones(currentFrame.id);
+    if (bones.length === 0) {
+      alert(this.translocoService.translate('animationCreator.noBonesFound'));
+      return;
+    }
+
+    this.keyframeService.clearPixelBindings(currentFrame.id);
+
+    const canvas = document.createElement('canvas');
+    const width = this.documentService.width();
+    const height = this.documentService.height();
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    const layers = this.documentService.layers().filter(isLayer);
+    for (const layer of layers) {
+      if (!layer.visible) continue;
+      if (layer.buffer) {
+        ctx.drawImage(layer.buffer, 0, 0);
+      }
+    }
+
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const radius = 20;
+    let boundCount = 0;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = (y * width + x) * 4;
+        const alpha = imageData.data[idx + 3];
+        
+        if (alpha === 0) continue;
+
+        for (const bone of bones) {
+          for (const point of bone.points) {
+            const dx = x - point.x;
+            const dy = y - point.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= radius) {
+              this.keyframeService.addPixelBinding(currentFrame.id, {
+                pixelX: x,
+                pixelY: y,
+                layerId: layers[0]?.id || '',
+                boneId: bone.id,
+                bonePointId: point.id,
+                offsetX: dx,
+                offsetY: dy,
+              });
+              boundCount++;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    alert(
+      this.translocoService.translate('animationCreator.pixelsBound', {
+        count: boundCount,
+      }),
+    );
+  }
+
+  clearBindings() {
+    const currentFrame = this.documentService.currentFrame();
+    if (!currentFrame) return;
+
+    this.keyframeService.clearPixelBindings(currentFrame.id);
+    alert(this.translocoService.translate('animationCreator.bindingsCleared'));
   }
 }
