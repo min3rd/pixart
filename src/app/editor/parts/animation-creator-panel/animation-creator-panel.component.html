@@ -49,29 +49,6 @@
       </button>
     }
 
-    <div class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
-
-    <button
-      id="creator-auto-bind-pixels-btn"
-      type="button"
-      (click)="autoBindPixels()"
-      class="px-2 py-1 text-xs rounded-sm bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-1"
-      [title]="'animationCreator.autoBindPixelsHint' | transloco"
-    >
-      <ng-icon name="heroLink" size="14" />
-      <span>{{ "animationCreator.autoBindPixels" | transloco }}</span>
-    </button>
-
-    <button
-      id="creator-clear-bindings-btn"
-      type="button"
-      (click)="clearBindings()"
-      class="px-2 py-1 text-xs rounded-sm bg-neutral-400 hover:bg-neutral-500 text-white"
-      [title]="'animationCreator.clearBindings' | transloco"
-    >
-      {{ "animationCreator.clearBindings" | transloco }}
-    </button>
-
     <div class="ml-auto flex items-center gap-2">
       <span class="text-xs text-neutral-600 dark:text-neutral-400">
         {{ "animationCreator.zoom" | transloco }}:
@@ -166,7 +143,7 @@
                     type="button"
                     (click)="selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)"
                     (dblclick)="startEditingKeyframeTime(kf.id, kf.time)"
-                    class="px-2 py-1 text-[10px] rounded-sm transition-colors"
+                    class="px-2 py-1 text-[10px] rounded-sm transition-colors relative"
                     [class.bg-blue-500]="selectedKeyframeId() === kf.id"
                     [class.text-white]="selectedKeyframeId() === kf.id"
                     [class.bg-neutral-200]="selectedKeyframeId() !== kf.id"
@@ -175,6 +152,9 @@
                     [class.dark\:hover\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
                   >
                     {{ formatTime(kf.time) }}
+                    @if (newKeyframeId() === kf.id) {
+                      <span class="absolute -top-1 -right-1 px-1 text-[8px] bg-green-500 text-white rounded-sm font-bold">NEW</span>
+                    }
                   </button>
                 }
               }
