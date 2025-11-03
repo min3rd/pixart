@@ -118,6 +118,8 @@ export interface FillToolSnapshot {
 export interface BoneToolSnapshot {
   thickness: number;
   color: string;
+  autoBindEnabled?: boolean;
+  autoBindRadius?: number;
 }
 
 export interface ToolSnapshot {

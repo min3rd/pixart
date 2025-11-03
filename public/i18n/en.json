@@ -70,7 +70,10 @@
     "points": "points",
     "color": "Color",
     "pointsTree": "Bone Points",
-    "removePoint": "Remove Point"
+    "removePoint": "Remove Point",
+    "autoBindSettings": "Auto-Bind Settings",
+    "autoBindEnabled": "Enable auto-bind pixels",
+    "autoBindRadius": "Binding radius"
   },
   "theme": {
     "toggle": "Toggle theme"

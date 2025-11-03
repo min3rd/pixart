@@ -431,12 +431,17 @@ export class EditorCanvas {
       const clampedX = Math.max(0, Math.min(w - 1, logicalX));
       const clampedY = Math.max(0, Math.min(h - 1, logicalY));
       const frameId = this.getCurrentFrameId();
+      const currentAnim = this.document.getCurrentAnimation();
+      const animationId = currentAnim?.id;
+      const currentTime = this.document.keyframeService?.getCurrentTime();
       this.boneService.updatePoint(
         frameId,
         this.draggingPointBoneId,
         this.draggingPointId,
         clampedX,
         clampedY,
+        animationId,
+        currentTime,
       );
       return;
     }
@@ -675,6 +680,25 @@ export class EditorCanvas {
           
           this.boneService.addPointToBone(frameId, this.currentBoneId, newPoint);
           this.boneService.selectPoint(newPoint.id);
+
+          if (this.tools.boneAutoBindEnabled()) {
+            const layerId = this.document.selectedLayerId();
+            const layerBuffer = this.document.getLayerBuffer(layerId);
+            if (layerBuffer) {
+              const radius = this.tools.boneAutoBindRadius();
+              this.boneService.autoBindPixels(
+                frameId,
+                layerBuffer,
+                w,
+                h,
+                this.currentBoneId,
+                newPoint.id,
+                logicalX,
+                logicalY,
+                radius,
+              );
+            }
+          }
         }
       } else if ((tool === 'brush' || tool === 'eraser') && insideCanvas) {
         const selectedLayer = this.document.selectedLayer();

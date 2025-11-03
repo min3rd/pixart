@@ -15,6 +15,7 @@ import {
   EditorSelectionService,
   EditorBoneService,
   EditorExportService,
+  EditorKeyframeService,
   FrameItem,
   GroupItem,
   LayerItem,
@@ -56,6 +57,7 @@ export class EditorDocumentService {
   private readonly boneService = inject(EditorBoneService);
   private readonly boneHierarchyService = inject(EditorBoneHierarchyService);
   private readonly exportService = inject(EditorExportService);
+  readonly keyframeService = inject(EditorKeyframeService);
 
   readonly layers = this.layerService.layers;
   readonly selectedLayerId = this.layerService.selectedLayerId;

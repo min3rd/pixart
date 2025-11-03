@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { EditorKeyframeService } from './editor-keyframe.service';
 
 export interface BonePoint {
   id: string;
@@ -21,6 +22,7 @@ export interface FrameBones {
 
 @Injectable({ providedIn: 'root' })
 export class EditorBoneService {
+  private readonly keyframeService = inject(EditorKeyframeService);
   private readonly bones = signal<Map<string, Bone[]>>(new Map());
   private readonly selectedBoneId = signal<string | null>(null);
   private readonly selectedPointId = signal<string | null>(null);
@@ -79,6 +81,8 @@ export class EditorBoneService {
     pointId: string,
     x: number,
     y: number,
+    animationId?: string,
+    currentTime?: number,
   ): void {
     const current = new Map(this.bones());
     const frameBones = current.get(frameId) || [];
@@ -95,6 +99,125 @@ export class EditorBoneService {
     });
     current.set(frameId, updated);
     this.bones.set(current);
+
+    if (animationId && typeof currentTime === 'number') {
+      this.saveBoneTransformToKeyframe(animationId, boneId, pointId, x, y, currentTime);
+    }
+  }
+
+  private saveBoneTransformToKeyframe(
+    animationId: string,
+    boneId: string,
+    bonePointId: string,
+    x: number,
+    y: number,
+    time: number,
+  ): void {
+    const keyframes = this.keyframeService.getKeyframes(animationId);
+    let keyframe = keyframes.find(kf => Math.abs(kf.time - time) < 50);
+
+    if (!keyframe) {
+      keyframe = {
+        id: `keyframe-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        time,
+        boneTransforms: [],
+      };
+      this.keyframeService.addKeyframe(animationId, keyframe);
+    }
+
+    const existingTransformIndex = keyframe.boneTransforms.findIndex(
+      bt => bt.boneId === boneId && bt.bonePointId === bonePointId
+    );
+
+    const transform = {
+      boneId,
+      bonePointId,
+      x,
+      y,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+    };
+
+    if (existingTransformIndex >= 0) {
+      const updatedTransforms = [...keyframe.boneTransforms];
+      updatedTransforms[existingTransformIndex] = transform;
+      this.keyframeService.updateKeyframe(animationId, keyframe.id, {
+        boneTransforms: updatedTransforms,
+      });
+    } else {
+      this.keyframeService.updateKeyframe(animationId, keyframe.id, {
+        boneTransforms: [...keyframe.boneTransforms, transform],
+      });
+    }
+  }
+
+  autoBindPixels(
+    frameId: string,
+    layerBuffer: string[],
+    canvasWidth: number,
+    canvasHeight: number,
+    boneId: string,
+    pointId: string,
+    pointX: number,
+    pointY: number,
+    radius: number,
+  ): void {
+    const radiusSq = radius * radius;
+    
+    for (let y = 0; y < canvasHeight; y++) {
+      for (let x = 0; x < canvasWidth; x++) {
+        const idx = y * canvasWidth + x;
+        const pixel = layerBuffer[idx];
+        
+        if (!pixel || pixel.length === 0) continue;
+        
+        const dx = x - pointX;
+        const dy = y - pointY;
+        const distSq = dx * dx + dy * dy;
+        
+        if (distSq <= radiusSq) {
+          const binding = {
+            pixelX: x,
+            pixelY: y,
+            layerId: frameId,
+            boneId,
+            bonePointId: pointId,
+            offsetX: dx,
+            offsetY: dy,
+          };
+          
+          this.keyframeService.addPixelBinding(frameId, binding);
+        }
+      }
+    }
+  }
+
+  getTransformedPixelPosition(
+    frameId: string,
+    pixelX: number,
+    pixelY: number,
+    animationId: string,
+    currentTime: number,
+  ): { x: number; y: number } | null {
+    const bindings = this.keyframeService.getPixelBindings(frameId);
+    const binding = bindings.find(b => b.pixelX === pixelX && b.pixelY === pixelY);
+    
+    if (!binding) return null;
+    
+    const transform = this.keyframeService.interpolateBoneTransform(
+      animationId,
+      binding.boneId,
+      binding.bonePointId,
+      currentTime,
+    );
+    
+    if (!transform) return null;
+    
+    return {
+      x: transform.x + binding.offsetX,
+      y: transform.y + binding.offsetY,
+    };
   }
 
   deletePoint(frameId: string, boneId: string, pointId: string): void {

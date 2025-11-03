@@ -91,6 +91,8 @@ export class EditorToolsService {
   readonly squareGradientAngle = this.squareTool.gradientAngle.asReadonly();
   readonly boneThickness = this.boneTool.thickness.asReadonly();
   readonly boneColor = this.boneTool.color.asReadonly();
+  readonly boneAutoBindEnabled = this.boneTool.autoBindEnabled.asReadonly();
+  readonly boneAutoBindRadius = this.boneTool.autoBindRadius.asReadonly();
 
   constructor() {
     this.loadFromStorage();
@@ -246,6 +248,16 @@ export class EditorToolsService {
     this.saveToStorage();
   }
 
+  setBoneAutoBindEnabled(enabled: boolean) {
+    this.boneTool.setAutoBindEnabled(enabled);
+    this.saveToStorage();
+  }
+
+  setBoneAutoBindRadius(radius: number) {
+    this.boneTool.setAutoBindRadius(radius);
+    this.saveToStorage();
+  }
+
   applySnapshot(snapshot: Partial<ToolSnapshot>, context?: ToolRestoreContext) {
     if (!snapshot) return;
     if (snapshot.currentTool && this.hasTool(snapshot.currentTool)) {
@@ -328,6 +340,8 @@ export class EditorToolsService {
         squareGradientAngle: this.squareTool.gradientAngle(),
         boneThickness: this.boneTool.thickness(),
         boneColor: this.boneTool.color(),
+        boneAutoBindEnabled: this.boneTool.autoBindEnabled(),
+        boneAutoBindRadius: this.boneTool.autoBindRadius(),
       } as const;
       window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch {}
@@ -368,6 +382,8 @@ export class EditorToolsService {
         squareColor: string;
         boneThickness: number;
         boneColor: string;
+        boneAutoBindEnabled: boolean;
+        boneAutoBindRadius: number;
       }> | null;
       if (!parsed) return;
       if (parsed.currentTool && this.hasTool(parsed.currentTool)) {
@@ -513,6 +529,12 @@ export class EditorToolsService {
       }
       if (typeof parsed.boneColor === 'string' && parsed.boneColor.length) {
         boneSnapshot.color = parsed.boneColor;
+      }
+      if (typeof parsed.boneAutoBindEnabled === 'boolean') {
+        boneSnapshot.autoBindEnabled = parsed.boneAutoBindEnabled;
+      }
+      if (typeof parsed.boneAutoBindRadius === 'number') {
+        boneSnapshot.autoBindRadius = parsed.boneAutoBindRadius;
       }
       this.fillTool.restore(fillSnapshot);
       this.brushTool.restore(brushSnapshot);
