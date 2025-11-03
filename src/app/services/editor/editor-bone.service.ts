@@ -27,6 +27,8 @@ export class EditorBoneService {
   private readonly selectedBoneId = signal<string | null>(null);
   private readonly selectedPointId = signal<string | null>(null);
 
+  private readonly KEYFRAME_TIME_TOLERANCE_MS = 50;
+
   getBones(frameId: string): Bone[] {
     return this.bones().get(frameId) || [];
   }
@@ -114,7 +116,7 @@ export class EditorBoneService {
     time: number,
   ): void {
     const keyframes = this.keyframeService.getKeyframes(animationId);
-    let keyframe = keyframes.find(kf => Math.abs(kf.time - time) < 50);
+    let keyframe = keyframes.find(kf => Math.abs(kf.time - time) < this.KEYFRAME_TIME_TOLERANCE_MS);
 
     if (!keyframe) {
       keyframe = {

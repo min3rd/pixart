@@ -1311,18 +1311,26 @@ export class EditorCanvas {
       if (shouldApplyBoneTransforms) {
         const drawnPixels = new Set<number>();
         const bindings = this.document.keyframeService.getPixelBindings(frameId);
+        
+        const transformCache = new Map<string, any>();
 
         for (const binding of bindings) {
           const idx = binding.pixelY * w + binding.pixelX;
           const col = buf[idx];
           if (!col || !col.length) continue;
 
-          const transform = this.document.keyframeService.interpolateBoneTransform(
-            animationId,
-            binding.boneId,
-            binding.bonePointId,
-            currentTime,
-          );
+          const cacheKey = `${binding.boneId}:${binding.bonePointId}`;
+          let transform = transformCache.get(cacheKey);
+          
+          if (!transform) {
+            transform = this.document.keyframeService.interpolateBoneTransform(
+              animationId,
+              binding.boneId,
+              binding.bonePointId,
+              currentTime,
+            );
+            transformCache.set(cacheKey, transform);
+          }
 
           if (transform) {
             const transformedX = transform.x + binding.offsetX;
