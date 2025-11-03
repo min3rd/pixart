@@ -216,5 +216,28 @@
   "square": {
     "title": "Square",
     "color": "Color"
+  },
+  "animationCreator": {
+    "title": "Animation Creator",
+    "mode": "Mode",
+    "frameMode": "Frame Mode",
+    "timeMode": "Time Mode",
+    "timeline": "Timeline",
+    "addKeyframe": "Add Keyframe",
+    "deleteKeyframe": "Delete Keyframe",
+    "currentTime": "Current Time",
+    "duration": "Duration",
+    "seconds": "s",
+    "milliseconds": "ms",
+    "transformBone": "Transform Bone",
+    "bindPixels": "Bind Pixels",
+    "unbindPixels": "Unbind Pixels",
+    "autoBindPixels": "Auto-bind pixels to bones",
+    "pixelBindingRadius": "Binding Radius",
+    "interpolation": "Interpolation",
+    "linear": "Linear",
+    "easeIn": "Ease In",
+    "easeOut": "Ease Out",
+    "easeInOut": "Ease In-Out"
   }
 }

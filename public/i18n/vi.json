@@ -216,5 +216,28 @@
   "square": {
     "title": "Hình vuông",
     "color": "Màu sắc"
+  },
+  "animationCreator": {
+    "title": "Tạo Animation",
+    "mode": "Chế độ",
+    "frameMode": "Chế độ khung hình",
+    "timeMode": "Chế độ thời gian",
+    "timeline": "Dòng thời gian",
+    "addKeyframe": "Thêm Keyframe",
+    "deleteKeyframe": "Xóa Keyframe",
+    "currentTime": "Thời gian hiện tại",
+    "duration": "Thời lượng",
+    "seconds": "giây",
+    "milliseconds": "mili giây",
+    "transformBone": "Biến đổi Bone",
+    "bindPixels": "Gắn Pixel",
+    "unbindPixels": "Bỏ gắn Pixel",
+    "autoBindPixels": "Tự động gắn pixel vào bone",
+    "pixelBindingRadius": "Bán kính gắn",
+    "interpolation": "Nội suy",
+    "linear": "Tuyến tính",
+    "easeIn": "Chậm dần đầu",
+    "easeOut": "Chậm dần cuối",
+    "easeInOut": "Chậm dần hai đầu"
   }
 }

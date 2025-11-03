@@ -13,3 +13,4 @@ export * from './editor-bone.service';
 export * from './editor-animation-collection.service';
 export * from './editor-bone-hierarchy.service';
 export * from './editor-export.service';
+export * from './editor-keyframe.service';

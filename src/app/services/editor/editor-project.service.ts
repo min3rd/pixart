@@ -10,6 +10,7 @@ import { EditorAnimationService } from './editor-animation.service';
 import { EditorAnimationCollectionService } from './editor-animation-collection.service';
 import { EditorBoneService } from './editor-bone.service';
 import { EditorBoneHierarchyService } from './editor-bone-hierarchy.service';
+import { EditorKeyframeService } from './editor-keyframe.service';
 import { FrameItem, LayerTreeItem, AnimationItem, BoneItem } from './editor.types';
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +25,7 @@ export class EditorProjectService {
   private readonly animationCollectionService = inject(EditorAnimationCollectionService);
   private readonly boneService = inject(EditorBoneService);
   private readonly boneHierarchyService = inject(EditorBoneHierarchyService);
+  private readonly keyframeService = inject(EditorKeyframeService);
 
   loadProjectFromLocalStorage(): Observable<boolean> {
     try {
@@ -65,6 +67,7 @@ export class EditorProjectService {
         thickness: b.thickness,
       }));
     }
+    const keyframeSnapshot = this.keyframeService.snapshot();
     return {
       id: `local_${Date.now()}`,
       name: `Local Project ${new Date().toISOString()}`,
@@ -89,6 +92,11 @@ export class EditorProjectService {
       animationCollections: this.animationCollectionService.animations(),
       boneHierarchy: this.boneHierarchyService.bones(),
       bones: bonesData,
+      keyframes: keyframeSnapshot.keyframes,
+      pixelBindings: keyframeSnapshot.pixelBindings,
+      animationCurrentTime: keyframeSnapshot.currentTime,
+      animationDuration: keyframeSnapshot.animationDuration,
+      timelineMode: keyframeSnapshot.timelineMode,
     } as const;
   }
 
@@ -305,6 +313,14 @@ export class EditorProjectService {
         }
         this.boneService.restore(bonesMap);
       }
+
+      this.keyframeService.restore({
+        keyframes: parsed.keyframes,
+        pixelBindings: parsed.pixelBindings,
+        currentTime: parsed.animationCurrentTime,
+        animationDuration: parsed.animationDuration,
+        timelineMode: parsed.timelineMode,
+      });
 
       this.canvasState.layerPixelsVersion.update((v) => v + 1);
       this.canvasState.setCanvasSaved(true);
