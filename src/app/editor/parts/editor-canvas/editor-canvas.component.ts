@@ -681,6 +681,20 @@ export class EditorCanvas {
           this.boneService.addPointToBone(frameId, this.currentBoneId, newPoint);
           this.boneService.selectPoint(newPoint.id);
 
+          const currentAnim = this.document.getCurrentAnimation();
+          if (currentAnim) {
+            const currentTime = this.document.keyframeService?.getCurrentTime() || 0;
+            this.boneService.updatePoint(
+              frameId,
+              this.currentBoneId,
+              newPoint.id,
+              logicalX,
+              logicalY,
+              currentAnim.id,
+              currentTime,
+            );
+          }
+
           if (this.tools.boneAutoBindEnabled()) {
             const layerId = this.document.selectedLayerId();
             const layerBuffer = this.document.getLayerBuffer(layerId);
@@ -1280,6 +1294,12 @@ export class EditorCanvas {
     // depend on layer pixel version so effect reruns when any layer buffer changes
     this.document.layerPixelsVersion();
 
+    const frameId = this.getCurrentFrameId();
+    const currentAnim = this.document.getCurrentAnimation();
+    const animationId = currentAnim?.id;
+    const currentTime = this.document.keyframeService?.getCurrentTime();
+    const shouldApplyBoneTransforms = !!(animationId && typeof currentTime === 'number');
+
     const layers = this.document.getFlattenedLayers();
     for (let li = layers.length - 1; li >= 0; li--) {
       const layer = layers[li];
@@ -1287,12 +1307,55 @@ export class EditorCanvas {
       const buf = this.document.getLayerBuffer(layer.id);
       if (!buf || buf.length !== w * h) continue;
       ctx.save();
-      for (let yy = 0; yy < h; yy++) {
-        for (let xx = 0; xx < w; xx++) {
-          const col = buf[yy * w + xx];
-          if (col && col.length) {
-            ctx.fillStyle = col;
-            ctx.fillRect(xx, yy, 1, 1);
+
+      if (shouldApplyBoneTransforms) {
+        const drawnPixels = new Set<number>();
+        const bindings = this.document.keyframeService.getPixelBindings(frameId);
+
+        for (const binding of bindings) {
+          const idx = binding.pixelY * w + binding.pixelX;
+          const col = buf[idx];
+          if (!col || !col.length) continue;
+
+          const transform = this.document.keyframeService.interpolateBoneTransform(
+            animationId,
+            binding.boneId,
+            binding.bonePointId,
+            currentTime,
+          );
+
+          if (transform) {
+            const transformedX = transform.x + binding.offsetX;
+            const transformedY = transform.y + binding.offsetY;
+
+            if (transformedX >= 0 && transformedX < w && transformedY >= 0 && transformedY < h) {
+              ctx.fillStyle = col;
+              ctx.fillRect(transformedX, transformedY, 1, 1);
+              drawnPixels.add(idx);
+            }
+          }
+        }
+
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const idx = yy * w + xx;
+            if (drawnPixels.has(idx)) continue;
+
+            const col = buf[idx];
+            if (col && col.length) {
+              ctx.fillStyle = col;
+              ctx.fillRect(xx, yy, 1, 1);
+            }
+          }
+        }
+      } else {
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const col = buf[yy * w + xx];
+            if (col && col.length) {
+              ctx.fillStyle = col;
+              ctx.fillRect(xx, yy, 1, 1);
+            }
           }
         }
       }
