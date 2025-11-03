@@ -35,6 +35,7 @@ Additional project rules:
 - Do NOT leave comments in code. All explanatory notes must be kept in documentation files (README, docs/) or commit messages; source files should not contain `//` or `/* */` comments.
 - Always use Transloco for UI text and do NOT display hard-coded strings in templates or components; all user-facing strings must come from translation keys.
 - Every HTML element you add in templates must include an `id` attribute that is unique within its document to simplify automation tasks.
+- **NEVER use `window.alert()`, `window.prompt()`, `window.confirm()` or similar browser native dialogs.** These look ugly and break the user experience. Instead, create a shared popup/dialog component using Angular Material Dialog or a custom modal component that matches the application's design system.
 
 ## State Management
 
