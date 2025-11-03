@@ -128,6 +128,22 @@ export class BonesPanel {
     return bone.points.filter(p => p.parentId === parentId);
   }
 
+  getAllDescendants(bone: Bone, parentId: string, depth = 1): any[] {
+    const children = this.getChildPoints(bone, parentId);
+    const result: any[] = [];
+    
+    for (const child of children) {
+      result.push({
+        point: child,
+        depth: depth,
+      });
+      const descendants = this.getAllDescendants(bone, child.id, depth + 1);
+      result.push(...descendants);
+    }
+    
+    return result;
+  }
+
   selectPoint(pointId: string, event: Event) {
     event.stopPropagation();
     this.boneService.selectPoint(pointId);

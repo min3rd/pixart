@@ -132,20 +132,21 @@
                           <ng-icon name="heroXMark" size="12"></ng-icon>
                         </button>
                       </div>
-                      @for (child of getChildPoints(bone, point.id); track child.id) {
-                        <div [id]="'point-' + child.id" class="ml-4">
-                          @let isChildSelected = boneService.getSelectedPoint() === child.id;
+                      @for (descendant of getAllDescendants(bone, point.id); track descendant.point.id) {
+                        @let childPoint = descendant.point;
+                        @let isChildSelected = boneService.getSelectedPoint() === childPoint.id;
+                        <div [id]="'point-' + childPoint.id" [style.paddingLeft.rem]="descendant.depth">
                           <div
                             class="flex items-center gap-1 py-0.5 px-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
                             [class.bg-blue-100]="isChildSelected"
                             [class.dark\:bg-blue-900]="isChildSelected"
-                            (click)="selectPoint(child.id, $event)"
+                            (click)="selectPoint(childPoint.id, $event)"
                           >
                             <span class="text-xs">└─●</span>
-                            <span class="text-xs flex-1">Point ({{ child.x }}, {{ child.y }})</span>
+                            <span class="text-xs flex-1">Point ({{ childPoint.x }}, {{ childPoint.y }})</span>
                             <button
                               type="button"
-                              (click)="removePoint(bone.id, child.id, $event)"
+                              (click)="removePoint(bone.id, childPoint.id, $event)"
                               class="p-0.5 rounded-sm hover:bg-red-200 dark:hover:bg-red-900 text-red-600 dark:text-red-400"
                               [title]="'bones.removePoint' | transloco"
                             >

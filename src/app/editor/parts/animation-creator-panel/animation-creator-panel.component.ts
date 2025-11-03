@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   signal,
+  OnDestroy,
 } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -42,7 +43,7 @@ import { EditorDocumentService, isLayer } from '../../../services/editor-documen
     class: 'block h-full bg-neutral-50 dark:bg-neutral-900',
   },
 })
-export class AnimationCreatorPanel implements AfterViewInit {
+export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   readonly keyframeService = inject(EditorKeyframeService);
   readonly animationService = inject(EditorAnimationCollectionService);
   readonly boneService = inject(EditorBoneService);
@@ -82,8 +83,13 @@ export class AnimationCreatorPanel implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+    this.keyframeService.setTimelineMode('time');
     this.renderTimeline();
     this.updatePlayheadPosition();
+  }
+
+  ngOnDestroy() {
+    this.keyframeService.setTimelineMode('frame');
   }
 
   renderTimeline() {
