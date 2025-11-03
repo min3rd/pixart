@@ -50,6 +50,21 @@ export class EditorProjectService {
       buffers[id] = buf.slice();
     }
     const toolSnapshot = this.tools.snapshot();
+    const bonesSnapshot = this.boneService.snapshot();
+    const bonesData: Record<string, any[]> = {};
+    for (const [frameId, bones] of bonesSnapshot.entries()) {
+      bonesData[frameId] = bones.map(b => ({
+        id: b.id,
+        points: b.points.map(p => ({
+          id: p.id,
+          x: p.x,
+          y: p.y,
+          parentId: p.parentId,
+        })),
+        color: b.color,
+        thickness: b.thickness,
+      }));
+    }
     return {
       id: `local_${Date.now()}`,
       name: `Local Project ${new Date().toISOString()}`,
@@ -73,6 +88,7 @@ export class EditorProjectService {
       frames: this.frameService.frames(),
       animationCollections: this.animationCollectionService.animations(),
       boneHierarchy: this.boneHierarchyService.bones(),
+      bones: bonesData,
     } as const;
   }
 
@@ -263,6 +279,32 @@ export class EditorProjectService {
             length: Number(b.length) || 50,
           })) as BoneItem[],
         );
+
+      if (parsed.bones && typeof parsed.bones === 'object') {
+        const bonesMap = new Map<string, any[]>();
+        for (const frameId of Object.keys(parsed.bones)) {
+          const frameBones = parsed.bones[frameId];
+          if (Array.isArray(frameBones)) {
+            bonesMap.set(
+              frameId,
+              frameBones.map((b: any) => ({
+                id: b.id || `bone-${Date.now()}-${Math.random()}`,
+                points: Array.isArray(b.points)
+                  ? b.points.map((p: any) => ({
+                      id: p.id || `point-${Date.now()}-${Math.random()}`,
+                      x: Number(p.x) || 0,
+                      y: Number(p.y) || 0,
+                      parentId: p.parentId,
+                    }))
+                  : [],
+                color: typeof b.color === 'string' ? b.color : '#ff6600',
+                thickness: typeof b.thickness === 'number' ? b.thickness : 2,
+              })),
+            );
+          }
+        }
+        this.boneService.restore(bonesMap);
+      }
 
       this.canvasState.layerPixelsVersion.update((v) => v + 1);
       this.canvasState.setCanvasSaved(true);
