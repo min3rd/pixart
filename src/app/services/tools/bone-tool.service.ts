@@ -19,6 +19,8 @@ export class BoneToolService implements ToolService<BoneToolSnapshot> {
 
   readonly color = signal<string>('#ff6600');
   readonly thickness = signal<number>(2);
+  readonly autoBindEnabled = signal<boolean>(true);
+  readonly autoBindRadius = signal<number>(10);
 
   private historyAdapter?: ToolHistoryAdapter;
 
@@ -43,10 +45,21 @@ export class BoneToolService implements ToolService<BoneToolSnapshot> {
     this.thickness.set(next);
   }
 
+  setAutoBindEnabled(enabled: boolean) {
+    this.autoBindEnabled.set(enabled);
+  }
+
+  setAutoBindRadius(radius: number) {
+    const next = Math.max(1, Math.min(Math.floor(radius), 100));
+    this.autoBindRadius.set(next);
+  }
+
   snapshot(): BoneToolSnapshot {
     return {
       color: this.color(),
       thickness: this.thickness(),
+      autoBindEnabled: this.autoBindEnabled(),
+      autoBindRadius: this.autoBindRadius(),
     };
   }
 
@@ -65,6 +78,12 @@ export class BoneToolService implements ToolService<BoneToolSnapshot> {
     }
     if (typeof snapshot.color === 'string' && snapshot.color.length) {
       this.color.set(snapshot.color);
+    }
+    if (typeof snapshot.autoBindEnabled === 'boolean') {
+      this.autoBindEnabled.set(snapshot.autoBindEnabled);
+    }
+    if (typeof snapshot.autoBindRadius === 'number') {
+      this.autoBindRadius.set(Math.max(1, Math.min(Math.floor(snapshot.autoBindRadius), 100)));
     }
   }
 

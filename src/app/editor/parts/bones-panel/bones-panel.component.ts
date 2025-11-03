@@ -12,6 +12,7 @@ import {
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorBoneService, type Bone } from '../../../services/editor/editor-bone.service';
+import { EditorToolsService } from '../../../services/editor-tools.service';
 
 @Component({
   selector: 'pa-bones-panel',
@@ -36,6 +37,7 @@ export class BonesPanel {
   readonly document = inject(EditorDocumentService);
   readonly boneService = inject(EditorBoneService);
   readonly translocoService = inject(TranslocoService);
+  readonly tools = inject(EditorToolsService);
   readonly editingBoneId = signal<string>('');
   readonly newBoneName = signal<string>('');
 
@@ -140,5 +142,21 @@ export class BonesPanel {
         this.boneService.deletePoint(currentFrame.id, boneId, pointId);
       }
     }
+  }
+
+  get autoBindEnabled(): boolean {
+    return this.tools.boneAutoBindEnabled();
+  }
+
+  set autoBindEnabled(value: boolean) {
+    this.tools.setBoneAutoBindEnabled(value);
+  }
+
+  get autoBindRadius(): number {
+    return this.tools.boneAutoBindRadius();
+  }
+
+  set autoBindRadius(value: number) {
+    this.tools.setBoneAutoBindRadius(value);
   }
 }

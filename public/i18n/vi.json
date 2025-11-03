@@ -70,7 +70,10 @@
     "points": "điểm",
     "color": "Màu",
     "pointsTree": "Các điểm Bone",
-    "removePoint": "Xóa điểm"
+    "removePoint": "Xóa điểm",
+    "autoBindSettings": "Cài đặt tự động gắn",
+    "autoBindEnabled": "Bật tự động gắn pixel",
+    "autoBindRadius": "Bán kính gắn"
   },
   "theme": {
     "toggle": "Chuyển chủ đề"
