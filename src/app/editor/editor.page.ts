@@ -9,8 +9,12 @@ import { EditorHeader } from './parts/editor-header/editor-header.component';
 import { ToolPalette } from './parts/tool-palette/tool-palette.component';
 import { LayersPanel } from './parts/layers-panel/layers-panel.component';
 import { TimelinePanel } from './parts/timeline-panel/timeline-panel.component';
+import { BonesPanel } from './parts/bones-panel/bones-panel.component';
+import { AnimationCreatorPanel } from './parts/animation-creator-panel/animation-creator-panel.component';
 import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { UserSettingsService } from '../services/user-settings.service';
+import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'pa-editor-page',
@@ -18,10 +22,14 @@ import { UserSettingsService } from '../services/user-settings.service';
   styleUrl: './editor.page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CommonModule,
+    TranslocoPipe,
     EditorHeader,
     ToolPalette,
     LayersPanel,
     TimelinePanel,
+    BonesPanel,
+    AnimationCreatorPanel,
     EditorCanvas,
   ],
   host: {
@@ -32,6 +40,9 @@ import { UserSettingsService } from '../services/user-settings.service';
 })
 export class EditorPage {
   private readonly settings = inject(UserSettingsService);
+
+  readonly rightPanelTab = signal<'layers' | 'bones'>('layers');
+  readonly bottomPanelTab = signal<'timeline' | 'animationCreator'>('timeline');
 
   // Panel sizes (px)
   readonly leftWidth = signal(this.settings.settings.panels.left);

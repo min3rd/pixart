@@ -6,7 +6,12 @@ import { EditorCanvasStateService } from './editor-canvas-state.service';
 import { EditorFrameService } from './editor-frame.service';
 import { EditorLayerService } from './editor-layer.service';
 import { EditorSelectionService } from './editor-selection.service';
-import { FrameItem, LayerTreeItem } from './editor.types';
+import { EditorAnimationService } from './editor-animation.service';
+import { EditorAnimationCollectionService } from './editor-animation-collection.service';
+import { EditorBoneService } from './editor-bone.service';
+import { EditorBoneHierarchyService } from './editor-bone-hierarchy.service';
+import { EditorKeyframeService } from './editor-keyframe.service';
+import { FrameItem, LayerTreeItem, AnimationItem, BoneItem } from './editor.types';
 
 @Injectable({ providedIn: 'root' })
 export class EditorProjectService {
@@ -16,6 +21,11 @@ export class EditorProjectService {
   private readonly frameService = inject(EditorFrameService);
   private readonly selectionService = inject(EditorSelectionService);
   private readonly tools = inject(EditorToolsService);
+  private readonly animationService = inject(EditorAnimationService);
+  private readonly animationCollectionService = inject(EditorAnimationCollectionService);
+  private readonly boneService = inject(EditorBoneService);
+  private readonly boneHierarchyService = inject(EditorBoneHierarchyService);
+  private readonly keyframeService = inject(EditorKeyframeService);
 
   loadProjectFromLocalStorage(): Observable<boolean> {
     try {
@@ -42,6 +52,22 @@ export class EditorProjectService {
       buffers[id] = buf.slice();
     }
     const toolSnapshot = this.tools.snapshot();
+    const bonesSnapshot = this.boneService.snapshot();
+    const bonesData: Record<string, any[]> = {};
+    for (const [frameId, bones] of bonesSnapshot.entries()) {
+      bonesData[frameId] = bones.map(b => ({
+        id: b.id,
+        points: b.points.map(p => ({
+          id: p.id,
+          x: p.x,
+          y: p.y,
+          parentId: p.parentId,
+        })),
+        color: b.color,
+        thickness: b.thickness,
+      }));
+    }
+    const keyframeSnapshot = this.keyframeService.snapshot();
     return {
       id: `local_${Date.now()}`,
       name: `Local Project ${new Date().toISOString()}`,
@@ -63,6 +89,14 @@ export class EditorProjectService {
       selection: this.selectionService.selectionRect(),
       selectionPolygon: this.selectionService.selectionPolygon(),
       frames: this.frameService.frames(),
+      animationCollections: this.animationCollectionService.animations(),
+      boneHierarchy: this.boneHierarchyService.bones(),
+      bones: bonesData,
+      keyframes: keyframeSnapshot.keyframes,
+      pixelBindings: keyframeSnapshot.pixelBindings,
+      animationCurrentTime: keyframeSnapshot.currentTime,
+      animationDuration: keyframeSnapshot.animationDuration,
+      timelineMode: keyframeSnapshot.timelineMode,
     } as const;
   }
 
@@ -223,6 +257,70 @@ export class EditorProjectService {
             buffers: f.buffers,
           })) as FrameItem[],
         );
+
+      if (parsed.animationCollections && Array.isArray(parsed.animationCollections))
+        this.animationCollectionService.animations.set(
+          (parsed.animationCollections as any[]).map((a) => ({
+            id: a.id,
+            name: a.name,
+            frames: Array.isArray(a.frames)
+              ? a.frames.map((f: any) => ({
+                  id: f.id,
+                  name: f.name,
+                  duration: Number(f.duration) || 100,
+                }))
+              : [],
+            boneIds: Array.isArray(a.boneIds) ? a.boneIds : [],
+            duration: Number(a.duration) || 100,
+          })) as AnimationItem[],
+        );
+
+      if (parsed.boneHierarchy && Array.isArray(parsed.boneHierarchy))
+        this.boneHierarchyService.bones.set(
+          (parsed.boneHierarchy as any[]).map((b) => ({
+            id: b.id,
+            name: b.name,
+            parentId: b.parentId || null,
+            x: Number(b.x) || 0,
+            y: Number(b.y) || 0,
+            rotation: Number(b.rotation) || 0,
+            length: Number(b.length) || 50,
+          })) as BoneItem[],
+        );
+
+      if (parsed.bones && typeof parsed.bones === 'object') {
+        const bonesMap = new Map<string, any[]>();
+        for (const frameId of Object.keys(parsed.bones)) {
+          const frameBones = parsed.bones[frameId];
+          if (Array.isArray(frameBones)) {
+            bonesMap.set(
+              frameId,
+              frameBones.map((b: any) => ({
+                id: b.id || `bone-${Date.now()}-${Math.random()}`,
+                points: Array.isArray(b.points)
+                  ? b.points.map((p: any) => ({
+                      id: p.id || `point-${Date.now()}-${Math.random()}`,
+                      x: Number(p.x) || 0,
+                      y: Number(p.y) || 0,
+                      parentId: p.parentId,
+                    }))
+                  : [],
+                color: typeof b.color === 'string' ? b.color : '#ff6600',
+                thickness: typeof b.thickness === 'number' ? b.thickness : 2,
+              })),
+            );
+          }
+        }
+        this.boneService.restore(bonesMap);
+      }
+
+      this.keyframeService.restore({
+        keyframes: parsed.keyframes,
+        pixelBindings: parsed.pixelBindings,
+        currentTime: parsed.animationCurrentTime,
+        animationDuration: parsed.animationDuration,
+        timelineMode: parsed.timelineMode,
+      });
 
       this.canvasState.layerPixelsVersion.update((v) => v + 1);
       this.canvasState.setCanvasSaved(true);
