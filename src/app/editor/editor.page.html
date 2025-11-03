@@ -74,7 +74,49 @@
     (pointerdown)="onGripDown('bottom', $event)"
   ></div>
 
-  <pa-timeline-panel
-    class="row-start-4 col-start-1 -col-end-1 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
-  />
+  <div
+    id="bottom-panel-container"
+    class="row-start-4 col-start-1 -col-end-1 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 flex flex-col"
+  >
+    <div
+      class="shrink-0 flex border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-800"
+      id="bottom-panel-tabs"
+    >
+      <button
+        type="button"
+        (click)="bottomPanelTab.set('timeline')"
+        class="px-4 py-2 text-sm font-medium"
+        [class.bg-neutral-50]="bottomPanelTab() === 'timeline'"
+        [class.dark\:bg-neutral-900]="bottomPanelTab() === 'timeline'"
+        [class.text-blue-600]="bottomPanelTab() === 'timeline'"
+        [class.dark\:text-blue-400]="bottomPanelTab() === 'timeline'"
+        [class.text-neutral-600]="bottomPanelTab() !== 'timeline'"
+        [class.dark\:text-neutral-400]="bottomPanelTab() !== 'timeline'"
+        id="timeline-tab-button"
+      >
+        {{ "timeline.title" | transloco }}
+      </button>
+      <button
+        type="button"
+        (click)="bottomPanelTab.set('animationCreator')"
+        class="px-4 py-2 text-sm font-medium"
+        [class.bg-neutral-50]="bottomPanelTab() === 'animationCreator'"
+        [class.dark\:bg-neutral-900]="bottomPanelTab() === 'animationCreator'"
+        [class.text-blue-600]="bottomPanelTab() === 'animationCreator'"
+        [class.dark\:text-blue-400]="bottomPanelTab() === 'animationCreator'"
+        [class.text-neutral-600]="bottomPanelTab() !== 'animationCreator'"
+        [class.dark\:text-neutral-400]="bottomPanelTab() !== 'animationCreator'"
+        id="animation-creator-tab-button"
+      >
+        {{ "animationCreator.title" | transloco }}
+      </button>
+    </div>
+    <div class="flex-1 overflow-hidden">
+      @if (bottomPanelTab() === 'timeline') {
+        <pa-timeline-panel class="h-full" />
+      } @else {
+        <pa-animation-creator-panel class="h-full" />
+      }
+    </div>
+  </div>
 </div>

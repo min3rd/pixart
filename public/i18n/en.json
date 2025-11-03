@@ -223,6 +223,7 @@
     "frameMode": "Frame Mode",
     "timeMode": "Time Mode",
     "timeline": "Timeline",
+    "timelineSubtitle": "Click to set time, click on markers to select keyframes (0.1s intervals)",
     "addKeyframe": "Add Keyframe",
     "deleteKeyframe": "Delete Keyframe",
     "currentTime": "Current Time",
@@ -238,6 +239,12 @@
     "linear": "Linear",
     "easeIn": "Ease In",
     "easeOut": "Ease Out",
-    "easeInOut": "Ease In-Out"
+    "easeInOut": "Ease In-Out",
+    "play": "Play",
+    "stop": "Stop",
+    "zoom": "Zoom",
+    "keyframes": "Keyframes",
+    "noKeyframes": "No keyframes yet. Click 'Add Keyframe' to create one.",
+    "selectAnimation": "Select an animation to manage keyframes"
   }
 }

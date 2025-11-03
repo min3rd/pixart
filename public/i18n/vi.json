@@ -223,6 +223,7 @@
     "frameMode": "Chế độ khung hình",
     "timeMode": "Chế độ thời gian",
     "timeline": "Dòng thời gian",
+    "timelineSubtitle": "Click để đặt thời gian, click vào điểm đánh dấu để chọn keyframe (khoảng cách 0.1s)",
     "addKeyframe": "Thêm Keyframe",
     "deleteKeyframe": "Xóa Keyframe",
     "currentTime": "Thời gian hiện tại",
@@ -238,6 +239,12 @@
     "linear": "Tuyến tính",
     "easeIn": "Chậm dần đầu",
     "easeOut": "Chậm dần cuối",
-    "easeInOut": "Chậm dần hai đầu"
+    "easeInOut": "Chậm dần hai đầu",
+    "play": "Phát",
+    "stop": "Dừng",
+    "zoom": "Thu phóng",
+    "keyframes": "Keyframes",
+    "noKeyframes": "Chưa có keyframe. Click 'Thêm Keyframe' để tạo mới.",
+    "selectAnimation": "Chọn một animation để quản lý keyframes"
   }
 }

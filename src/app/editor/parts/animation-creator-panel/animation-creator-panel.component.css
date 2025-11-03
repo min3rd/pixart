@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+#creator-timeline-canvas {
+  background: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent 99px,
+    rgba(0, 0, 0, 0.05) 99px,
+    rgba(0, 0, 0, 0.05) 100px
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  #creator-timeline-canvas {
+    background: repeating-linear-gradient(
+      to right,
+      transparent,
+      transparent 99px,
+      rgba(255, 255, 255, 0.05) 99px,
+      rgba(255, 255, 255, 0.05) 100px
+    );
+  }
+}

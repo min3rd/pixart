@@ -1,0 +1,152 @@
+<div id="animation-creator-container" class="h-full flex flex-col">
+  <div
+    id="animation-creator-toolbar"
+    class="shrink-0 border-b border-neutral-200 dark:border-neutral-800 p-2 flex items-center gap-2 bg-white dark:bg-neutral-800"
+  >
+    <button
+      id="creator-play-btn"
+      type="button"
+      (click)="togglePlayback()"
+      class="px-3 py-1.5 text-xs rounded-sm bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-1.5"
+      [title]="
+        (isPlaying() ? 'animationCreator.stop' : 'animationCreator.play')
+          | transloco
+      "
+    >
+      <ng-icon [name]="isPlaying() ? 'heroStop' : 'heroPlay'" size="14" />
+      <span>{{
+        (isPlaying() ? "animationCreator.stop" : "animationCreator.play")
+          | transloco
+      }}</span>
+    </button>
+
+    <div id="creator-time-display" class="px-2 py-1 text-xs font-mono bg-neutral-100 dark:bg-neutral-700 rounded-sm">
+      {{ formatTime(currentTime()) }}
+    </div>
+
+    <div class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
+
+    <button
+      id="creator-add-keyframe-btn"
+      type="button"
+      (click)="addKeyframe()"
+      class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 flex items-center gap-1"
+      [title]="'animationCreator.addKeyframe' | transloco"
+    >
+      <ng-icon name="heroPlus" size="14" />
+      <span>{{ "animationCreator.addKeyframe" | transloco }}</span>
+    </button>
+
+    @if (selectedKeyframeId()) {
+      <button
+        id="creator-delete-keyframe-btn"
+        type="button"
+        (click)="deleteSelectedKeyframe()"
+        class="px-2 py-1 text-xs rounded-sm bg-red-500 hover:bg-red-600 text-white flex items-center gap-1"
+        [title]="'animationCreator.deleteKeyframe' | transloco"
+      >
+        <ng-icon name="heroTrash" size="14" />
+      </button>
+    }
+
+    <div class="ml-auto flex items-center gap-2">
+      <span class="text-xs text-neutral-600 dark:text-neutral-400">
+        {{ "animationCreator.zoom" | transloco }}:
+      </span>
+      <button
+        id="creator-zoom-out-btn"
+        type="button"
+        (click)="decreaseZoom()"
+        class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+      >
+        −
+      </button>
+      <span class="text-xs font-mono w-12 text-center">{{ (zoomLevel() * 100).toFixed(0) }}%</span>
+      <button
+        id="creator-zoom-in-btn"
+        type="button"
+        (click)="increaseZoom()"
+        class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+      >
+        +
+      </button>
+    </div>
+  </div>
+
+  <div id="animation-creator-timeline" class="flex-1 flex flex-col overflow-hidden">
+    <div
+      id="creator-timeline-info"
+      class="shrink-0 px-3 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
+    >
+      <div class="text-xs font-medium">
+        {{ "animationCreator.timeline" | transloco }}
+      </div>
+      <div class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+        {{ "animationCreator.timelineSubtitle" | transloco }}
+      </div>
+    </div>
+
+    <div id="creator-timeline-canvas-container" class="flex-1 relative overflow-hidden">
+      <canvas
+        #timelineCanvas
+        id="creator-timeline-canvas"
+        class="absolute inset-0 w-full h-full cursor-crosshair"
+        (click)="onTimelineClick($event)"
+        (mousemove)="onTimelineMouseMove($event)"
+        (mouseleave)="onTimelineMouseLeave()"
+        style="--timeline-bg-color: var(--color-neutral-100)"
+      ></canvas>
+
+      @if (hoveredTime() !== null) {
+        <div
+          id="creator-timeline-tooltip"
+          class="absolute bottom-2 left-2 px-2 py-1 text-[10px] font-mono bg-black/80 text-white rounded-sm pointer-events-none"
+        >
+          {{ formatTime(hoveredTime()!) }}
+        </div>
+      }
+    </div>
+
+    <div
+      id="creator-timeline-keyframes-list"
+      class="shrink-0 border-t border-neutral-200 dark:border-neutral-800 p-2 bg-white dark:bg-neutral-800"
+    >
+      <div class="text-[10px] font-medium mb-1 text-neutral-600 dark:text-neutral-400">
+        {{ "animationCreator.keyframes" | transloco }}
+      </div>
+      
+      @if (animationService.getCurrentAnimation(); as animation) {
+        @if (keyframeService.getKeyframes(animation.id); as keyframes) {
+          @if (keyframes.length === 0) {
+            <div class="text-[10px] text-neutral-500 dark:text-neutral-400 italic">
+              {{ "animationCreator.noKeyframes" | transloco }}
+            </div>
+          } @else {
+            <div class="flex flex-wrap gap-1">
+              @for (kf of keyframes; track kf.id) {
+                <button
+                  [id]="'keyframe-' + kf.id"
+                  type="button"
+                  (click)="selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)"
+                  class="px-2 py-1 text-[10px] rounded-sm transition-colors"
+                  [class.bg-blue-500]="selectedKeyframeId() === kf.id"
+                  [class.text-white]="selectedKeyframeId() === kf.id"
+                  [class.bg-neutral-200]="selectedKeyframeId() !== kf.id"
+                  [class.dark\:bg-neutral-700]="selectedKeyframeId() !== kf.id"
+                  [class.hover\:bg-neutral-300]="selectedKeyframeId() !== kf.id"
+                  [class.dark\:hover\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
+                >
+                  {{ formatTime(kf.time) }}
+                </button>
+              }
+            </div>
+          }
+        }
+      } @else {
+        <div class="text-[10px] text-neutral-500 dark:text-neutral-400 italic">
+          {{ "animationCreator.selectAnimation" | transloco }}
+        </div>
+      }
+    </div>
+  </div>
+</div>
