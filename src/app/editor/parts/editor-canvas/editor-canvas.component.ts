@@ -1498,7 +1498,6 @@ export class EditorCanvas {
 
     const tool = this.tools.currentTool();
     if (tool === 'bone') {
-      const frameId = this.getCurrentFrameId();
       const bones = this.boneService.getBones(frameId);
       
       ctx.save();
@@ -1553,6 +1552,29 @@ export class EditorCanvas {
         }
       }
       ctx.restore();
+      
+      const bindings = this.document.keyframeService?.getPixelBindings(frameId);
+      if (bindings && bindings.length > 0 && this.tools.boneAutoBindEnabled()) {
+        ctx.save();
+        
+        const boneColorMap = new Map<string, string>();
+        for (const bone of bones) {
+          boneColorMap.set(bone.id, bone.color);
+        }
+        
+        for (const binding of bindings) {
+          const boneColor = boneColorMap.get(binding.boneId) || '#ff6600';
+          
+          const r = parseInt(boneColor.slice(1, 3), 16);
+          const g = parseInt(boneColor.slice(3, 5), 16);
+          const b = parseInt(boneColor.slice(5, 7), 16);
+          
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.2)`;
+          ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
+        }
+        
+        ctx.restore();
+      }
     }
 
     // Draw active selection if present
