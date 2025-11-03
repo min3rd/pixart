@@ -1298,7 +1298,8 @@ export class EditorCanvas {
     const currentAnim = this.document.getCurrentAnimation();
     const animationId = currentAnim?.id;
     const currentTime = this.document.keyframeService?.getCurrentTime();
-    const shouldApplyBoneTransforms = !!(animationId && typeof currentTime === 'number');
+    const isInTimelineMode = this.document.keyframeService?.isTimelineMode();
+    const shouldApplyBoneTransforms = !!(animationId && typeof currentTime === 'number' && isInTimelineMode);
 
     const layers = this.document.getFlattenedLayers();
     for (let li = layers.length - 1; li >= 0; li--) {
@@ -1333,14 +1334,18 @@ export class EditorCanvas {
           }
 
           if (transform) {
-            const transformedX = transform.x + binding.offsetX;
-            const transformedY = transform.y + binding.offsetY;
+            const transformedX = Math.floor(transform.x + binding.offsetX);
+            const transformedY = Math.floor(transform.y + binding.offsetY);
 
             if (transformedX >= 0 && transformedX < w && transformedY >= 0 && transformedY < h) {
               ctx.fillStyle = col;
               ctx.fillRect(transformedX, transformedY, 1, 1);
               drawnPixels.add(idx);
             }
+          } else {
+            ctx.fillStyle = col;
+            ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
+            drawnPixels.add(idx);
           }
         }
 
@@ -1505,18 +1510,26 @@ export class EditorCanvas {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
-        for (let i = 0; i < bone.points.length; i++) {
-          const point = bone.points[i];
-          
+        const drawnConnections = new Set<string>();
+        
+        const drawConnection = (point: BonePoint) => {
           if (point.parentId) {
+            const connectionKey = `${point.parentId}->${point.id}`;
+            if (drawnConnections.has(connectionKey)) return;
+            
             const parent = bone.points.find(p => p.id === point.parentId);
             if (parent) {
               ctx.beginPath();
               ctx.moveTo(parent.x + 0.5, parent.y + 0.5);
               ctx.lineTo(point.x + 0.5, point.y + 0.5);
               ctx.stroke();
+              drawnConnections.add(connectionKey);
             }
           }
+        };
+        
+        for (const point of bone.points) {
+          drawConnection(point);
         }
         
         for (const point of bone.points) {
