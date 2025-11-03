@@ -17,7 +17,6 @@ import {
   heroStop,
   heroPlus,
   heroTrash,
-  heroLink,
 } from '@ng-icons/heroicons/outline';
 import { EditorKeyframeService } from '../../../services/editor/editor-keyframe.service';
 import { EditorAnimationCollectionService } from '../../../services/editor/editor-animation-collection.service';
@@ -36,7 +35,6 @@ import { EditorDocumentService, isLayer } from '../../../services/editor-documen
       heroStop,
       heroPlus,
       heroTrash,
-      heroLink,
     }),
   ],
   host: {
@@ -65,6 +63,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   readonly zoomLevel = signal(1);
   readonly editingKeyframeId = signal<string | null>(null);
   readonly editingKeyframeTime = signal<number>(0);
+  readonly newKeyframeId = signal<string | null>(null);
 
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
@@ -144,6 +143,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
       keyframes.forEach((kf) => {
         const x = kf.time * pixelsPerMs;
         const isSelected = this.selectedKeyframeId() === kf.id;
+        const isNew = this.newKeyframeId() === kf.id;
 
         ctx.fillStyle = isSelected ? '#3b82f6' : '#6366f1';
         ctx.beginPath();
@@ -154,6 +154,12 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
           ctx.strokeStyle = '#1d4ed8';
           ctx.lineWidth = 2;
           ctx.stroke();
+        }
+
+        if (isNew) {
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 8px sans-serif';
+          ctx.fillText('NEW', x - 10, height / 2 - 10);
         }
       });
     }
@@ -304,6 +310,15 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
     this.keyframeService.addKeyframe(currentAnimation.id, keyframe);
     this.selectedKeyframeId.set(keyframe.id);
+    this.newKeyframeId.set(keyframe.id);
+    
+    setTimeout(() => {
+      if (this.newKeyframeId() === keyframe.id) {
+        this.newKeyframeId.set(null);
+        this.renderTimeline();
+      }
+    }, 3000);
+    
     this.renderTimeline();
     
     alert(this.translocoService.translate('animationCreator.keyframeSaved', {
@@ -334,93 +349,6 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   decreaseZoom() {
     this.zoomLevel.set(Math.max(this.zoomLevel() / 1.5, 0.5));
     this.renderTimeline();
-  }
-
-  autoBindPixels() {
-    const currentAnimation = this.animationService.getCurrentAnimation();
-    if (!currentAnimation) {
-      alert(this.translocoService.translate('animationCreator.noAnimationSelected'));
-      return;
-    }
-
-    const frames = this.documentService.frames();
-    const frameIndex = this.documentService.currentFrameIndex();
-    const currentFrame = frames[frameIndex];
-    if (!currentFrame) {
-      alert(this.translocoService.translate('animationCreator.noFrameSelected'));
-      return;
-    }
-
-    const bones = this.boneService.getBones(currentFrame.id);
-    if (bones.length === 0) {
-      alert(this.translocoService.translate('animationCreator.noBonesFound'));
-      return;
-    }
-
-    this.keyframeService.clearPixelBindings(currentFrame.id);
-
-    const width = this.documentService.canvasWidth();
-    const height = this.documentService.canvasHeight();
-    const radius = 20;
-    let boundCount = 0;
-
-    const layers = this.documentService.layers().filter(isLayer);
-    for (const layer of layers) {
-      if (!layer.visible) continue;
-      
-      const buffer = this.documentService.getLayerBuffer(layer.id);
-      if (!buffer || buffer.length !== width * height) continue;
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const idx = y * width + x;
-          const color = buffer[idx];
-          
-          if (!color || !color.length) continue;
-
-          let pixelBound = false;
-          for (const bone of bones) {
-            if (pixelBound) break;
-            for (const point of bone.points) {
-              const dx = x - point.x;
-              const dy = y - point.y;
-              const distance = Math.sqrt(dx * dx + dy * dy);
-
-              if (distance <= radius) {
-                this.keyframeService.addPixelBinding(currentFrame.id, {
-                  pixelX: x,
-                  pixelY: y,
-                  layerId: layer.id,
-                  boneId: bone.id,
-                  bonePointId: point.id,
-                  offsetX: dx,
-                  offsetY: dy,
-                });
-                boundCount++;
-                pixelBound = true;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    alert(
-      this.translocoService.translate('animationCreator.pixelsBound', {
-        count: boundCount,
-      }),
-    );
-  }
-
-  clearBindings() {
-    const frames = this.documentService.frames();
-    const frameIndex = this.documentService.currentFrameIndex();
-    const currentFrame = frames[frameIndex];
-    if (!currentFrame) return;
-
-    this.keyframeService.clearPixelBindings(currentFrame.id);
-    alert(this.translocoService.translate('animationCreator.bindingsCleared'));
   }
 
   startEditingKeyframeTime(keyframeId: string, currentTime: number) {
