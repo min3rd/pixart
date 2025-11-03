@@ -62,6 +62,8 @@ export class AnimationCreatorPanel implements AfterViewInit {
   readonly hoveredTime = signal<number | null>(null);
   readonly selectedKeyframeId = signal<string | null>(null);
   readonly zoomLevel = signal(1);
+  readonly editingKeyframeId = signal<string | null>(null);
+  readonly editingKeyframeTime = signal<number>(0);
 
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
@@ -275,17 +277,18 @@ export class AnimationCreatorPanel implements AfterViewInit {
 
     const frameId = currentAnimation.frames[0]?.id || 'default';
     const bones = this.boneService.getBones(frameId);
-    const boneTransforms = bones.map((bone) => {
-      const firstPoint = bone.points[0];
-      return {
+    
+    const boneTransforms = bones.flatMap((bone) => 
+      bone.points.map((point) => ({
         boneId: bone.id,
-        x: firstPoint?.x || 0,
-        y: firstPoint?.y || 0,
+        bonePointId: point.id,
+        x: point.x,
+        y: point.y,
         rotation: 0,
         scaleX: 1,
         scaleY: 1,
-      };
-    });
+      }))
+    );
 
     const keyframe = {
       id: `kf-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -296,6 +299,10 @@ export class AnimationCreatorPanel implements AfterViewInit {
     this.keyframeService.addKeyframe(currentAnimation.id, keyframe);
     this.selectedKeyframeId.set(keyframe.id);
     this.renderTimeline();
+    
+    alert(this.translocoService.translate('animationCreator.keyframeSaved', {
+      count: boneTransforms.length
+    }));
   }
 
   deleteSelectedKeyframe() {
@@ -408,5 +415,33 @@ export class AnimationCreatorPanel implements AfterViewInit {
 
     this.keyframeService.clearPixelBindings(currentFrame.id);
     alert(this.translocoService.translate('animationCreator.bindingsCleared'));
+  }
+
+  startEditingKeyframeTime(keyframeId: string, currentTime: number) {
+    this.editingKeyframeId.set(keyframeId);
+    this.editingKeyframeTime.set(currentTime / 1000);
+  }
+
+  saveKeyframeTimeEdit(keyframeId: string, newTimeSeconds: number) {
+    const currentAnimation = this.animationService.getCurrentAnimation();
+    if (!currentAnimation) return;
+
+    const newTimeMs = newTimeSeconds * 1000;
+    if (newTimeMs < 0 || newTimeMs > this.duration()) {
+      alert(this.translocoService.translate('animationCreator.invalidTime'));
+      this.editingKeyframeId.set(null);
+      return;
+    }
+
+    this.keyframeService.updateKeyframe(currentAnimation.id, keyframeId, {
+      time: newTimeMs,
+    });
+
+    this.editingKeyframeId.set(null);
+    this.renderTimeline();
+  }
+
+  cancelKeyframeTimeEdit() {
+    this.editingKeyframeId.set(null);
   }
 }

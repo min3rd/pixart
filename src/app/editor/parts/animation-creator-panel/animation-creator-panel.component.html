@@ -147,20 +147,36 @@
           } @else {
             <div class="flex flex-wrap gap-1">
               @for (kf of keyframes; track kf.id) {
-                <button
-                  [id]="'keyframe-' + kf.id"
-                  type="button"
-                  (click)="selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)"
-                  class="px-2 py-1 text-[10px] rounded-sm transition-colors"
-                  [class.bg-blue-500]="selectedKeyframeId() === kf.id"
-                  [class.text-white]="selectedKeyframeId() === kf.id"
-                  [class.bg-neutral-200]="selectedKeyframeId() !== kf.id"
-                  [class.dark\:bg-neutral-700]="selectedKeyframeId() !== kf.id"
-                  [class.hover\:bg-neutral-300]="selectedKeyframeId() !== kf.id"
-                  [class.dark\:hover\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
-                >
-                  {{ formatTime(kf.time) }}
-                </button>
+                @if (editingKeyframeId() === kf.id) {
+                  <input
+                    [id]="'keyframe-edit-' + kf.id"
+                    type="number"
+                    step="0.1"
+                    [value]="editingKeyframeTime()"
+                    (input)="editingKeyframeTime.set(+$any($event.target).value)"
+                    (keydown.enter)="saveKeyframeTimeEdit(kf.id, editingKeyframeTime())"
+                    (keydown.escape)="cancelKeyframeTimeEdit()"
+                    (blur)="cancelKeyframeTimeEdit()"
+                    class="w-16 px-2 py-1 text-[10px] rounded-sm border border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    autofocus
+                  />
+                } @else {
+                  <button
+                    [id]="'keyframe-' + kf.id"
+                    type="button"
+                    (click)="selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)"
+                    (dblclick)="startEditingKeyframeTime(kf.id, kf.time)"
+                    class="px-2 py-1 text-[10px] rounded-sm transition-colors"
+                    [class.bg-blue-500]="selectedKeyframeId() === kf.id"
+                    [class.text-white]="selectedKeyframeId() === kf.id"
+                    [class.bg-neutral-200]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:bg-neutral-700]="selectedKeyframeId() !== kf.id"
+                    [class.hover\:bg-neutral-300]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:hover\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
+                  >
+                    {{ formatTime(kf.time) }}
+                  </button>
+                }
               }
             </div>
           }

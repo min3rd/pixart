@@ -255,6 +255,9 @@
     "noFrameSelected": "Chưa chọn frame nào",
     "noBonesFound": "Không tìm thấy bone. Hãy vẽ bone bằng công cụ Bone trước.",
     "pixelsBound": "Đã gắn {{count}} pixel vào bones",
-    "bindingsCleared": "Đã xóa tất cả liên kết pixel"
+    "bindingsCleared": "Đã xóa tất cả liên kết pixel",
+    "keyframeSaved": "Đã lưu keyframe với {{count}} vị trí điểm bone",
+    "invalidTime": "Thời gian không hợp lệ. Thời gian phải nằm trong khoảng từ 0 đến thời lượng animation.",
+    "editKeyframeTime": "Sửa thời gian"
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 
 export interface BoneTransform {
   boneId: string;
+  bonePointId: string;
   x: number;
   y: number;
   rotation: number;
@@ -100,13 +101,14 @@ export class EditorKeyframeService {
   interpolateBoneTransform(
     animationId: string,
     boneId: string,
+    bonePointId: string,
     time: number,
   ): BoneTransform | null {
     const keyframes = this.getKeyframes(animationId);
     if (keyframes.length === 0) return null;
 
     const relevantKeyframes = keyframes.filter((kf) =>
-      kf.boneTransforms.some((bt) => bt.boneId === boneId),
+      kf.boneTransforms.some((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId),
     );
 
     if (relevantKeyframes.length === 0) return null;
@@ -121,17 +123,17 @@ export class EditorKeyframeService {
 
     if (!before && !after) return null;
     if (!after) {
-      return before.boneTransforms.find((bt) => bt.boneId === boneId) || null;
+      return before.boneTransforms.find((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId) || null;
     }
     if (!before) {
-      return after.boneTransforms.find((bt) => bt.boneId === boneId) || null;
+      return after.boneTransforms.find((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId) || null;
     }
 
     const beforeTransform = before.boneTransforms.find(
-      (bt) => bt.boneId === boneId,
+      (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
     );
     const afterTransform = after.boneTransforms.find(
-      (bt) => bt.boneId === boneId,
+      (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
     );
 
     if (!beforeTransform || !afterTransform) {
@@ -142,6 +144,7 @@ export class EditorKeyframeService {
 
     return {
       boneId,
+      bonePointId,
       x: this.lerp(beforeTransform.x, afterTransform.x, t),
       y: this.lerp(beforeTransform.y, afterTransform.y, t),
       rotation: this.lerpAngle(
