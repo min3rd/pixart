@@ -67,6 +67,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
+  private newKeyframeBadgeTimeoutId: number | null = null;
 
   constructor() {
     effect(() => {
@@ -89,6 +90,10 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.keyframeService.setTimelineMode('frame');
+    if (this.newKeyframeBadgeTimeoutId !== null) {
+      clearTimeout(this.newKeyframeBadgeTimeoutId);
+      this.newKeyframeBadgeTimeoutId = null;
+    }
   }
 
   renderTimeline() {
@@ -312,11 +317,16 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     this.selectedKeyframeId.set(keyframe.id);
     this.newKeyframeId.set(keyframe.id);
     
-    setTimeout(() => {
+    if (this.newKeyframeBadgeTimeoutId !== null) {
+      clearTimeout(this.newKeyframeBadgeTimeoutId);
+    }
+    
+    this.newKeyframeBadgeTimeoutId = window.setTimeout(() => {
       if (this.newKeyframeId() === keyframe.id) {
         this.newKeyframeId.set(null);
         this.renderTimeline();
       }
+      this.newKeyframeBadgeTimeoutId = null;
     }, 3000);
     
     this.renderTimeline();
