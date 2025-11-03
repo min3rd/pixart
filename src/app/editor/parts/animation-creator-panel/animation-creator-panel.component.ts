@@ -330,10 +330,6 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     }, 3000);
     
     this.renderTimeline();
-    
-    alert(this.translocoService.translate('animationCreator.keyframeSaved', {
-      count: boneTransforms.length
-    }));
   }
 
   deleteSelectedKeyframe() {
@@ -372,7 +368,6 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
     const newTimeMs = newTimeSeconds * 1000;
     if (newTimeMs < 0 || newTimeMs > this.duration()) {
-      alert(this.translocoService.translate('animationCreator.invalidTime'));
       this.editingKeyframeId.set(null);
       return;
     }
