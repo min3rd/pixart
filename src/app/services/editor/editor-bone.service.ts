@@ -97,6 +97,27 @@ export class EditorBoneService {
     this.bones.set(current);
   }
 
+  deletePoint(frameId: string, boneId: string, pointId: string): void {
+    const current = new Map(this.bones());
+    const frameBones = current.get(frameId) || [];
+    const updated = frameBones.map((b) => {
+      if (b.id === boneId) {
+        const remainingPoints = b.points.filter((p) => p.id !== pointId);
+        const updatedPoints = remainingPoints.map((p) => {
+          if (p.parentId === pointId) {
+            const deletedPoint = b.points.find((pt) => pt.id === pointId);
+            return { ...p, parentId: deletedPoint?.parentId || undefined };
+          }
+          return p;
+        });
+        return { ...b, points: updatedPoints };
+      }
+      return b;
+    });
+    current.set(frameId, updated);
+    this.bones.set(current);
+  }
+
   getSelectedBone(): string | null {
     return this.selectedBoneId();
   }

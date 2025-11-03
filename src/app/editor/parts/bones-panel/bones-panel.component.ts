@@ -8,6 +8,7 @@ import {
   heroTrash,
   heroPencil,
   heroLink,
+  heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorBoneService, type Bone } from '../../../services/editor/editor-bone.service';
@@ -24,6 +25,7 @@ import { EditorBoneService, type Bone } from '../../../services/editor/editor-bo
       heroTrash,
       heroPencil,
       heroLink,
+      heroXMark,
     }),
   ],
   host: {
@@ -114,5 +116,29 @@ export class BonesPanel {
 
   getPointsCount(bone: Bone): number {
     return bone.points.length;
+  }
+
+  getRootPoints(bone: Bone) {
+    return bone.points.filter(p => !p.parentId);
+  }
+
+  getChildPoints(bone: Bone, parentId: string) {
+    return bone.points.filter(p => p.parentId === parentId);
+  }
+
+  selectPoint(pointId: string, event: Event) {
+    event.stopPropagation();
+    this.boneService.selectPoint(pointId);
+  }
+
+  removePoint(boneId: string, pointId: string, event: Event) {
+    event.stopPropagation();
+    const msg = this.translocoService.translate('bones.confirmRemovePoint');
+    if (confirm(msg)) {
+      const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+      if (currentFrame) {
+        this.boneService.deletePoint(currentFrame.id, boneId, pointId);
+      }
+    }
   }
 }

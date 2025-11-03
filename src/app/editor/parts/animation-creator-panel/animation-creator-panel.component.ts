@@ -330,7 +330,9 @@ export class AnimationCreatorPanel implements AfterViewInit {
       return;
     }
 
-    const currentFrame = this.documentService.currentFrame();
+    const frames = this.documentService.frames();
+    const frameIndex = this.documentService.currentFrameIndex();
+    const currentFrame = frames[frameIndex];
     if (!currentFrame) {
       alert(this.translocoService.translate('animationCreator.noFrameSelected'));
       return;
@@ -344,51 +346,47 @@ export class AnimationCreatorPanel implements AfterViewInit {
 
     this.keyframeService.clearPixelBindings(currentFrame.id);
 
-    const canvas = document.createElement('canvas');
-    const width = this.documentService.width();
-    const height = this.documentService.height();
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
+    const width = this.documentService.canvasWidth();
+    const height = this.documentService.canvasHeight();
+    const radius = 20;
+    let boundCount = 0;
 
     const layers = this.documentService.layers().filter(isLayer);
     for (const layer of layers) {
       if (!layer.visible) continue;
-      if (layer.buffer) {
-        ctx.drawImage(layer.buffer, 0, 0);
-      }
-    }
+      
+      const buffer = this.documentService.getLayerBuffer(layer.id);
+      if (!buffer || buffer.length !== width * height) continue;
 
-    const imageData = ctx.getImageData(0, 0, width, height);
-    const radius = 20;
-    let boundCount = 0;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          const color = buffer[idx];
+          
+          if (!color || !color.length) continue;
 
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = (y * width + x) * 4;
-        const alpha = imageData.data[idx + 3];
-        
-        if (alpha === 0) continue;
+          let pixelBound = false;
+          for (const bone of bones) {
+            if (pixelBound) break;
+            for (const point of bone.points) {
+              const dx = x - point.x;
+              const dy = y - point.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
 
-        for (const bone of bones) {
-          for (const point of bone.points) {
-            const dx = x - point.x;
-            const dy = y - point.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance <= radius) {
-              this.keyframeService.addPixelBinding(currentFrame.id, {
-                pixelX: x,
-                pixelY: y,
-                layerId: layers[0]?.id || '',
-                boneId: bone.id,
-                bonePointId: point.id,
-                offsetX: dx,
-                offsetY: dy,
-              });
-              boundCount++;
-              break;
+              if (distance <= radius) {
+                this.keyframeService.addPixelBinding(currentFrame.id, {
+                  pixelX: x,
+                  pixelY: y,
+                  layerId: layer.id,
+                  boneId: bone.id,
+                  bonePointId: point.id,
+                  offsetX: dx,
+                  offsetY: dy,
+                });
+                boundCount++;
+                pixelBound = true;
+                break;
+              }
             }
           }
         }
@@ -403,7 +401,9 @@ export class AnimationCreatorPanel implements AfterViewInit {
   }
 
   clearBindings() {
-    const currentFrame = this.documentService.currentFrame();
+    const frames = this.documentService.frames();
+    const frameIndex = this.documentService.currentFrameIndex();
+    const currentFrame = frames[frameIndex];
     if (!currentFrame) return;
 
     this.keyframeService.clearPixelBindings(currentFrame.id);
