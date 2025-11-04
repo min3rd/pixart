@@ -6,6 +6,7 @@ import {
   signal,
   computed,
   inject,
+  OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -48,9 +49,10 @@ export interface PixelArtGenerationResult {
     class: 'block',
   },
 })
-export class PixelArtGenerationDialog {
+export class PixelArtGenerationDialog implements OnDestroy {
   private readonly pixelEngine = inject(PixelGenerationEngineService);
   private readonly editorDoc = inject(EditorDocumentService);
+  private pollingIntervalId: number | null = null;
 
   readonly visible = signal(false);
   readonly prompt = signal('');
@@ -107,7 +109,12 @@ export class PixelArtGenerationDialog {
     if (jobId && this.processing()) {
       this.pixelEngine.cancelJob(jobId);
     }
+    this.clearPollingInterval();
     this.visible.set(false);
+  }
+
+  ngOnDestroy() {
+    this.clearPollingInterval();
   }
 
   async generate() {
@@ -172,22 +179,31 @@ export class PixelArtGenerationDialog {
     this.close();
   }
 
+  private clearPollingInterval() {
+    if (this.pollingIntervalId !== null) {
+      clearInterval(this.pollingIntervalId);
+      this.pollingIntervalId = null;
+    }
+  }
+
   private pollJobStatus(jobId: string) {
-    const checkInterval = setInterval(async () => {
+    this.clearPollingInterval();
+    
+    this.pollingIntervalId = window.setInterval(async () => {
       try {
         const response = await this.pixelEngine.checkJobStatus(jobId);
 
         if (response.status === 'completed') {
-          clearInterval(checkInterval);
+          this.clearPollingInterval();
           this.processing.set(false);
           this.completed.set(true);
         } else if (response.status === 'failed') {
-          clearInterval(checkInterval);
+          this.clearPollingInterval();
           this.processing.set(false);
           this.error.set(response.error || 'Generation failed');
         }
       } catch (err) {
-        clearInterval(checkInterval);
+        this.clearPollingInterval();
         this.processing.set(false);
         this.error.set(err instanceof Error ? err.message : 'Failed to check status');
       }
