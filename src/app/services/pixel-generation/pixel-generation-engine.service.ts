@@ -5,18 +5,16 @@ import {
   PIXEL_ART_STYLE_CONFIGS,
   PixelGenerationMetadata,
 } from './pixel-generation-models';
-import { PixelGenerationApiService } from './pixel-generation-api.service';
+import { PixelGenerationLocalService } from './pixel-generation-local.service';
 
 export interface ProcessingJob {
   id: string;
   response: PixelGenerationResponse;
   startTime: number;
-  checkInterval?: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationEngineService {
-  private readonly POLL_INTERVAL_MS = 2000;
   private readonly jobs = signal<Map<string, ProcessingJob>>(new Map());
 
   readonly activeJobs = computed(() => Array.from(this.jobs().values()));
@@ -24,7 +22,7 @@ export class PixelGenerationEngineService {
     () => this.activeJobs().filter((job) => job.response.status === 'processing').length,
   );
 
-  constructor(private readonly apiService: PixelGenerationApiService) {}
+  constructor(private readonly localService: PixelGenerationLocalService) {}
 
   async generatePixelArt(
     sketchImageData: ImageData,
@@ -34,38 +32,57 @@ export class PixelGenerationEngineService {
     style: PixelArtStyle = 'pixel-modern',
     customColorPalette?: string[],
   ): Promise<string> {
-    const processedSketch = this.preprocessSketch(sketchImageData, targetWidth, targetHeight);
-
-    const analysis = await this.apiService.analyzePrompt(prompt);
-
-    const colorPalette = customColorPalette || analysis.suggestedColors;
-
-    const response = await this.apiService.createGenerationRequest(
-      processedSketch,
-      prompt,
-      targetWidth,
-      targetHeight,
-      style,
-      colorPalette,
-    );
-
+    const jobId = this.generateJobId();
+    
     const job: ProcessingJob = {
-      id: response.id,
-      response,
+      id: jobId,
+      response: {
+        id: jobId,
+        status: 'processing',
+        progress: 0,
+      },
       startTime: Date.now(),
     };
 
     this.jobs.update((jobs) => {
       const newJobs = new Map(jobs);
-      newJobs.set(response.id, job);
+      newJobs.set(jobId, job);
       return newJobs;
     });
 
-    if (response.status === 'processing' || response.status === 'pending') {
-      this.pollJobStatus(response.id);
-    }
+    setTimeout(async () => {
+      try {
+        const result = await this.localService.processLocally(
+          sketchImageData,
+          prompt,
+          targetWidth,
+          targetHeight,
+          style,
+          customColorPalette,
+        );
 
-    return response.id;
+        this.jobs.update((jobs) => {
+          const newJobs = new Map(jobs);
+          newJobs.set(jobId, { ...job, response: result });
+          return newJobs;
+        });
+      } catch (error) {
+        const errorResponse: PixelGenerationResponse = {
+          id: jobId,
+          status: 'failed',
+          progress: 0,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+        
+        this.jobs.update((jobs) => {
+          const newJobs = new Map(jobs);
+          newJobs.set(jobId, { ...job, response: errorResponse });
+          return newJobs;
+        });
+      }
+    }, 100);
+
+    return jobId;
   }
 
   async generateFromCanvas(
@@ -105,35 +122,12 @@ export class PixelGenerationEngineService {
     return this.jobs().get(jobId);
   }
 
-  async checkJobStatus(jobId: string): Promise<PixelGenerationResponse> {
-    const response = await this.apiService.checkStatus(jobId);
-
-    this.jobs.update((jobs) => {
-      const job = jobs.get(jobId);
-      if (job) {
-        const newJobs = new Map(jobs);
-        newJobs.set(jobId, { ...job, response });
-        return newJobs;
-      }
-      return jobs;
-    });
-
-    return response;
-  }
-
   cancelJob(jobId: string): void {
-    const job = this.jobs().get(jobId);
-    if (job?.checkInterval) {
-      clearInterval(job.checkInterval);
-    }
-
     this.jobs.update((jobs) => {
       const newJobs = new Map(jobs);
       newJobs.delete(jobId);
       return newJobs;
     });
-
-    this.apiService.clearRequest(jobId);
   }
 
   async getResultAsImageData(jobId: string): Promise<ImageData | null> {
@@ -143,15 +137,7 @@ export class PixelGenerationEngineService {
     const { response } = job;
     if (response.status !== 'completed') return null;
 
-    if (response.resultImageData) {
-      return response.resultImageData;
-    }
-
-    if (response.resultDataUrl) {
-      return this.dataUrlToImageData(response.resultDataUrl);
-    }
-
-    return null;
+    return response.resultImageData || null;
   }
 
   async getResultAsLayerBuffer(
@@ -165,39 +151,8 @@ export class PixelGenerationEngineService {
     return this.imageDataToLayerBuffer(imageData, canvasWidth, canvasHeight);
   }
 
-  private preprocessSketch(
-    imageData: ImageData,
-    targetWidth: number,
-    targetHeight: number,
-  ): ImageData {
-    if (imageData.width === targetWidth && imageData.height === targetHeight) {
-      return imageData;
-    }
-
-    const canvas = document.createElement('canvas');
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) {
-      throw new Error('Cannot create canvas context');
-    }
-
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = imageData.width;
-    tempCanvas.height = imageData.height;
-    const tempCtx = tempCanvas.getContext('2d');
-
-    if (!tempCtx) {
-      throw new Error('Cannot create temp canvas context');
-    }
-
-    tempCtx.putImageData(imageData, 0, 0);
-
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(tempCanvas, 0, 0, targetWidth, targetHeight);
-
-    return ctx.getImageData(0, 0, targetWidth, targetHeight);
+  private generateJobId(): string {
+    return `job-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private layerBufferToImageData(
@@ -257,77 +212,6 @@ export class PixelGenerationEngineService {
     }
 
     return buffer;
-  }
-
-  private async dataUrlToImageData(dataUrl: string): Promise<ImageData> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          reject(new Error('Cannot create canvas context'));
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0);
-        resolve(ctx.getImageData(0, 0, img.width, img.height));
-      };
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = dataUrl;
-    });
-  }
-
-  private pollJobStatus(jobId: string): void {
-    const checkInterval = window.setInterval(async () => {
-      try {
-        const response = await this.checkJobStatus(jobId);
-
-        if (response.status === 'completed' || response.status === 'failed') {
-          clearInterval(checkInterval);
-          this.jobs.update((jobs) => {
-            const job = jobs.get(jobId);
-            if (job) {
-              const newJobs = new Map(jobs);
-              newJobs.set(jobId, { ...job, checkInterval: undefined });
-              return newJobs;
-            }
-            return jobs;
-          });
-        }
-      } catch (error) {
-        console.error(`Error polling job ${jobId}:`, error);
-        clearInterval(checkInterval);
-        
-        this.jobs.update((jobs) => {
-          const job = jobs.get(jobId);
-          if (job) {
-            const newJobs = new Map(jobs);
-            const failedResponse: PixelGenerationResponse = {
-              ...job.response,
-              status: 'failed',
-              error: error instanceof Error ? error.message : 'Failed to check job status',
-            };
-            newJobs.set(jobId, { ...job, response: failedResponse, checkInterval: undefined });
-            return newJobs;
-          }
-          return jobs;
-        });
-      }
-    }, this.POLL_INTERVAL_MS);
-
-    this.jobs.update((jobs) => {
-      const job = jobs.get(jobId);
-      if (job) {
-        const newJobs = new Map(jobs);
-        newJobs.set(jobId, { ...job, checkInterval });
-        return newJobs;
-      }
-      return jobs;
-    });
   }
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {

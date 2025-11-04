@@ -144,7 +144,8 @@ export class PixelArtGenerationDialog implements OnDestroy {
         );
 
         this.currentJobId.set(jobId);
-        this.pollJobStatus(jobId);
+        
+        this.checkJobCompletion(jobId);
       } else {
         const errorKey = 'pixelGeneration.noLayerSelected';
         throw new Error(errorKey);
@@ -189,26 +190,29 @@ export class PixelArtGenerationDialog implements OnDestroy {
     }
   }
 
-  private pollJobStatus(jobId: string) {
+  private checkJobCompletion(jobId: string) {
     this.clearPollingInterval();
     
-    this.pollingIntervalId = window.setInterval(async () => {
-      try {
-        const response = await this.pixelEngine.checkJobStatus(jobId);
-
-        if (response.status === 'completed') {
-          this.clearPollingInterval();
-          this.processing.set(false);
-          this.completed.set(true);
-        } else if (response.status === 'failed') {
-          this.clearPollingInterval();
-          this.processing.set(false);
-          this.error.set(response.error || 'Generation failed');
-        }
-      } catch (err) {
+    this.pollingIntervalId = window.setInterval(() => {
+      const job = this.pixelEngine.getJob(jobId);
+      
+      if (!job) {
         this.clearPollingInterval();
         this.processing.set(false);
-        this.error.set(err instanceof Error ? err.message : 'Failed to check status');
+        this.error.set('Job not found');
+        return;
+      }
+
+      const response = job.response;
+
+      if (response.status === 'completed') {
+        this.clearPollingInterval();
+        this.processing.set(false);
+        this.completed.set(true);
+      } else if (response.status === 'failed') {
+        this.clearPollingInterval();
+        this.processing.set(false);
+        this.error.set(response.error || 'Generation failed');
       }
     }, this.POLL_INTERVAL_MS);
   }
