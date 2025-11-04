@@ -25,6 +25,46 @@
     "brush": "Cọ vẽ",
     "bone": "Xương"
   },
+  "tooltips": {
+    "menu": {
+      "file": "Thao tác với tệp",
+      "edit": "Chỉnh sửa",
+      "insert": "Chèn nội dung",
+      "tool": "Công cụ vẽ và chỉnh sửa",
+      "help": "Trợ giúp và cài đặt",
+      "undo": "Hoàn tác thao tác cuối",
+      "redo": "Làm lại thao tác vừa hoàn tác"
+    },
+    "tools": {
+      "selectLayer": "Chọn và di chuyển layer",
+      "rectSelect": "Chọn vùng hình chữ nhật",
+      "ellipseSelect": "Chọn vùng hình elip",
+      "lassoSelect": "Chọn vùng tự do",
+      "eyedropper": "Lấy màu từ canvas",
+      "fill": "Đổ màu vào vùng",
+      "eraser": "Xóa pixel",
+      "line": "Vẽ đường thẳng",
+      "circle": "Vẽ hình tròn",
+      "square": "Vẽ hình vuông và chữ nhật",
+      "brush": "Vẽ bằng cọ",
+      "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh"
+    },
+    "panels": {
+      "layers": "Quản lý layer và thuộc tính",
+      "bones": "Quản lý xương và hoạt ảnh khung xương",
+      "timeline": "Quản lý timeline và các khung hình",
+      "animationCreator": "Tạo và chỉnh sửa animation keyframe"
+    },
+    "file": {
+      "new": "Tạo dự án mới",
+      "open": "Mở dự án từ máy tính",
+      "save": "Lưu dự án vào trình duyệt",
+      "saveToComputer": "Tải dự án về máy tính"
+    },
+    "insert": {
+      "image": "Chèn ảnh thành layer mới"
+    }
+  },
   "layers": {
     "title": "Danh sách layer",
     "hide": "Ẩn",

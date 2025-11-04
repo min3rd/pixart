@@ -42,6 +42,7 @@
         [class.text-neutral-600]="rightPanelTab() !== 'layers'"
         [class.dark\:text-neutral-400]="rightPanelTab() !== 'layers'"
         id="layers-tab-button"
+        [paTooltip]="'tooltips.panels.layers' | transloco"
       >
         {{ "layers.title" | transloco }}
       </button>
@@ -56,6 +57,7 @@
         [class.text-neutral-600]="rightPanelTab() !== 'bones'"
         [class.dark\:text-neutral-400]="rightPanelTab() !== 'bones'"
         id="bones-tab-button"
+        [paTooltip]="'tooltips.panels.bones' | transloco"
       >
         {{ "bones.title" | transloco }}
       </button>
@@ -93,6 +95,7 @@
         [class.text-neutral-600]="bottomPanelTab() !== 'timeline'"
         [class.dark\:text-neutral-400]="bottomPanelTab() !== 'timeline'"
         id="timeline-tab-button"
+        [paTooltip]="'tooltips.panels.timeline' | transloco"
       >
         {{ "timeline.title" | transloco }}
       </button>
@@ -107,6 +110,7 @@
         [class.text-neutral-600]="bottomPanelTab() !== 'animationCreator'"
         [class.dark\:text-neutral-400]="bottomPanelTab() !== 'animationCreator'"
         id="animation-creator-tab-button"
+        [paTooltip]="'tooltips.panels.animationCreator' | transloco"
       >
         {{ "animationCreator.title" | transloco }}
       </button>

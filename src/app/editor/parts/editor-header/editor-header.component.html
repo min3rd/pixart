@@ -16,6 +16,7 @@
         class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="showFileMenu.set(!showFileMenu())"
         [attr.aria-expanded]="showFileMenu()"
+        [paTooltip]="'tooltips.menu.file' | transloco"
       >
         {{ "menu.file" | transloco }}
       </button>
@@ -29,27 +30,42 @@
         >
           <button
             id="menu-file-new-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onNewProject()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.new')"
           >
-            {{ "file.new" | transloco }}
+            <span>{{ "file.new" | transloco }}</span>
+            @if (hotkeys.getBinding('file.new')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.new')!) }}
+            </span>
+            }
           </button>
           <button
             id="menu-file-open-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onOpenFromComputer()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.open')"
           >
-            {{ "file.openFromComputer" | transloco }}
+            <span>{{ "file.openFromComputer" | transloco }}</span>
+            @if (hotkeys.getBinding('file.open')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.open')!) }}
+            </span>
+            }
           </button>
           <button
             id="menu-file-save-computer-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onSaveToComputer()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.saveToComputer')"
           >
-            {{ "file.saveToComputer" | transloco }}
+            <span>{{ "file.saveToComputer" | transloco }}</span>
+            @if (hotkeys.getBinding('file.saveToComputer')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.saveToComputer')!) }}
+            </span>
+            }
           </button>
           <div
             id="menu-file-divider"
@@ -57,11 +73,16 @@
           ></div>
           <button
             id="menu-file-save-local-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onSave()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.save')"
           >
-            {{ "file.saveLocal" | transloco }}
+            <span>{{ "file.saveLocal" | transloco }}</span>
+            @if (hotkeys.getBinding('file.save')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.save')!) }}
+            </span>
+            }
           </button>
         </div>
       }
@@ -70,6 +91,7 @@
       type="button"
       id="menu-edit-button"
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+      [paTooltip]="'tooltips.menu.edit' | transloco"
     >
       {{ "menu.edit" | transloco }}
     </button>
@@ -85,6 +107,7 @@
         class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="showInsertMenu.set(!showInsertMenu())"
         [attr.aria-expanded]="showInsertMenu()"
+        [paTooltip]="'tooltips.menu.insert' | transloco"
       >
         {{ "menu.insert" | transloco }}
       </button>
@@ -98,11 +121,16 @@
         >
           <button
             id="menu-insert-image-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onInsertImage()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('insert.image')"
           >
-            {{ "insert.insertImage" | transloco }}
+            <span>{{ "insert.insertImage" | transloco }}</span>
+            @if (hotkeys.getBinding('insert.image')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('insert.image')!) }}
+            </span>
+            }
           </button>
         </div>
       }
@@ -112,8 +140,9 @@
       id="menu-undo-button"
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onUndo()"
-      title="{{ 'menu.undo' | transloco }}"
       [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.undo')"
+      [paTooltip]="'tooltips.menu.undo' | transloco"
+      [paTooltipHotkeyId]="'edit.undo'"
     >
       {{ "menu.undo" | transloco }}
     </button>
@@ -122,8 +151,9 @@
       id="menu-redo-button"
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onRedo()"
-      title="{{ 'menu.redo' | transloco }}"
       [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.redo')"
+      [paTooltip]="'tooltips.menu.redo' | transloco"
+      [paTooltipHotkeyId]="'edit.redo'"
     >
       {{ "menu.redo" | transloco }}
     </button>
@@ -139,24 +169,176 @@
         class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="showToolMenu.set(!showToolMenu())"
         [attr.aria-expanded]="showToolMenu()"
+        [paTooltip]="'tooltips.menu.tool' | transloco"
       >
         {{ "menu.tool" | transloco }}
       </button>
       @if (showToolMenu()) {
         <div
           id="menu-tool-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-44"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
           tabindex="0"
           (focusin)="onToolMenuFocusIn()"
           (focusout)="onToolMenuFocusOut()"
         >
           <button
+            id="menu-tool-select-layer-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('select-layer')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.selectLayer')"
+          >
+            <span>{{ "tools.selectLayer" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.selectLayer')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.selectLayer')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-rect-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('rect-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.rectSelect')"
+          >
+            <span>{{ "tools.rectSelect" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.rectSelect')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.rectSelect')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-ellipse-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('ellipse-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.ellipseSelect')"
+          >
+            <span>{{ "tools.ellipseSelect" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.ellipseSelect')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.ellipseSelect')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-lasso-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('lasso-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.lassoSelect')"
+          >
+            <span>{{ "tools.lassoSelect" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.lassoSelect')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.lassoSelect')!) }}
+            </span>
+            }
+          </button>
+          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <button
+            id="menu-tool-brush-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('brush')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.brush')"
+          >
+            <span>{{ "tools.brush" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.brush')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.brush')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-eraser-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('eraser')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eraser')"
+          >
+            <span>{{ "tools.eraser" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.eraser')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.eraser')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-fill-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('fill')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.fill')"
+          >
+            <span>{{ "tools.fill" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.fill')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.fill')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-eyedropper-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('eyedropper')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eyedropper')"
+          >
+            <span>{{ "tools.eyedropper" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.eyedropper')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.eyedropper')!) }}
+            </span>
+            }
+          </button>
+          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <button
+            id="menu-tool-line-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('line')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.line')"
+          >
+            <span>{{ "tools.line" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.line')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.line')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-circle-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('circle')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.circle')"
+          >
+            <span>{{ "tools.circle" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.circle')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.circle')!) }}
+            </span>
+            }
+          </button>
+          <button
+            id="menu-tool-square-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('square')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.square')"
+          >
+            <span>{{ "tools.square" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.square')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.square')!) }}
+            </span>
+            }
+          </button>
+          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <button
             id="menu-tool-bone-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-            (click)="onSelectBoneTool()"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('bone')"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.bone')"
           >
-            {{ "tools.bone" | transloco }}
+            <span>{{ "tools.bone" | transloco }}</span>
+            @if (hotkeys.getBinding('tool.bone')) {
+            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
+              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.bone')!) }}
+            </span>
+            }
           </button>
         </div>
       }
@@ -173,6 +355,7 @@
         class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="showHelpMenu.set(!showHelpMenu())"
         [attr.aria-expanded]="showHelpMenu()"
+        [paTooltip]="'tooltips.menu.help' | transloco"
       >
         {{ "menu.help" | transloco }}
       </button>

@@ -16,9 +16,10 @@
           'border border-neutral-200/70 bg-neutral-50/60 text-neutral-600 transition-colors  dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-200':
             !active,
         }"
-        title="{{ t.labelKey ? (t.labelKey | transloco) : t.name }}"
         [attr.aria-pressed]="active"
         [attr.aria-keyshortcuts]="hotkeys.getBinding(getToolHotkeyId(t.id))"
+        [paTooltip]="getToolTooltipKey(t.id) | transloco"
+        [paTooltipHotkeyId]="getToolHotkeyId(t.id)"
       >
         <ng-icon
           id="tool-palette-button-icon-{{ t.id }}"
