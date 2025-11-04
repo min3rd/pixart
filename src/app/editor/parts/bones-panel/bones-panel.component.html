@@ -25,48 +25,6 @@
     </div>
   </div>
 
-  <div
-    class="shrink-0 border-b border-neutral-200 dark:border-neutral-800 p-2"
-    id="bones-auto-bind-settings"
-  >
-    <div
-      class="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-    >
-      {{ "bones.autoBindSettings" | transloco }}
-    </div>
-    <div class="flex items-center gap-2 mb-2">
-      <input
-        type="checkbox"
-        [(ngModel)]="autoBindEnabled"
-        id="auto-bind-enabled-checkbox"
-        class="rounded-sm"
-      />
-      <label
-        for="auto-bind-enabled-checkbox"
-        class="text-xs text-neutral-600 dark:text-neutral-400"
-      >
-        {{ "bones.autoBindEnabled" | transloco }}
-      </label>
-    </div>
-    <div class="flex items-center gap-2">
-      <label
-        for="auto-bind-radius-input"
-        class="text-xs text-neutral-600 dark:text-neutral-400 whitespace-nowrap"
-      >
-        {{ "bones.autoBindRadius" | transloco }}:
-      </label>
-      <input
-        type="number"
-        [(ngModel)]="autoBindRadius"
-        id="auto-bind-radius-input"
-        min="1"
-        max="100"
-        class="flex-1 px-1 py-0.5 text-xs border border-neutral-300 dark:border-neutral-700 rounded-sm bg-white dark:bg-neutral-900"
-      />
-      <span class="text-xs text-neutral-500 dark:text-neutral-500">px</span>
-    </div>
-  </div>
-
   <div class="flex-1 overflow-auto p-2" id="bones-list">
     @if (currentFrameBones().length === 0) {
       <div
@@ -123,7 +81,11 @@
                   [class.opacity-50]="bone.points.length === 0"
                   [class.cursor-not-allowed]="bone.points.length === 0"
                 >
-                  <ng-icon name="heroArrowPath" size="16"></ng-icon>
+                  <ng-icon
+                    name="heroArrowPath"
+                    size="16"
+                    [class.animate-spin]="autoBindingBoneId() === bone.id"
+                  ></ng-icon>
                 </button>
                 <button
                   type="button"
@@ -169,7 +131,9 @@
                       <div
                         class="flex items-center gap-1 py-0.5 px-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
                         [class.bg-blue-100]="isSelected"
-                        [class.dark\:bg-blue-900]="isSelected"
+                        [class.dark\:bg-blue-950]="isSelected"
+                        [class.text-blue-900]="isSelected"
+                        [class.dark\:text-blue-100]="isSelected"
                         (click)="selectPoint(point.id, $event)"
                         (dblclick)="onPointDoubleClick(bone.id, point, $event)"
                       >
@@ -206,7 +170,9 @@
                           <div
                             class="flex items-center gap-1 py-0.5 px-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
                             [class.bg-blue-100]="isChildSelected"
-                            [class.dark\:bg-blue-900]="isChildSelected"
+                            [class.dark\:bg-blue-950]="isChildSelected"
+                            [class.text-blue-900]="isChildSelected"
+                            [class.dark\:text-blue-100]="isChildSelected"
                             (click)="selectPoint(childPoint.id, $event)"
                             (dblclick)="
                               onPointDoubleClick(bone.id, childPoint, $event)

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import { GradientType, ToolId } from '../../../services/tools/tool.types';
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './tool-palette.component.html',
   styleUrls: ['./tool-palette.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, NgIcon, TranslocoPipe],
+  imports: [CommonModule, NgIcon, TranslocoPipe, FormsModule],
   host: {
     class: 'block h-full',
   },
@@ -169,5 +170,21 @@ export class ToolPalette {
   onBoneColorInput(event: Event) {
     const v = (event.target as HTMLInputElement).value;
     this.tools.setBoneColor(v);
+  }
+
+  get autoBindEnabled(): boolean {
+    return this.tools.boneAutoBindEnabled();
+  }
+
+  set autoBindEnabled(value: boolean) {
+    this.tools.setBoneAutoBindEnabled(value);
+  }
+
+  get autoBindRadius(): number {
+    return this.tools.boneAutoBindRadius();
+  }
+
+  set autoBindRadius(value: number) {
+    this.tools.setBoneAutoBindRadius(value);
   }
 }
