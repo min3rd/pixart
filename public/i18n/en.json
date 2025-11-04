@@ -74,6 +74,7 @@
     "autoBindSettings": "Auto-Bind Settings",
     "autoBindEnabled": "Enable auto-bind pixels",
     "autoBindRadius": "Binding radius",
+    "autoBindPixels": "Auto-bind pixels",
     "editPoint": "Edit Point",
     "pointName": "Point Name",
     "pointNamePlaceholder": "Enter point name",

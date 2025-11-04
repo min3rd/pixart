@@ -16,6 +16,7 @@ import {
   heroPencil,
   heroLink,
   heroXMark,
+  heroArrowPath,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import {
@@ -48,6 +49,7 @@ import {
       heroPencil,
       heroLink,
       heroXMark,
+      heroArrowPath,
     }),
   ],
   host: {
@@ -269,6 +271,40 @@ export class BonesPanel {
         binding.pixelY,
         1,
         newColor,
+      );
+    }
+  }
+
+  autoBindBonePixels(boneId: string, event: Event) {
+    event.stopPropagation();
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
+    if (!currentFrame) return;
+
+    const bone = this.currentFrameBones().find((b) => b.id === boneId);
+    if (!bone || bone.points.length === 0) return;
+
+    const layerId = this.document.selectedLayerId();
+    const layerBuffer = this.document.getLayerBuffer(layerId);
+    if (!layerBuffer) return;
+
+    const radius = this.tools.boneAutoBindRadius();
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+
+    this.document.keyframeService.clearPixelBindings(currentFrame.id);
+
+    for (const point of bone.points) {
+      this.boneService.autoBindPixels(
+        currentFrame.id,
+        layerBuffer,
+        w,
+        h,
+        boneId,
+        point.id,
+        point.x,
+        point.y,
+        radius,
       );
     }
   }
