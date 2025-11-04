@@ -18,6 +18,28 @@ export interface PixelGenerationApiConfig {
 export class PixelGenerationApiService {
   private readonly MIN_KEYWORD_LENGTH = 2;
   
+  private static readonly STOP_WORDS = new Set([
+    'a',
+    'an',
+    'the',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'and',
+    'or',
+  ]);
+  
   private readonly DEFAULT_CONFIG: PixelGenerationApiConfig = {
     endpoint: '/api/pixel-generation',
     timeout: 30000,
@@ -224,32 +246,10 @@ export class PixelGenerationApiService {
   }
 
   private extractKeywords(prompt: string): string[] {
-    const stopWords = new Set([
-      'a',
-      'an',
-      'the',
-      'is',
-      'are',
-      'was',
-      'were',
-      'be',
-      'been',
-      'being',
-      'in',
-      'on',
-      'at',
-      'to',
-      'for',
-      'of',
-      'with',
-      'and',
-      'or',
-    ]);
-
     return prompt
       .toLowerCase()
       .split(/\W+/)
-      .filter((word) => word.length > this.MIN_KEYWORD_LENGTH && !stopWords.has(word))
+      .filter((word) => word.length > this.MIN_KEYWORD_LENGTH && !PixelGenerationApiService.STOP_WORDS.has(word))
       .slice(0, 10);
   }
 

@@ -8,6 +8,10 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationLocalService {
+  private readonly RGB_MAX = 255;
+  private readonly PALETTE_DIVISIONS = 4;
+  private readonly DIVISION_FACTOR = 3;
+
   async processLocally(
     sketchData: ImageData,
     prompt: string,
@@ -334,12 +338,12 @@ export class PixelGenerationLocalService {
 
   private generate64ColorPalette(): string[] {
     const palette: string[] = [];
-    for (let r = 0; r < 4; r++) {
-      for (let g = 0; g < 4; g++) {
-        for (let b = 0; b < 4; b++) {
-          const rVal = Math.floor((r / 3) * 255);
-          const gVal = Math.floor((g / 3) * 255);
-          const bVal = Math.floor((b / 3) * 255);
+    for (let r = 0; r < this.PALETTE_DIVISIONS; r++) {
+      for (let g = 0; g < this.PALETTE_DIVISIONS; g++) {
+        for (let b = 0; b < this.PALETTE_DIVISIONS; b++) {
+          const rVal = Math.floor((r / this.DIVISION_FACTOR) * this.RGB_MAX);
+          const gVal = Math.floor((g / this.DIVISION_FACTOR) * this.RGB_MAX);
+          const bVal = Math.floor((b / this.DIVISION_FACTOR) * this.RGB_MAX);
           palette.push(this.rgbToHex(rVal, gVal, bVal));
         }
       }
