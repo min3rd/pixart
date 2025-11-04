@@ -345,6 +345,8 @@
     "style": "Phong cách",
     "customPalette": "Bảng màu tùy chỉnh",
     "useCustomPalette": "Sử dụng màu tùy chỉnh",
+    "useAI": "Sử dụng AI (WebGPU/ONNX)",
+    "aiNotAvailable": "Model AI chưa tải, dùng xử lý truyền thống",
     "generate": "Tạo",
     "cancel": "Hủy",
     "processing": "Đang tạo...",
