@@ -1310,14 +1310,15 @@ export class EditorCanvas {
       ctx.save();
 
       if (shouldApplyBoneTransforms) {
-        const drawnPixels = new Set<number>();
+        const drawnSourcePixels = new Set<number>();
+        const destinationPixelMap = new Map<number, string>();
         const bindings = this.document.keyframeService.getPixelBindings(frameId);
         
         const transformCache = new Map<string, any>();
 
         for (const binding of bindings) {
-          const idx = binding.pixelY * w + binding.pixelX;
-          const col = buf[idx];
+          const sourceIdx = binding.pixelY * w + binding.pixelX;
+          const col = buf[sourceIdx];
           if (!col || !col.length) continue;
 
           const cacheKey = `${binding.boneId}:${binding.bonePointId}`;
@@ -1334,30 +1335,37 @@ export class EditorCanvas {
           }
 
           if (transform) {
-            const transformedX = Math.floor(transform.x + binding.offsetX);
-            const transformedY = Math.floor(transform.y + binding.offsetY);
+            const transformedX = Math.round(transform.x + binding.offsetX);
+            const transformedY = Math.round(transform.y + binding.offsetY);
 
             if (transformedX >= 0 && transformedX < w && transformedY >= 0 && transformedY < h) {
-              ctx.fillStyle = col;
-              ctx.fillRect(transformedX, transformedY, 1, 1);
-              drawnPixels.add(idx);
+              const destIdx = transformedY * w + transformedX;
+              destinationPixelMap.set(destIdx, col);
+              drawnSourcePixels.add(sourceIdx);
             }
           } else {
-            ctx.fillStyle = col;
-            ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
-            drawnPixels.add(idx);
+            const destIdx = binding.pixelY * w + binding.pixelX;
+            destinationPixelMap.set(destIdx, col);
+            drawnSourcePixels.add(sourceIdx);
           }
         }
 
         for (let yy = 0; yy < h; yy++) {
           for (let xx = 0; xx < w; xx++) {
             const idx = yy * w + xx;
-            if (drawnPixels.has(idx)) continue;
-
-            const col = buf[idx];
-            if (col && col.length) {
-              ctx.fillStyle = col;
-              ctx.fillRect(xx, yy, 1, 1);
+            
+            if (destinationPixelMap.has(idx)) {
+              const col = destinationPixelMap.get(idx);
+              if (col) {
+                ctx.fillStyle = col;
+                ctx.fillRect(xx, yy, 1, 1);
+              }
+            } else if (!drawnSourcePixels.has(idx)) {
+              const col = buf[idx];
+              if (col && col.length) {
+                ctx.fillStyle = col;
+                ctx.fillRect(xx, yy, 1, 1);
+              }
             }
           }
         }
