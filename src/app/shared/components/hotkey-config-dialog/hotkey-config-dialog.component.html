@@ -74,6 +74,7 @@
                         [value]="displayKey(capturedKey() || action.currentKey)"
                         (keydown)="onKeyCapture($event)"
                         placeholder="{{ 'hotkeys.pressKey' | transloco }}"
+                        [attr.aria-label]="'hotkeys.pressKey' | transloco"
                         readonly
                       />
                       @if (conflictError()) {
