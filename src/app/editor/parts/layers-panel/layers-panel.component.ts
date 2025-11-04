@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   HostListener,
+  ViewChild,
 } from '@angular/core';
 import {
   EditorDocumentService,
@@ -15,13 +16,17 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 import { FormsModule } from '@angular/forms';
 import { HotkeysService } from '../../../services/hotkeys.service';
+import {
+  PixelGenerationDialog,
+  GeneratePixelArtRequest,
+} from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
 
 @Component({
   selector: 'pa-layers-panel',
   templateUrl: './layers-panel.component.html',
   styleUrls: ['./layers-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon, FormsModule],
+  imports: [TranslocoPipe, NgIcon, FormsModule, PixelGenerationDialog],
   host: {
     class: 'block h-full',
   },
@@ -29,6 +34,8 @@ import { HotkeysService } from '../../../services/hotkeys.service';
 export class LayersPanel {
   readonly document = inject(EditorDocumentService);
   readonly hotkeys = inject(HotkeysService);
+  @ViewChild(PixelGenerationDialog, { static: false })
+  pixelGenerationDialog!: PixelGenerationDialog;
   private dragIndex: number | null = null;
   private lastSelectedIndex: number | null = null;
   readonly contextMenuVisible = signal(false);
@@ -378,5 +385,53 @@ export class LayersPanel {
   getShortcut(hotkeyId: string): string | null {
     const binding = this.hotkeys.getBinding(hotkeyId);
     return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
+  }
+
+  onGenerate() {
+    const layerId = this.contextMenuLayerId();
+    if (!layerId) {
+      this.closeContextMenu();
+      return;
+    }
+
+    const sketchDataUrl = this.extractSketchFromLayer(layerId);
+    if (!sketchDataUrl) {
+      this.closeContextMenu();
+      return;
+    }
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    this.pixelGenerationDialog?.show(sketchDataUrl, w, h, 'layer');
+    this.closeContextMenu();
+  }
+
+  private extractSketchFromLayer(layerId: string): string | null {
+    const buf = this.document.getLayerBuffer(layerId);
+    if (!buf) return null;
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const col = buf[y * w + x];
+        if (col && col.length) {
+          ctx.fillStyle = col;
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+
+    return canvas.toDataURL('image/png');
+  }
+
+  handleGenerate(request: GeneratePixelArtRequest): void {
+    console.log('Generate pixel art from layer:', request);
   }
 }

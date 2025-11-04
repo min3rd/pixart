@@ -175,6 +175,21 @@
       <div id="layers-context-menu-list" class="py-1">
         <button
           type="button"
+          id="layers-context-menu-generate"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onGenerate()"
+        >
+          <ng-icon
+            id="layers-context-menu-generate-icon"
+            name="heroIconsSparklesMini"
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-generate-label" class="flex-1">{{
+            "editor.layers.generate" | transloco
+          }}</span>
+        </button>
+        <button
+          type="button"
           id="layers-context-menu-select-pixel"
           class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
           (click)="onSelectPixel()"
@@ -369,4 +384,8 @@
       </div>
     </div>
   }
+
+  <pa-pixel-generation-dialog
+    (onGenerate)="handleGenerate($event)"
+  ></pa-pixel-generation-dialog>
 </div>
