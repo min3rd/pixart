@@ -1311,7 +1311,7 @@ export class EditorCanvas {
 
       if (shouldApplyBoneTransforms) {
         const boundSourcePixels = new Set<number>();
-        const destinationPixelMap = new Map<number, string>();
+        const destinationPixelMap = new Map<number, {color: string, priority: number}>();
         const bindings = this.document.keyframeService.getPixelBindings(frameId);
         
         const transformCache = new Map<string, any>();
@@ -1340,12 +1340,18 @@ export class EditorCanvas {
 
             if (transformedX >= 0 && transformedX < w && transformedY >= 0 && transformedY < h) {
               const destIdx = transformedY * w + transformedX;
-              destinationPixelMap.set(destIdx, col);
+              const distSq = binding.offsetX * binding.offsetX + binding.offsetY * binding.offsetY;
+              const priority = -distSq;
+              
+              const existing = destinationPixelMap.get(destIdx);
+              if (!existing || priority > existing.priority) {
+                destinationPixelMap.set(destIdx, {color: col, priority});
+              }
               boundSourcePixels.add(sourceIdx);
             }
           } else {
             const destIdx = binding.pixelY * w + binding.pixelX;
-            destinationPixelMap.set(destIdx, col);
+            destinationPixelMap.set(destIdx, {color: col, priority: 0});
             boundSourcePixels.add(sourceIdx);
           }
         }
@@ -1355,9 +1361,9 @@ export class EditorCanvas {
             const idx = yy * w + xx;
             
             if (destinationPixelMap.has(idx)) {
-              const col = destinationPixelMap.get(idx);
-              if (col) {
-                ctx.fillStyle = col;
+              const pixelData = destinationPixelMap.get(idx);
+              if (pixelData) {
+                ctx.fillStyle = pixelData.color;
                 ctx.fillRect(xx, yy, 1, 1);
               }
             } else if (!boundSourcePixels.has(idx)) {
@@ -1583,20 +1589,73 @@ export class EditorCanvas {
       if (bindings && bindings.length > 0 && this.tools.boneAutoBindEnabled()) {
         ctx.save();
         
-        const boneColorMap = new Map<string, string>();
-        for (const bone of bones) {
-          boneColorMap.set(bone.id, bone.color);
-        }
+        const getBoneDisplayColor = (boneId: string): string => {
+          let hash = 0;
+          for (let i = 0; i < boneId.length; i++) {
+            hash = ((hash << 5) - hash) + boneId.charCodeAt(i);
+            hash = hash & hash;
+          }
+          
+          const hue = Math.abs(hash) % 360;
+          const saturation = 60 + (Math.abs(hash >> 8) % 20);
+          const lightness = 50 + (Math.abs(hash >> 16) % 15);
+          
+          return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        };
+        
+        const boneColorCache = new Map<string, { r: number; g: number; b: number }>();
         
         for (const binding of bindings) {
-          const boneColor = boneColorMap.get(binding.boneId) || '#ff6600';
+          let rgb = boneColorCache.get(binding.boneId);
           
-          const r = parseInt(boneColor.slice(1, 3), 16);
-          const g = parseInt(boneColor.slice(3, 5), 16);
-          const b = parseInt(boneColor.slice(5, 7), 16);
+          if (!rgb) {
+            const hslColor = getBoneDisplayColor(binding.boneId);
+            const tempDiv = typeof document !== 'undefined' ? document.createElement('div') : null;
+            if (tempDiv) {
+              tempDiv.style.color = hslColor;
+              document.body.appendChild(tempDiv);
+              const computed = getComputedStyle(tempDiv).color;
+              document.body.removeChild(tempDiv);
+              
+              const match = computed.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+              if (match) {
+                rgb = {
+                  r: parseInt(match[1]),
+                  g: parseInt(match[2]),
+                  b: parseInt(match[3]),
+                };
+              } else {
+                rgb = { r: 255, g: 102, b: 0 };
+              }
+            } else {
+              const hue = Math.abs(binding.boneId.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 360;
+              const s = 0.7;
+              const l = 0.6;
+              const c = (1 - Math.abs(2 * l - 1)) * s;
+              const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+              const m = l - c / 2;
+              let r = 0, g = 0, b = 0;
+              if (hue < 60) { r = c; g = x; }
+              else if (hue < 120) { r = x; g = c; }
+              else if (hue < 180) { g = c; b = x; }
+              else if (hue < 240) { g = x; b = c; }
+              else if (hue < 300) { r = x; b = c; }
+              else { r = c; b = x; }
+              rgb = {
+                r: Math.round((r + m) * 255),
+                g: Math.round((g + m) * 255),
+                b: Math.round((b + m) * 255),
+              };
+            }
+            if (rgb) {
+              boneColorCache.set(binding.boneId, rgb);
+            }
+          }
           
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.2)`;
-          ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
+          if (rgb) {
+            ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
+            ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
+          }
         }
         
         ctx.restore();

@@ -383,4 +383,9 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   cancelKeyframeTimeEdit() {
     this.editingKeyframeId.set(null);
   }
+
+  getSortedKeyframes(animationId: string) {
+    const keyframes = this.keyframeService.getKeyframes(animationId);
+    return [...keyframes].sort((a, b) => a.time - b.time);
+  }
 }
