@@ -1567,7 +1567,7 @@ export class EditorCanvas {
           const radius = Math.max(3 / scale, 0.5);
           const pos = getPointPosition(bone.id, point);
           
-          ctx.fillStyle = bone.color;
+          ctx.fillStyle = point.color || bone.color;
           ctx.beginPath();
           ctx.arc(pos.x + 0.5, pos.y + 0.5, radius, 0, Math.PI * 2);
           ctx.fill();
