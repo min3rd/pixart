@@ -79,6 +79,7 @@
     "pointNamePlaceholder": "Enter point name",
     "pointColor": "Point Color",
     "colorPreview": "Color Preview",
+    "colorFormatHint": "Enter hex color code (e.g., #FF6600)",
     "ok": "OK",
     "cancel": "Cancel"
   },

@@ -67,6 +67,8 @@
               class="flex-1 px-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               [value]="pointColor()"
               (input)="onColorInput($event)"
+              pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+              [title]="'bones.colorFormatHint' | transloco"
             />
           </div>
         </div>

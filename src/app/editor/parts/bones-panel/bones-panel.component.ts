@@ -217,7 +217,7 @@ export class BonesPanel {
 
     const oldColor = point.color || bone?.color;
     const updates: Partial<BonePoint> = {};
-    if (result.name) {
+    if (result.name !== undefined) {
       updates.name = result.name;
     }
     if (result.color) {

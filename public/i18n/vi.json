@@ -79,6 +79,7 @@
     "pointNamePlaceholder": "Nhập tên điểm",
     "pointColor": "Màu điểm",
     "colorPreview": "Xem trước màu",
+    "colorFormatHint": "Nhập mã màu hex (ví dụ: #FF6600)",
     "ok": "OK",
     "cancel": "Hủy"
   },
