@@ -20,6 +20,7 @@ import {
   PixelGenerationDialog,
   GeneratePixelArtRequest,
 } from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
+import { PixelGenerationEngineService } from '../../../services/pixel-generation';
 
 @Component({
   selector: 'pa-layers-panel',
@@ -34,6 +35,7 @@ import {
 export class LayersPanel {
   readonly document = inject(EditorDocumentService);
   readonly hotkeys = inject(HotkeysService);
+  readonly pixelGenEngine = inject(PixelGenerationEngineService);
   @ViewChild(PixelGenerationDialog, { static: false })
   pixelGenerationDialog!: PixelGenerationDialog;
   private dragIndex: number | null = null;
@@ -431,7 +433,84 @@ export class LayersPanel {
     return canvas.toDataURL('image/png');
   }
 
-  handleGenerate(request: GeneratePixelArtRequest): void {
-    console.log('Generate pixel art from layer:', request);
+  async handleGenerate(request: GeneratePixelArtRequest): Promise<void> {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = request.width;
+      canvas.height = request.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        this.pixelGenerationDialog?.hide();
+        return;
+      }
+
+      const img = new Image();
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('Failed to load sketch image'));
+        img.src = request.sketchDataUrl;
+      });
+
+      ctx.drawImage(img, 0, 0, request.width, request.height);
+      const imageData = ctx.getImageData(0, 0, request.width, request.height);
+
+      const resultDataUrl = await this.pixelGenEngine.generatePixelArt(
+        imageData,
+        request.prompt,
+        request.width,
+        request.height,
+        'pixel-modern'
+      );
+
+      const newLayer = this.document.addLayer('Generated');
+      const buf = this.document.getLayerBuffer(newLayer.id);
+      if (!buf) {
+        this.pixelGenerationDialog?.hide();
+        return;
+      }
+
+      const resultImg = new Image();
+      await new Promise<void>((resolve, reject) => {
+        resultImg.onload = () => resolve();
+        resultImg.onerror = () => reject(new Error('Failed to load result image'));
+        resultImg.src = resultDataUrl;
+      });
+
+      const resultCanvas = document.createElement('canvas');
+      resultCanvas.width = request.width;
+      resultCanvas.height = request.height;
+      const resultCtx = resultCanvas.getContext('2d');
+      if (!resultCtx) {
+        this.pixelGenerationDialog?.hide();
+        return;
+      }
+
+      resultCtx.drawImage(resultImg, 0, 0);
+      const resultData = resultCtx.getImageData(0, 0, request.width, request.height);
+
+      const w = this.document.canvasWidth();
+      const h = this.document.canvasHeight();
+      
+      for (let y = 0; y < Math.min(request.height, h); y++) {
+        for (let x = 0; x < Math.min(request.width, w); x++) {
+          const srcIdx = (y * request.width + x) * 4;
+          const r = resultData.data[srcIdx];
+          const g = resultData.data[srcIdx + 1];
+          const b = resultData.data[srcIdx + 2];
+          const a = resultData.data[srcIdx + 3];
+          
+          if (a > 0) {
+            const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+            buf[y * w + x] = hex;
+          }
+        }
+      }
+
+      this.document.layerPixelsVersion.update((v) => v + 1);
+      this.pixelGenerationDialog?.hide();
+    } catch (error) {
+      console.error('Generation failed:', error);
+      this.pixelGenerationDialog?.hide();
+    }
   }
 }

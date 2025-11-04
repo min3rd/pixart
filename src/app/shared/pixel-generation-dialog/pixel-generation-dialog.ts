@@ -26,6 +26,7 @@ export class PixelGenerationDialog {
   readonly width = signal(64);
   readonly height = signal(64);
   readonly sourceType = signal<'layer' | 'visible' | 'selection'>('layer');
+  readonly generating = signal(false);
   
   readonly onGenerate = output<GeneratePixelArtRequest>();
   readonly onCancel = output<void>();
@@ -41,6 +42,7 @@ export class PixelGenerationDialog {
     this.height.set(height);
     this.sourceType.set(sourceType);
     this.prompt.set('');
+    this.generating.set(false);
     this.visible.set(true);
   }
 
@@ -48,24 +50,28 @@ export class PixelGenerationDialog {
     this.visible.set(false);
     this.sketchPreviewUrl.set(null);
     this.prompt.set('');
+    this.generating.set(false);
   }
 
   handleGenerate() {
     const sketchDataUrl = this.sketchPreviewUrl();
-    if (!sketchDataUrl || !this.prompt().trim()) {
+    if (!sketchDataUrl || !this.prompt().trim() || this.generating()) {
       return;
     }
     
+    this.generating.set(true);
     this.onGenerate.emit({
       sketchDataUrl,
       prompt: this.prompt().trim(),
       width: this.width(),
       height: this.height(),
     });
-    this.hide();
   }
 
   handleCancel() {
+    if (this.generating()) {
+      return;
+    }
     this.onCancel.emit();
     this.hide();
   }
