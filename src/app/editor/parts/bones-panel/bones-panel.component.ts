@@ -67,6 +67,7 @@ export class BonesPanel {
   readonly newBoneName = signal<string>('');
   readonly editingPointBoneId = signal<string>('');
   readonly editingPointId = signal<string>('');
+  readonly autoBindingBoneId = signal<string>('');
 
   readonly currentFrameBones = computed(() => {
     const currentFrame =
@@ -288,6 +289,8 @@ export class BonesPanel {
     const layerBuffer = this.document.getLayerBuffer(layerId);
     if (!layerBuffer) return;
 
+    this.autoBindingBoneId.set(boneId);
+
     const radius = this.tools.boneAutoBindRadius();
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
@@ -307,6 +310,10 @@ export class BonesPanel {
         radius,
       );
     }
+
+    setTimeout(() => {
+      this.autoBindingBoneId.set('');
+    }, 500);
   }
 
   getPointDisplayName(point: BonePoint): string {
@@ -315,21 +322,5 @@ export class BonesPanel {
 
   getPointDisplayColor(bone: Bone, point: BonePoint): string {
     return point.color || bone.color;
-  }
-
-  get autoBindEnabled(): boolean {
-    return this.tools.boneAutoBindEnabled();
-  }
-
-  set autoBindEnabled(value: boolean) {
-    this.tools.setBoneAutoBindEnabled(value);
-  }
-
-  get autoBindRadius(): number {
-    return this.tools.boneAutoBindRadius();
-  }
-
-  set autoBindRadius(value: number) {
-    this.tools.setBoneAutoBindRadius(value);
   }
 }
