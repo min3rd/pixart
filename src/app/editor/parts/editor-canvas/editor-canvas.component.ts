@@ -660,7 +660,6 @@ export class EditorCanvas {
           this.draggingPointId = clickedPoint.pointId;
           this.draggingPointBoneId = clickedPoint.boneId;
           this.boneService.selectPoint(clickedPoint.pointId);
-          this.currentBoneId = null;
         } else {
           if (!this.currentBoneId) {
             const newBone: Bone = {
@@ -969,7 +968,6 @@ export class EditorCanvas {
     if (this.draggingPointId) {
       this.draggingPointId = null;
       this.draggingPointBoneId = null;
-      this.boneService.clearSelection();
       return;
     }
 

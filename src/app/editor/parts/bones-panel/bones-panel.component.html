@@ -32,7 +32,6 @@
         >{{ "bones.currentAnimation" | transloco }}:
         {{ getCurrentAnimationName() }}</span
       >
-      <span>{{ getAttachedBonesText() }}</span>
     </div>
     <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-500">
       {{ "bones.drawInstruction" | transloco }}
@@ -68,11 +67,6 @@
                   class="font-medium text-sm truncate flex items-center gap-1"
                 >
                   <span>Bone {{ i + 1 }}</span>
-                  @if (isBoneAttachedToCurrentAnimation(bone.id)) {
-                    <span class="text-green-600 dark:text-green-400 text-xs"
-                      >✓</span
-                    >
-                  }
                 </div>
                 <div class="text-xs text-neutral-500 dark:text-neutral-400">
                   <span
@@ -100,20 +94,6 @@
                     size="16"
                     [class.animate-spin]="autoBindingBoneId() === bone.id"
                   ></ng-icon>
-                </button>
-                <button
-                  type="button"
-                  (click)="toggleBoneAttachment(bone.id, $event)"
-                  class="p-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-                  [class.text-green-600]="
-                    isBoneAttachedToCurrentAnimation(bone.id)
-                  "
-                  [class.dark\:text-green-400]="
-                    isBoneAttachedToCurrentAnimation(bone.id)
-                  "
-                  [title]="'bones.attachToAnimation' | transloco"
-                >
-                  <ng-icon name="heroLink" size="16"></ng-icon>
                 </button>
                 <button
                   type="button"
