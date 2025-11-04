@@ -382,6 +382,8 @@
     "style": "Art Style",
     "customPalette": "Custom Color Palette",
     "useCustomPalette": "Use custom colors",
+    "useAI": "Use AI generation (WebGPU/ONNX)",
+    "aiNotAvailable": "AI model not loaded, using traditional processing",
     "generate": "Generate",
     "cancel": "Cancel",
     "processing": "Generating...",

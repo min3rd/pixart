@@ -6,6 +6,7 @@ import {
   PixelGenerationMetadata,
 } from './pixel-generation-models';
 import { PixelGenerationLocalService } from './pixel-generation-local.service';
+import { PixelGenerationOnnxService } from './pixel-generation-onnx.service';
 
 export interface ProcessingJob {
   id: string;
@@ -13,16 +14,43 @@ export interface ProcessingJob {
   startTime: number;
 }
 
+export type GenerationMode = 'auto' | 'onnx' | 'local';
+
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationEngineService {
   private readonly jobs = signal<Map<string, ProcessingJob>>(new Map());
+  private readonly generationMode = signal<GenerationMode>('auto');
+  private readonly useAI = signal(true);
 
   readonly activeJobs = computed(() => Array.from(this.jobs().values()));
   readonly processingCount = computed(
     () => this.activeJobs().filter((job) => job.response.status === 'processing').length,
   );
+  readonly isOnnxAvailable = computed(() => this.onnxService.isModelReady());
+  readonly aiEnabled = this.useAI;
 
-  constructor(private readonly localService: PixelGenerationLocalService) {}
+  constructor(
+    private readonly localService: PixelGenerationLocalService,
+    private readonly onnxService: PixelGenerationOnnxService,
+  ) {}
+
+  setGenerationMode(mode: GenerationMode): void {
+    this.generationMode.set(mode);
+  }
+
+  setAIEnabled(enabled: boolean): void {
+    this.useAI.set(enabled);
+  }
+
+  async initializeAI(): Promise<boolean> {
+    try {
+      await this.onnxService.loadModel();
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize AI model:', error);
+      return false;
+    }
+  }
 
   async generatePixelArt(
     sketchImageData: ImageData,
@@ -52,14 +80,50 @@ export class PixelGenerationEngineService {
 
     setTimeout(async () => {
       try {
-        const result = await this.localService.processLocally(
-          sketchImageData,
-          prompt,
-          targetWidth,
-          targetHeight,
-          style,
-          customColorPalette,
-        );
+        let result: PixelGenerationResponse;
+
+        const mode = this.generationMode();
+        const shouldUseAI = this.useAI() && (mode === 'auto' || mode === 'onnx');
+
+        if (shouldUseAI && this.onnxService.isModelReady()) {
+          result = await this.onnxService.generateWithOnnx(
+            sketchImageData,
+            prompt,
+            targetWidth,
+            targetHeight,
+            style,
+          );
+        } else if (shouldUseAI && mode === 'onnx') {
+          try {
+            await this.onnxService.loadModel();
+            result = await this.onnxService.generateWithOnnx(
+              sketchImageData,
+              prompt,
+              targetWidth,
+              targetHeight,
+              style,
+            );
+          } catch (error) {
+            console.warn('ONNX generation failed, falling back to local processing:', error);
+            result = await this.localService.processLocally(
+              sketchImageData,
+              prompt,
+              targetWidth,
+              targetHeight,
+              style,
+              customColorPalette,
+            );
+          }
+        } else {
+          result = await this.localService.processLocally(
+            sketchImageData,
+            prompt,
+            targetWidth,
+            targetHeight,
+            style,
+            customColorPalette,
+          );
+        }
 
         this.jobs.update((jobs) => {
           const newJobs = new Map(jobs);

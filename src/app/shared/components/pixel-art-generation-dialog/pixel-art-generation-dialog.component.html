@@ -100,6 +100,21 @@
         </label>
       </div>
 
+      <div class="mb-4" id="pixel-art-generation-dialog-ai-group">
+        <label class="flex items-center text-sm text-gray-700 dark:text-gray-300" id="pixel-art-generation-dialog-ai-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="useAI"
+            class="mr-2"
+            id="pixel-art-generation-dialog-use-ai-checkbox"
+          />
+          {{ 'pixelGeneration.useAI' | transloco }}
+        </label>
+        <p *ngIf="!isOnnxAvailable()" class="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-6" id="pixel-art-generation-dialog-ai-note">
+          {{ 'pixelGeneration.aiNotAvailable' | transloco }}
+        </p>
+      </div>
+
       <div *ngIf="error()" class="mb-4 p-2 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-sm" id="pixel-art-generation-dialog-error">
         <div class="flex items-start gap-2" id="pixel-art-generation-dialog-error-content">
           <ng-icon name="heroExclamationCircle" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
