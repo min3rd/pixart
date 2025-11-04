@@ -17,6 +17,7 @@ import {
   heroLink,
   heroXMark,
   heroArrowPath,
+  heroSparkles,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import {
@@ -29,6 +30,11 @@ import {
   EditPointDialog,
   type EditPointResult,
 } from '../../../shared/components/edit-point-dialog/edit-point-dialog.component';
+import {
+  BoneGenerationDialog,
+  type BoneGenerationResult,
+} from '../../../shared/components/bone-generation-dialog/bone-generation-dialog.component';
+import { BoneGenerationService } from '../../../services/bone-generation.service';
 
 @Component({
   selector: 'pa-bones-panel',
@@ -41,6 +47,7 @@ import {
     NgIconComponent,
     FormsModule,
     EditPointDialog,
+    BoneGenerationDialog,
   ],
   providers: [
     provideIcons({
@@ -50,6 +57,7 @@ import {
       heroLink,
       heroXMark,
       heroArrowPath,
+      heroSparkles,
     }),
   ],
   host: {
@@ -58,11 +66,13 @@ import {
 })
 export class BonesPanel {
   @ViewChild(EditPointDialog) editPointDialog?: EditPointDialog;
+  @ViewChild(BoneGenerationDialog) boneGenerationDialog?: BoneGenerationDialog;
 
   readonly document = inject(EditorDocumentService);
   readonly boneService = inject(EditorBoneService);
   readonly translocoService = inject(TranslocoService);
   readonly tools = inject(EditorToolsService);
+  readonly boneGenerationService = inject(BoneGenerationService);
   readonly editingBoneId = signal<string>('');
   readonly newBoneName = signal<string>('');
   readonly editingPointBoneId = signal<string>('');
@@ -322,5 +332,72 @@ export class BonesPanel {
 
   getPointDisplayColor(bone: Bone, point: BonePoint): string {
     return point.color || bone.color;
+  }
+
+  openGenerateBonesDialog() {
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
+    if (!currentFrame) {
+      return;
+    }
+
+    const selectedLayer = this.document.selectedLayer();
+    if (!selectedLayer) {
+      return;
+    }
+
+    const layerBuffer =
+      currentFrame.buffers?.[selectedLayer.id] || [];
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+
+    const result = this.boneGenerationService.generateBonesForLayer(
+      layerBuffer,
+      canvasWidth,
+      canvasHeight,
+    );
+
+    if (!result) {
+      return;
+    }
+
+    const templates = this.boneGenerationService.getTemplates();
+    this.boneGenerationDialog?.open(result.suggestedTemplate, templates);
+  }
+
+  handleGenerateBonesConfirm(result: BoneGenerationResult) {
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
+    if (!currentFrame) {
+      return;
+    }
+
+    const selectedLayer = this.document.selectedLayer();
+    if (!selectedLayer) {
+      return;
+    }
+
+    const layerBuffer =
+      currentFrame.buffers?.[selectedLayer.id] || [];
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+
+    const generationResult = this.boneGenerationService.generateBonesForLayer(
+      layerBuffer,
+      canvasWidth,
+      canvasHeight,
+      result.templateType,
+      this.tools.boneColor(),
+      this.tools.boneThickness(),
+    );
+
+    if (generationResult) {
+      generationResult.bones.forEach((bone) => {
+        this.boneService.addBone(currentFrame.id, bone);
+      });
+    }
+  }
+
+  handleGenerateBonesCancel() {
   }
 }

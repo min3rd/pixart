@@ -82,7 +82,26 @@
     "colorPreview": "Color Preview",
     "colorFormatHint": "Enter hex color code (e.g., #FF6600)",
     "ok": "OK",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "generateBones": "Generate Bones"
+  },
+  "boneGeneration": {
+    "title": "Generate Bones",
+    "description": "Automatically generate bone structure based on the current layer's pixels.",
+    "suggested": "Suggested template:",
+    "recommended": "Recommended",
+    "selectTemplate": "Select bone template:",
+    "generate": "Generate",
+    "noPixels": "No pixels found in the current layer. Please draw something first.",
+    "noLayerSelected": "Please select a layer first.",
+    "success": "Bones generated successfully!",
+    "templates": {
+      "human": "Human (bipedal)",
+      "quadruped": "Quadruped (4-legged animal)",
+      "flying": "Flying (bird/dragon)",
+      "fish": "Fish",
+      "snake": "Snake"
+    }
   },
   "theme": {
     "toggle": "Toggle theme"

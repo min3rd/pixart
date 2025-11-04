@@ -4,6 +4,16 @@
     id="bones-header"
   >
     <span id="bones-title">{{ "bones.title" | transloco }}</span>
+    <button
+      type="button"
+      (click)="openGenerateBonesDialog()"
+      class="px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-sm flex items-center gap-1"
+      id="bones-generate-button"
+      [attr.aria-label]="'bones.generateBones' | transloco"
+    >
+      <ng-icon name="heroSparkles" class="w-4 h-4" />
+      {{ "bones.generateBones" | transloco }}
+    </button>
   </div>
 
   <div
@@ -217,4 +227,9 @@
     (onConfirm)="handleEditPointConfirm($event)"
     (onCancel)="handleEditPointCancel()"
   ></pa-edit-point-dialog>
+
+  <pa-bone-generation-dialog
+    (confirmed)="handleGenerateBonesConfirm($event)"
+    (cancelled)="handleGenerateBonesCancel()"
+  ></pa-bone-generation-dialog>
 </div>

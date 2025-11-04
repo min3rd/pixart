@@ -82,7 +82,26 @@
     "colorPreview": "Xem trước màu",
     "colorFormatHint": "Nhập mã màu hex (ví dụ: #FF6600)",
     "ok": "OK",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "generateBones": "Tự động sinh Bone"
+  },
+  "boneGeneration": {
+    "title": "Tự động sinh Bone",
+    "description": "Tự động tạo cấu trúc bone dựa trên pixel của layer hiện tại.",
+    "suggested": "Mẫu đề xuất:",
+    "recommended": "Được đề xuất",
+    "selectTemplate": "Chọn mẫu bone:",
+    "generate": "Tạo bone",
+    "noPixels": "Không tìm thấy pixel trong layer hiện tại. Vui lòng vẽ gì đó trước.",
+    "noLayerSelected": "Vui lòng chọn layer trước.",
+    "success": "Đã tạo bone thành công!",
+    "templates": {
+      "human": "Con người (hai chân)",
+      "quadruped": "Động vật bốn chân",
+      "flying": "Động vật bay (chim/rồng)",
+      "fish": "Cá",
+      "snake": "Rắn"
+    }
   },
   "theme": {
     "toggle": "Chuyển chủ đề"
