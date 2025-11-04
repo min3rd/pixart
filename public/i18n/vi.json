@@ -74,6 +74,7 @@
     "autoBindSettings": "Cài đặt tự động gắn",
     "autoBindEnabled": "Bật tự động gắn pixel",
     "autoBindRadius": "Bán kính gắn",
+    "autoBindPixels": "Tự động gắn pixel",
     "editPoint": "Chỉnh sửa điểm",
     "pointName": "Tên điểm",
     "pointNamePlaceholder": "Nhập tên điểm",
