@@ -161,29 +161,8 @@ export class EditorHeader {
     } catch {}
   }
 
-  private keydownHandler = (ev: KeyboardEvent) => {
-    const z = ev.key.toLowerCase() === 'z';
-    const y = ev.key.toLowerCase() === 'y';
-    const s = ev.key.toLowerCase() === 's';
-    const meta = ev.ctrlKey || ev.metaKey;
-    if (!meta) return;
-    if (z) {
-      ev.preventDefault();
-      this.onUndo();
-    } else if (y) {
-      ev.preventDefault();
-      this.onRedo();
-    } else if (s) {
-      ev.preventDefault();
-      this.document.saveProjectToLocalStorage();
-    }
-  };
-
   constructor() {
     this.registerHotkeys();
-    if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', this.keydownHandler as EventListener);
-    }
   }
 
   private registerHotkeys() {
@@ -246,7 +225,7 @@ export class EditorHeader {
     this.hotkeys.register({
       id: 'tool.ellipseSelect',
       category: 'tool',
-      defaultKey: 'e',
+      defaultKey: 'shift+e',
       handler: () => this.tools.selectTool('ellipse-select'),
     });
 
@@ -497,12 +476,6 @@ export class EditorHeader {
   }
 
   ngOnDestroy(): void {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener(
-        'keydown',
-        this.keydownHandler as EventListener,
-      );
-    }
     if (this.hoverOpenTimer) {
       clearTimeout(this.hoverOpenTimer);
       this.hoverOpenTimer = undefined;
