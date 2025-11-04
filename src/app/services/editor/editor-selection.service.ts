@@ -72,7 +72,12 @@ export class EditorSelectionService {
     this.selectionMask.set(null);
   }
 
-  moveSelection(dx: number, dy: number, canvasWidth: number, canvasHeight: number) {
+  moveSelection(
+    dx: number,
+    dy: number,
+    canvasWidth: number,
+    canvasHeight: number,
+  ) {
     const rect = this.selectionRect();
     if (!rect) return;
     const newX = Math.max(0, Math.min(canvasWidth - rect.width, rect.x + dx));
@@ -150,7 +155,12 @@ export class EditorSelectionService {
     this.selectionMask.set(invertedMask);
     this.setSelectionShape('lasso');
     this.selectionPolygon.set(null);
-    this.selectionRect.set({ x: 0, y: 0, width: canvasWidth, height: canvasHeight });
+    this.selectionRect.set({
+      x: 0,
+      y: 0,
+      width: canvasWidth,
+      height: canvasHeight,
+    });
   }
 
   growSelection(pixels: number, canvasWidth: number, canvasHeight: number) {

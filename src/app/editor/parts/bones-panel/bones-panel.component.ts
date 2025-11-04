@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -11,16 +18,29 @@ import {
   heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
-import { EditorBoneService, type Bone, type BonePoint } from '../../../services/editor/editor-bone.service';
+import {
+  EditorBoneService,
+  type Bone,
+  type BonePoint,
+} from '../../../services/editor/editor-bone.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
-import { EditPointDialog, type EditPointResult } from '../../../shared/components/edit-point-dialog/edit-point-dialog.component';
+import {
+  EditPointDialog,
+  type EditPointResult,
+} from '../../../shared/components/edit-point-dialog/edit-point-dialog.component';
 
 @Component({
   selector: 'pa-bones-panel',
   templateUrl: './bones-panel.component.html',
   styleUrls: ['./bones-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIconComponent, FormsModule, EditPointDialog],
+  imports: [
+    CommonModule,
+    TranslocoPipe,
+    NgIconComponent,
+    FormsModule,
+    EditPointDialog,
+  ],
   providers: [
     provideIcons({
       heroPlus,
@@ -36,7 +56,7 @@ import { EditPointDialog, type EditPointResult } from '../../../shared/component
 })
 export class BonesPanel {
   @ViewChild(EditPointDialog) editPointDialog?: EditPointDialog;
-  
+
   readonly document = inject(EditorDocumentService);
   readonly boneService = inject(EditorBoneService);
   readonly translocoService = inject(TranslocoService);
@@ -47,7 +67,8 @@ export class BonesPanel {
   readonly editingPointId = signal<string>('');
 
   readonly currentFrameBones = computed(() => {
-    const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
     if (!currentFrame) return [];
     return this.boneService.getBones(currentFrame.id);
   });
@@ -60,7 +81,8 @@ export class BonesPanel {
     event.stopPropagation();
     const msg = this.translocoService.translate('bones.confirmRemove');
     if (confirm(msg)) {
-      const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+      const currentFrame =
+        this.document.frames()[this.document.currentFrameIndex()];
       if (currentFrame) {
         this.boneService.deleteBone(currentFrame.id, id);
       }
@@ -76,11 +98,15 @@ export class BonesPanel {
   saveRename(id: string) {
     const name = this.newBoneName().trim();
     if (name) {
-      const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+      const currentFrame =
+        this.document.frames()[this.document.currentFrameIndex()];
       if (currentFrame) {
-        const bone = this.currentFrameBones().find(b => b.id === id);
+        const bone = this.currentFrameBones().find((b) => b.id === id);
         if (bone) {
-          this.boneService.updateBone(currentFrame.id, id, { ...bone, id: name });
+          this.boneService.updateBone(currentFrame.id, id, {
+            ...bone,
+            id: name,
+          });
         }
       }
     }
@@ -97,7 +123,7 @@ export class BonesPanel {
     event.stopPropagation();
     const currentAnim = this.document.getCurrentAnimation();
     if (!currentAnim) return;
-    
+
     if (this.isBoneAttachedToCurrentAnimation(boneId)) {
       this.document.detachBoneFromAnimation(currentAnim.id, boneId);
     } else {
@@ -126,17 +152,17 @@ export class BonesPanel {
   }
 
   getRootPoints(bone: Bone) {
-    return bone.points.filter(p => !p.parentId);
+    return bone.points.filter((p) => !p.parentId);
   }
 
   getChildPoints(bone: Bone, parentId: string) {
-    return bone.points.filter(p => p.parentId === parentId);
+    return bone.points.filter((p) => p.parentId === parentId);
   }
 
   getAllDescendants(bone: Bone, parentId: string, depth = 1): any[] {
     const children = this.getChildPoints(bone, parentId);
     const result: any[] = [];
-    
+
     for (const child of children) {
       result.push({
         point: child,
@@ -145,7 +171,7 @@ export class BonesPanel {
       const descendants = this.getAllDescendants(bone, child.id, depth + 1);
       result.push(...descendants);
     }
-    
+
     return result;
   }
 
@@ -158,7 +184,8 @@ export class BonesPanel {
     event.stopPropagation();
     const msg = this.translocoService.translate('bones.confirmRemovePoint');
     if (confirm(msg)) {
-      const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+      const currentFrame =
+        this.document.frames()[this.document.currentFrameIndex()];
       if (currentFrame) {
         this.boneService.deletePoint(currentFrame.id, boneId, pointId);
       }
@@ -169,9 +196,10 @@ export class BonesPanel {
     event.stopPropagation();
     this.editingPointBoneId.set(boneId);
     this.editingPointId.set(point.id);
-    const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
     if (!currentFrame) return;
-    const bone = this.currentFrameBones().find(b => b.id === boneId);
+    const bone = this.currentFrameBones().find((b) => b.id === boneId);
     if (!bone) return;
     this.editPointDialog?.open(point.id, point.name, point.color || bone.color);
   }
@@ -179,11 +207,12 @@ export class BonesPanel {
   handleEditPointConfirm(result: EditPointResult) {
     const boneId = this.editingPointBoneId();
     const pointId = this.editingPointId();
-    const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+    const currentFrame =
+      this.document.frames()[this.document.currentFrameIndex()];
     if (!currentFrame || !boneId || !pointId) return;
 
-    const bone = this.currentFrameBones().find(b => b.id === boneId);
-    const point = bone?.points.find(p => p.id === pointId);
+    const bone = this.currentFrameBones().find((b) => b.id === boneId);
+    const point = bone?.points.find((p) => p.id === pointId);
     if (!point) return;
 
     const oldColor = point.color || bone?.color;
@@ -195,10 +224,20 @@ export class BonesPanel {
       updates.color = result.color;
     }
 
-    this.boneService.updatePointProperties(currentFrame.id, boneId, pointId, updates);
+    this.boneService.updatePointProperties(
+      currentFrame.id,
+      boneId,
+      pointId,
+      updates,
+    );
 
     if (result.color && oldColor !== result.color) {
-      this.updateBoundPixelColors(currentFrame.id, boneId, pointId, result.color);
+      this.updateBoundPixelColors(
+        currentFrame.id,
+        boneId,
+        pointId,
+        result.color,
+      );
     }
 
     this.editingPointBoneId.set('');
@@ -210,10 +249,15 @@ export class BonesPanel {
     this.editingPointId.set('');
   }
 
-  private updateBoundPixelColors(frameId: string, boneId: string, pointId: string, newColor: string) {
+  private updateBoundPixelColors(
+    frameId: string,
+    boneId: string,
+    pointId: string,
+    newColor: string,
+  ) {
     const bindings = this.document.keyframeService.getPixelBindings(frameId);
     const pointBindings = bindings.filter(
-      b => b.boneId === boneId && b.bonePointId === pointId
+      (b) => b.boneId === boneId && b.bonePointId === pointId,
     );
 
     if (pointBindings.length === 0) return;
@@ -224,7 +268,7 @@ export class BonesPanel {
         binding.pixelX,
         binding.pixelY,
         1,
-        newColor
+        newColor,
       );
     }
   }

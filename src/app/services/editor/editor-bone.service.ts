@@ -62,11 +62,7 @@ export class EditorBoneService {
     this.bones.set(current);
   }
 
-  addPointToBone(
-    frameId: string,
-    boneId: string,
-    point: BonePoint,
-  ): void {
+  addPointToBone(frameId: string, boneId: string, point: BonePoint): void {
     const current = new Map(this.bones());
     const frameBones = current.get(frameId) || [];
     const updated = frameBones.map((b) => {
@@ -94,9 +90,7 @@ export class EditorBoneService {
       if (b.id === boneId) {
         return {
           ...b,
-          points: b.points.map((p) =>
-            p.id === pointId ? { ...p, x, y } : p,
-          ),
+          points: b.points.map((p) => (p.id === pointId ? { ...p, x, y } : p)),
         };
       }
       return b;
@@ -105,7 +99,14 @@ export class EditorBoneService {
     this.bones.set(current);
 
     if (animationId && typeof currentTime === 'number') {
-      this.saveBoneTransformToKeyframe(animationId, boneId, pointId, x, y, currentTime);
+      this.saveBoneTransformToKeyframe(
+        animationId,
+        boneId,
+        pointId,
+        x,
+        y,
+        currentTime,
+      );
     }
   }
 
@@ -141,7 +142,9 @@ export class EditorBoneService {
     time: number,
   ): void {
     const keyframes = this.keyframeService.getKeyframes(animationId);
-    let keyframe = keyframes.find(kf => Math.abs(kf.time - time) < this.KEYFRAME_TIME_TOLERANCE_MS);
+    let keyframe = keyframes.find(
+      (kf) => Math.abs(kf.time - time) < this.KEYFRAME_TIME_TOLERANCE_MS,
+    );
 
     if (!keyframe) {
       keyframe = {
@@ -153,7 +156,7 @@ export class EditorBoneService {
     }
 
     const existingTransformIndex = keyframe.boneTransforms.findIndex(
-      bt => bt.boneId === boneId && bt.bonePointId === bonePointId
+      (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
     );
 
     const transform = {
@@ -191,18 +194,18 @@ export class EditorBoneService {
     radius: number,
   ): void {
     const radiusSq = radius * radius;
-    
+
     for (let y = 0; y < canvasHeight; y++) {
       for (let x = 0; x < canvasWidth; x++) {
         const idx = y * canvasWidth + x;
         const pixel = layerBuffer[idx];
-        
+
         if (!pixel || pixel.length === 0) continue;
-        
+
         const dx = x - pointX;
         const dy = y - pointY;
         const distSq = dx * dx + dy * dy;
-        
+
         if (distSq <= radiusSq) {
           const binding = {
             pixelX: x,
@@ -213,7 +216,7 @@ export class EditorBoneService {
             offsetX: dx,
             offsetY: dy,
           };
-          
+
           this.keyframeService.addPixelBinding(frameId, binding);
         }
       }
@@ -228,19 +231,21 @@ export class EditorBoneService {
     currentTime: number,
   ): { x: number; y: number } | null {
     const bindings = this.keyframeService.getPixelBindings(frameId);
-    const binding = bindings.find(b => b.pixelX === pixelX && b.pixelY === pixelY);
-    
+    const binding = bindings.find(
+      (b) => b.pixelX === pixelX && b.pixelY === pixelY,
+    );
+
     if (!binding) return null;
-    
+
     const transform = this.keyframeService.interpolateBoneTransform(
       animationId,
       binding.boneId,
       binding.bonePointId,
       currentTime,
     );
-    
+
     if (!transform) return null;
-    
+
     return {
       x: transform.x + binding.offsetX,
       y: transform.y + binding.offsetY,

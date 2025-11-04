@@ -30,7 +30,10 @@ export class LayersPanel {
   private dragIndex: number | null = null;
   private lastSelectedIndex: number | null = null;
   readonly contextMenuVisible = signal(false);
-  readonly contextMenuPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  readonly contextMenuPosition = signal<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   readonly contextMenuLayerId = signal<string | null>(null);
   readonly editingLayerId = signal<string | null>(null);
   readonly editingLayerName = signal('');
@@ -166,7 +169,7 @@ export class LayersPanel {
   onMerge() {
     const selectedIds = Array.from(this.document.selectedLayerIds());
     if (selectedIds.length >= 2) {
-      const hasLockedLayer = selectedIds.some(id => {
+      const hasLockedLayer = selectedIds.some((id) => {
         const item = this.document.findItemById(this.document.layers(), id);
         return item?.locked;
       });
@@ -182,7 +185,7 @@ export class LayersPanel {
   onGroup() {
     const selectedIds = Array.from(this.document.selectedLayerIds());
     if (selectedIds.length >= 2) {
-      const hasLockedLayer = selectedIds.some(id => {
+      const hasLockedLayer = selectedIds.some((id) => {
         const item = this.document.findItemById(this.document.layers(), id);
         return item?.locked;
       });

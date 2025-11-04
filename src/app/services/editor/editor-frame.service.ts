@@ -13,7 +13,11 @@ export class EditorFrameService {
     this.currentFrameIndex.set(Math.max(0, Math.min(index, max)));
   }
 
-  addFrame(name?: string, layers?: LayerTreeItem[], buffers?: Record<string, string[]>): FrameItem {
+  addFrame(
+    name?: string,
+    layers?: LayerTreeItem[],
+    buffers?: Record<string, string[]>,
+  ): FrameItem {
     const id = `f${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const frame: FrameItem = {
       id,
@@ -29,7 +33,7 @@ export class EditorFrameService {
   duplicateFrame(id: string): FrameItem | null {
     const index = this.frames().findIndex((f) => f.id === id);
     if (index === -1) return null;
-    
+
     const source = this.frames()[index];
     const newId = `f${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const newFrame: FrameItem = {
@@ -37,15 +41,17 @@ export class EditorFrameService {
       name: `${source.name} copy`,
       duration: source.duration,
       layers: source.layers ? this.deepCopyLayers(source.layers) : undefined,
-      buffers: source.buffers ? this.deepCopyBuffers(source.buffers) : undefined,
+      buffers: source.buffers
+        ? this.deepCopyBuffers(source.buffers)
+        : undefined,
     };
-    
+
     this.frames.update((arr) => [
       ...arr.slice(0, index + 1),
       newFrame,
       ...arr.slice(index + 1),
     ]);
-    
+
     this.currentFrameIndex.set(index + 1);
     return newFrame;
   }
@@ -64,14 +70,20 @@ export class EditorFrameService {
   updateFrameDuration(id: string, duration: number): boolean {
     const frame = this.frames().find((f) => f.id === id);
     if (!frame) return false;
-    
+
     this.frames.update((arr) =>
-      arr.map((f) => (f.id === id ? { ...f, duration: Math.max(1, duration) } : f))
+      arr.map((f) =>
+        f.id === id ? { ...f, duration: Math.max(1, duration) } : f,
+      ),
     );
     return true;
   }
 
-  saveFrameState(id: string, layers: LayerTreeItem[], buffers: Record<string, string[]>): boolean {
+  saveFrameState(
+    id: string,
+    layers: LayerTreeItem[],
+    buffers: Record<string, string[]>,
+  ): boolean {
     const frame = this.frames().find((f) => f.id === id);
     if (!frame) return false;
 
@@ -83,8 +95,8 @@ export class EditorFrameService {
               layers: this.deepCopyLayers(layers),
               buffers: this.deepCopyBuffers(buffers),
             }
-          : f
-      )
+          : f,
+      ),
     );
     return true;
   }
@@ -93,7 +105,9 @@ export class EditorFrameService {
     return structuredClone(layers);
   }
 
-  private deepCopyBuffers(buffers: Record<string, string[]>): Record<string, string[]> {
+  private deepCopyBuffers(
+    buffers: Record<string, string[]>,
+  ): Record<string, string[]> {
     const copy: Record<string, string[]> = {};
     for (const [key, value] of Object.entries(buffers)) {
       copy[key] = [...value];

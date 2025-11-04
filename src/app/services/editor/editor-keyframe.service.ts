@@ -45,7 +45,9 @@ export class EditorKeyframeService {
   addKeyframe(animationId: string, keyframe: Keyframe): void {
     const current = new Map(this.keyframes());
     const animKeyframes = current.get(animationId) || [];
-    const updated = [...animKeyframes, keyframe].sort((a, b) => a.time - b.time);
+    const updated = [...animKeyframes, keyframe].sort(
+      (a, b) => a.time - b.time,
+    );
     current.set(animationId, updated);
     this.keyframes.set(current);
   }
@@ -108,7 +110,9 @@ export class EditorKeyframeService {
     if (keyframes.length === 0) return null;
 
     const relevantKeyframes = keyframes.filter((kf) =>
-      kf.boneTransforms.some((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId),
+      kf.boneTransforms.some(
+        (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
+      ),
     );
 
     if (relevantKeyframes.length === 0) return null;
@@ -123,10 +127,18 @@ export class EditorKeyframeService {
 
     if (!before && !after) return null;
     if (!after) {
-      return before.boneTransforms.find((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId) || null;
+      return (
+        before.boneTransforms.find(
+          (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
+        ) || null
+      );
     }
     if (!before) {
-      return after.boneTransforms.find((bt) => bt.boneId === boneId && bt.bonePointId === bonePointId) || null;
+      return (
+        after.boneTransforms.find(
+          (bt) => bt.boneId === boneId && bt.bonePointId === bonePointId,
+        ) || null
+      );
     }
 
     const beforeTransform = before.boneTransforms.find(

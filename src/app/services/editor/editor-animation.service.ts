@@ -52,10 +52,10 @@ export class EditorAnimationService {
   private advanceFrame() {
     const frames = this.frameService.frames();
     if (frames.length === 0) return;
-    
+
     const currentIndex = this.frameService.currentFrameIndex();
     const nextIndex = (currentIndex + 1) % frames.length;
-    
+
     if (this.loadFrameCallback) {
       this.loadFrameCallback(nextIndex);
     } else {

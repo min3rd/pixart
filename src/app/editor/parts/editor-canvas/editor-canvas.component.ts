@@ -20,7 +20,11 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
-import { EditorBoneService, Bone, BonePoint } from '../../../services/editor/editor-bone.service';
+import {
+  EditorBoneService,
+  Bone,
+  BonePoint,
+} from '../../../services/editor/editor-bone.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -104,7 +108,12 @@ export class EditorCanvas {
   private selectionContentMoving = false;
   private selectionContentMoveStart: { x: number; y: number } | null = null;
   private movingContentBuffer: string[] | null = null;
-  private movingContentOriginalRect: { x: number; y: number; width: number; height: number } | null = null;
+  private movingContentOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
   private originalLayerId: string | null = null;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
@@ -123,7 +132,10 @@ export class EditorCanvas {
   readonly submenuPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
   readonly submenuActions = signal<ContextMenuAction[]>([]);
   readonly inputDialogVisible = signal(false);
-  readonly inputDialogPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  readonly inputDialogPosition = signal<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
   readonly inputDialogValue = signal('10');
   readonly inputDialogTitle = signal('');
   readonly inputDialogCallback = signal<((value: string) => void) | null>(null);
@@ -164,7 +176,7 @@ export class EditorCanvas {
       this.drawCanvas();
       return null as any;
     });
-    
+
     effect(() => {
       const tool = this.tools.currentTool();
       if (tool !== 'bone' && this.currentBoneId) {
@@ -643,7 +655,7 @@ export class EditorCanvas {
         this.capturePointer(ev);
         const frameId = this.getCurrentFrameId();
         const clickedPoint = this.findBonePointAt(frameId, logicalX, logicalY);
-        
+
         if (clickedPoint) {
           this.draggingPointId = clickedPoint.pointId;
           this.draggingPointBoneId = clickedPoint.boneId;
@@ -659,31 +671,37 @@ export class EditorCanvas {
             this.currentBoneId = newBone.id;
             this.boneService.addBone(frameId, newBone);
           }
-          
+
           const newPoint: BonePoint = {
             id: `point-${Date.now()}-${Math.random().toString(36).substring(7)}`,
             x: logicalX,
             y: logicalY,
             parentId: undefined,
           };
-          
+
           const bones = this.boneService.getBones(frameId);
-          const currentBone = bones.find(b => b.id === this.currentBoneId);
+          const currentBone = bones.find((b) => b.id === this.currentBoneId);
           if (currentBone && currentBone.points.length > 0) {
             const selectedPoint = this.boneService.getSelectedPoint();
             if (selectedPoint) {
               newPoint.parentId = selectedPoint;
             } else {
-              newPoint.parentId = currentBone.points[currentBone.points.length - 1].id;
+              newPoint.parentId =
+                currentBone.points[currentBone.points.length - 1].id;
             }
           }
-          
-          this.boneService.addPointToBone(frameId, this.currentBoneId, newPoint);
+
+          this.boneService.addPointToBone(
+            frameId,
+            this.currentBoneId,
+            newPoint,
+          );
           this.boneService.selectPoint(newPoint.id);
 
           const currentAnim = this.document.getCurrentAnimation();
           if (currentAnim) {
-            const currentTime = this.document.keyframeService?.getCurrentTime() || 0;
+            const currentTime =
+              this.document.keyframeService?.getCurrentTime() || 0;
             this.boneService.updatePoint(
               frameId,
               this.currentBoneId,
@@ -988,7 +1006,7 @@ export class EditorCanvas {
       x: sel.x,
       y: sel.y,
       width: sel.width,
-      height: sel.height
+      height: sel.height,
     };
     this.movingContentBuffer = [];
     for (let y = 0; y < h; y++) {
@@ -1010,7 +1028,12 @@ export class EditorCanvas {
   }
 
   endSelectionContentMove() {
-    if (!this.movingContentBuffer || !this.originalLayerId || !this.movingContentOriginalRect) return;
+    if (
+      !this.movingContentBuffer ||
+      !this.originalLayerId ||
+      !this.movingContentOriginalRect
+    )
+      return;
     const originalBuf = this.document.getLayerBuffer(this.originalLayerId);
     if (!originalBuf) return;
     const w = this.document.canvasWidth();
@@ -1299,7 +1322,11 @@ export class EditorCanvas {
     const animationId = currentAnim?.id;
     const currentTime = this.document.keyframeService?.getCurrentTime();
     const isInTimelineMode = this.document.keyframeService?.isTimelineMode();
-    const shouldApplyBoneTransforms = !!(animationId && typeof currentTime === 'number' && isInTimelineMode);
+    const shouldApplyBoneTransforms = !!(
+      animationId &&
+      typeof currentTime === 'number' &&
+      isInTimelineMode
+    );
 
     const layers = this.document.getFlattenedLayers();
     for (let li = layers.length - 1; li >= 0; li--) {
@@ -1311,9 +1338,13 @@ export class EditorCanvas {
 
       if (shouldApplyBoneTransforms) {
         const boundSourcePixels = new Set<number>();
-        const destinationPixelMap = new Map<number, {color: string, priority: number}>();
-        const bindings = this.document.keyframeService.getPixelBindings(frameId);
-        
+        const destinationPixelMap = new Map<
+          number,
+          { color: string; priority: number }
+        >();
+        const bindings =
+          this.document.keyframeService.getPixelBindings(frameId);
+
         const transformCache = new Map<string, any>();
 
         for (const binding of bindings) {
@@ -1323,7 +1354,7 @@ export class EditorCanvas {
 
           const cacheKey = `${binding.boneId}:${binding.bonePointId}`;
           let transform = transformCache.get(cacheKey);
-          
+
           if (!transform) {
             transform = this.document.keyframeService.interpolateBoneTransform(
               animationId,
@@ -1338,20 +1369,27 @@ export class EditorCanvas {
             const transformedX = Math.round(transform.x + binding.offsetX);
             const transformedY = Math.round(transform.y + binding.offsetY);
 
-            if (transformedX >= 0 && transformedX < w && transformedY >= 0 && transformedY < h) {
+            if (
+              transformedX >= 0 &&
+              transformedX < w &&
+              transformedY >= 0 &&
+              transformedY < h
+            ) {
               const destIdx = transformedY * w + transformedX;
-              const distSq = binding.offsetX * binding.offsetX + binding.offsetY * binding.offsetY;
+              const distSq =
+                binding.offsetX * binding.offsetX +
+                binding.offsetY * binding.offsetY;
               const priority = -distSq;
-              
+
               const existing = destinationPixelMap.get(destIdx);
               if (!existing || priority > existing.priority) {
-                destinationPixelMap.set(destIdx, {color: col, priority});
+                destinationPixelMap.set(destIdx, { color: col, priority });
               }
               boundSourcePixels.add(sourceIdx);
             }
           } else {
             const destIdx = binding.pixelY * w + binding.pixelX;
-            destinationPixelMap.set(destIdx, {color: col, priority: 0});
+            destinationPixelMap.set(destIdx, { color: col, priority: 0 });
             boundSourcePixels.add(sourceIdx);
           }
         }
@@ -1359,7 +1397,7 @@ export class EditorCanvas {
         for (let yy = 0; yy < h; yy++) {
           for (let xx = 0; xx < w; xx++) {
             const idx = yy * w + xx;
-            
+
             if (destinationPixelMap.has(idx)) {
               const pixelData = destinationPixelMap.get(idx);
               if (pixelData) {
@@ -1513,39 +1551,43 @@ export class EditorCanvas {
     const tool = this.tools.currentTool();
     if (tool === 'bone') {
       const bones = this.boneService.getBones(frameId);
-      
-      const getPointPosition = (boneId: string, point: BonePoint): { x: number; y: number } => {
+
+      const getPointPosition = (
+        boneId: string,
+        point: BonePoint,
+      ): { x: number; y: number } => {
         if (shouldApplyBoneTransforms) {
-          const transform = this.document.keyframeService.interpolateBoneTransform(
-            animationId,
-            boneId,
-            point.id,
-            currentTime,
-          );
+          const transform =
+            this.document.keyframeService.interpolateBoneTransform(
+              animationId,
+              boneId,
+              point.id,
+              currentTime,
+            );
           if (transform) {
             return { x: transform.x, y: transform.y };
           }
         }
         return { x: point.x, y: point.y };
       };
-      
+
       ctx.save();
       for (const bone of bones) {
         if (bone.points.length === 0) continue;
-        
+
         ctx.strokeStyle = bone.color;
         ctx.lineWidth = Math.max(pxLineWidth, bone.thickness);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        
+
         const drawnConnections = new Set<string>();
-        
+
         const drawConnection = (point: BonePoint) => {
           if (point.parentId) {
             const connectionKey = `${point.parentId}->${point.id}`;
             if (drawnConnections.has(connectionKey)) return;
-            
-            const parent = bone.points.find(p => p.id === point.parentId);
+
+            const parent = bone.points.find((p) => p.id === point.parentId);
             if (parent) {
               const parentPos = getPointPosition(bone.id, parent);
               const pointPos = getPointPosition(bone.id, point);
@@ -1557,66 +1599,74 @@ export class EditorCanvas {
             }
           }
         };
-        
+
         for (const point of bone.points) {
           drawConnection(point);
         }
-        
+
         for (const point of bone.points) {
           const isSelected = this.boneService.getSelectedPoint() === point.id;
           const radius = Math.max(3 / scale, 0.5);
           const pos = getPointPosition(bone.id, point);
-          
+
           ctx.fillStyle = point.color || bone.color;
           ctx.beginPath();
           ctx.arc(pos.x + 0.5, pos.y + 0.5, radius, 0, Math.PI * 2);
           ctx.fill();
-          
+
           if (isSelected) {
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = Math.max(pxLineWidth * 2, 0.3);
             ctx.stroke();
           }
-          
-          ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+
+          ctx.strokeStyle = isDark
+            ? 'rgba(255,255,255,0.8)'
+            : 'rgba(0,0,0,0.8)';
           ctx.lineWidth = Math.max(pxLineWidth, 0.2);
           ctx.stroke();
         }
       }
       ctx.restore();
-      
+
       const bindings = this.document.keyframeService?.getPixelBindings(frameId);
       if (bindings && bindings.length > 0 && this.tools.boneAutoBindEnabled()) {
         ctx.save();
-        
+
         const getBoneDisplayColor = (boneId: string): string => {
           let hash = 0;
           for (let i = 0; i < boneId.length; i++) {
-            hash = ((hash << 5) - hash) + boneId.charCodeAt(i);
+            hash = (hash << 5) - hash + boneId.charCodeAt(i);
             hash = hash & hash;
           }
-          
+
           const hue = Math.abs(hash) % 360;
           const saturation = 60 + (Math.abs(hash >> 8) % 20);
           const lightness = 50 + (Math.abs(hash >> 16) % 15);
-          
+
           return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         };
-        
-        const boneColorCache = new Map<string, { r: number; g: number; b: number }>();
-        
+
+        const boneColorCache = new Map<
+          string,
+          { r: number; g: number; b: number }
+        >();
+
         for (const binding of bindings) {
           let rgb = boneColorCache.get(binding.boneId);
-          
+
           if (!rgb) {
             const hslColor = getBoneDisplayColor(binding.boneId);
-            const tempDiv = typeof document !== 'undefined' ? document.createElement('div') : null;
+            const tempDiv =
+              typeof document !== 'undefined'
+                ? document.createElement('div')
+                : null;
             if (tempDiv) {
               tempDiv.style.color = hslColor;
               document.body.appendChild(tempDiv);
               const computed = getComputedStyle(tempDiv).color;
               document.body.removeChild(tempDiv);
-              
+
               const match = computed.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
               if (match) {
                 rgb = {
@@ -1628,19 +1678,39 @@ export class EditorCanvas {
                 rgb = { r: 255, g: 102, b: 0 };
               }
             } else {
-              const hue = Math.abs(binding.boneId.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 360;
+              const hue =
+                Math.abs(
+                  binding.boneId
+                    .split('')
+                    .reduce((a, c) => a + c.charCodeAt(0), 0),
+                ) % 360;
               const s = 0.7;
               const l = 0.6;
               const c = (1 - Math.abs(2 * l - 1)) * s;
               const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
               const m = l - c / 2;
-              let r = 0, g = 0, b = 0;
-              if (hue < 60) { r = c; g = x; }
-              else if (hue < 120) { r = x; g = c; }
-              else if (hue < 180) { g = c; b = x; }
-              else if (hue < 240) { g = x; b = c; }
-              else if (hue < 300) { r = x; b = c; }
-              else { r = c; b = x; }
+              let r = 0,
+                g = 0,
+                b = 0;
+              if (hue < 60) {
+                r = c;
+                g = x;
+              } else if (hue < 120) {
+                r = x;
+                g = c;
+              } else if (hue < 180) {
+                g = c;
+                b = x;
+              } else if (hue < 240) {
+                g = x;
+                b = c;
+              } else if (hue < 300) {
+                r = x;
+                b = c;
+              } else {
+                r = c;
+                b = x;
+              }
               rgb = {
                 r: Math.round((r + m) * 255),
                 g: Math.round((g + m) * 255),
@@ -1651,13 +1721,13 @@ export class EditorCanvas {
               boneColorCache.set(binding.boneId, rgb);
             }
           }
-          
+
           if (rgb) {
             ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
             ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
           }
         }
-        
+
         ctx.restore();
       }
     }
@@ -1667,10 +1737,10 @@ export class EditorCanvas {
     const selShape = this.document.selectionShape();
     if (sel && sel.width > 0 && sel.height > 0) {
       ctx.save();
-      
+
       // Check if we have a mask-based selection
       const mask = this.document.selectionMask();
-      
+
       if (mask) {
         // Draw mask-based selection by rendering individual pixels
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
@@ -1680,19 +1750,19 @@ export class EditorCanvas {
           const y = parseInt(yStr, 10);
           ctx.fillRect(x, y, 1, 1);
         }
-        
+
         // Draw marching ants border by detecting edges
         // An edge exists where a selected pixel borders an unselected pixel
         ctx.setLineDash([4 / scale, 3 / scale]);
         ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
         ctx.lineWidth = pxLineWidth;
         ctx.beginPath();
-        
+
         for (const key of mask) {
           const [xStr, yStr] = key.split(',');
           const x = parseInt(xStr, 10);
           const y = parseInt(yStr, 10);
-          
+
           // Check all 4 neighbors to see if we need to draw an edge
           // Top edge
           if (!mask.has(`${x},${y - 1}`)) {
@@ -1715,7 +1785,7 @@ export class EditorCanvas {
             ctx.lineTo(x, y + 1);
           }
         }
-        
+
         ctx.stroke();
       } else {
         // translucent fill
@@ -1730,7 +1800,9 @@ export class EditorCanvas {
           ctx.fill();
           // dashed stroke
           ctx.setLineDash([4 / scale, 3 / scale]);
-          ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+          ctx.strokeStyle = isDark
+            ? 'rgba(255,255,255,0.8)'
+            : 'rgba(0,0,0,0.8)';
           ctx.lineWidth = pxLineWidth;
           ctx.stroke();
         } else if (selShape === 'lasso') {
@@ -1755,7 +1827,9 @@ export class EditorCanvas {
           // ctx.fillRect(sel.x, sel.y, sel.width, sel.height);
           // dashed stroke
           ctx.setLineDash([4 / scale, 3 / scale]);
-          ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+          ctx.strokeStyle = isDark
+            ? 'rgba(255,255,255,0.8)'
+            : 'rgba(0,0,0,0.8)';
           ctx.lineWidth = pxLineWidth;
           ctx.strokeRect(
             sel.x,
@@ -2291,7 +2365,7 @@ export class EditorCanvas {
   ): { boneId: string; pointId: string } | null {
     const bones = this.boneService.getBones(frameId);
     const hitRadius = 5;
-    
+
     for (const bone of bones) {
       for (const point of bone.points) {
         const dx = point.x - x;

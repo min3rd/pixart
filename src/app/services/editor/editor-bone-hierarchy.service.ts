@@ -51,10 +51,7 @@ export class EditorBoneHierarchyService {
     return true;
   }
 
-  updateBone(
-    id: string,
-    updates: Partial<Omit<BoneItem, 'id'>>,
-  ): boolean {
+  updateBone(id: string, updates: Partial<Omit<BoneItem, 'id'>>): boolean {
     const bone = this.bones().find((b) => b.id === id);
     if (!bone) return false;
     this.bones.update((arr) =>

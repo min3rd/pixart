@@ -27,7 +27,14 @@ import {
 } from './editor/index';
 import { GradientType, ShapeFillMode, ToolMetaKey } from './tools/tool.types';
 
-export type { FrameItem, GroupItem, LayerItem, LayerTreeItem, AnimationItem, BoneItem };
+export type {
+  FrameItem,
+  GroupItem,
+  LayerItem,
+  LayerTreeItem,
+  AnimationItem,
+  BoneItem,
+};
 export { isGroup, isLayer };
 
 interface ShapeDrawOptions {
@@ -48,7 +55,9 @@ export class EditorDocumentService {
   private readonly layerService = inject(EditorLayerService);
   private readonly frameService = inject(EditorFrameService);
   private readonly animationService = inject(EditorAnimationService);
-  private readonly animationCollectionService = inject(EditorAnimationCollectionService);
+  private readonly animationCollectionService = inject(
+    EditorAnimationCollectionService,
+  );
   private readonly historyService = inject(EditorHistoryService);
   private readonly selectionService = inject(EditorSelectionService);
   private readonly drawingService = inject(EditorDrawingService);
@@ -69,7 +78,8 @@ export class EditorDocumentService {
   readonly currentFrameIndex = this.frameService.currentFrameIndex;
 
   readonly animations = this.animationCollectionService.animations;
-  readonly currentAnimationIndex = this.animationCollectionService.currentAnimationIndex;
+  readonly currentAnimationIndex =
+    this.animationCollectionService.currentAnimationIndex;
 
   readonly boneHierarchy = this.boneHierarchyService.bones;
   readonly selectedBoneHierarchyId = this.boneHierarchyService.selectedBoneId;
@@ -94,11 +104,11 @@ export class EditorDocumentService {
     this.tools.registerHistoryAdapter((key, previous, next) =>
       this.commitMetaChange({ key, previous, next }),
     );
-    
+
     this.animationService.setLoadFrameCallback((index: number) => {
       this.loadFrameState(index);
     });
-    
+
     setTimeout(() => this.initializeFirstFrame(), 0);
   }
 
@@ -226,10 +236,7 @@ export class EditorDocumentService {
 
   removeLayer(id: string): boolean {
     const prevSnapshot = this.snapshotLayersAndBuffers();
-    const item = this.layerService.findItemById(
-      this.layerService.layers(),
-      id,
-    );
+    const item = this.layerService.findItemById(this.layerService.layers(), id);
     const success = this.layerService.removeLayer(id);
     if (!success) return false;
     if (item && isLayer(item)) {
@@ -280,10 +287,7 @@ export class EditorDocumentService {
 
   duplicateLayer(layerId?: string): LayerItem | null {
     const id = layerId || this.layerService.selectedLayerId();
-    const item = this.layerService.findItemById(
-      this.layerService.layers(),
-      id,
-    );
+    const item = this.layerService.findItemById(this.layerService.layers(), id);
     if (!item || !isLayer(item)) return null;
     const prevSnapshot = this.snapshotLayersAndBuffers();
     const newLayerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -844,7 +848,10 @@ export class EditorDocumentService {
     return { layers: layersCopy, buffers };
   }
 
-  private applyMetaChange(meta: { key: string; previous: any; next: any }, useNext: boolean) {
+  private applyMetaChange(
+    meta: { key: string; previous: any; next: any },
+    useNext: boolean,
+  ) {
     const val = useNext ? meta.next : meta.previous;
     switch (meta.key) {
       case 'currentTool':
@@ -987,7 +994,7 @@ export class EditorDocumentService {
     for (const [id, buf] of this.canvasState.getAllBuffers().entries()) {
       buffers[id] = buf.slice();
     }
-    
+
     this.frameService.saveFrameState(frameId, layers, buffers);
   }
 
@@ -997,7 +1004,7 @@ export class EditorDocumentService {
 
     if (frame.layers && frame.buffers) {
       this.layerService.layers.set(structuredClone(frame.layers));
-      
+
       const newBuffers = new Map<string, string[]>();
       for (const [key, value] of Object.entries(frame.buffers)) {
         newBuffers.set(key, [...value]);
@@ -1047,7 +1054,10 @@ export class EditorDocumentService {
   }
 
   reorderAnimations(fromIndex: number, toIndex: number): boolean {
-    return this.animationCollectionService.reorderAnimations(fromIndex, toIndex);
+    return this.animationCollectionService.reorderAnimations(
+      fromIndex,
+      toIndex,
+    );
   }
 
   attachBoneToAnimation(animationId: string, boneId: string): boolean {
@@ -1059,11 +1069,17 @@ export class EditorDocumentService {
   }
 
   addFrameToAnimation(animationId: string, name?: string): FrameItem | null {
-    return this.animationCollectionService.addFrameToAnimation(animationId, name);
+    return this.animationCollectionService.addFrameToAnimation(
+      animationId,
+      name,
+    );
   }
 
   removeFrameFromAnimation(animationId: string, frameId: string): boolean {
-    return this.animationCollectionService.removeFrameFromAnimation(animationId, frameId);
+    return this.animationCollectionService.removeFrameFromAnimation(
+      animationId,
+      frameId,
+    );
   }
 
   validateAnimationName(name: string): boolean {

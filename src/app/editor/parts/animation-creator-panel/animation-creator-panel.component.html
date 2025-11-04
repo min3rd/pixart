@@ -20,7 +20,10 @@
       }}</span>
     </button>
 
-    <div id="creator-time-display" class="px-2 py-1 text-xs font-mono bg-neutral-100 dark:bg-neutral-700 rounded-sm">
+    <div
+      id="creator-time-display"
+      class="px-2 py-1 text-xs font-mono bg-neutral-100 dark:bg-neutral-700 rounded-sm"
+    >
       {{ formatTime(currentTime()) }}
     </div>
 
@@ -61,7 +64,9 @@
       >
         −
       </button>
-      <span class="text-xs font-mono w-12 text-center">{{ (zoomLevel() * 100).toFixed(0) }}%</span>
+      <span class="text-xs font-mono w-12 text-center"
+        >{{ (zoomLevel() * 100).toFixed(0) }}%</span
+      >
       <button
         id="creator-zoom-in-btn"
         type="button"
@@ -73,7 +78,10 @@
     </div>
   </div>
 
-  <div id="animation-creator-timeline" class="flex-1 flex flex-col overflow-hidden">
+  <div
+    id="animation-creator-timeline"
+    class="flex-1 flex flex-col overflow-hidden"
+  >
     <div
       id="creator-timeline-info"
       class="shrink-0 px-3 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
@@ -86,7 +94,10 @@
       </div>
     </div>
 
-    <div id="creator-timeline-canvas-container" class="flex-1 relative overflow-hidden">
+    <div
+      id="creator-timeline-canvas-container"
+      class="flex-1 relative overflow-hidden"
+    >
       <canvas
         #timelineCanvas
         id="creator-timeline-canvas"
@@ -111,14 +122,18 @@
       id="creator-timeline-keyframes-list"
       class="shrink-0 border-t border-neutral-200 dark:border-neutral-800 p-2 bg-white dark:bg-neutral-800"
     >
-      <div class="text-[10px] font-medium mb-1 text-neutral-600 dark:text-neutral-400">
+      <div
+        class="text-[10px] font-medium mb-1 text-neutral-600 dark:text-neutral-400"
+      >
         {{ "animationCreator.keyframes" | transloco }}
       </div>
-      
+
       @if (animationService.getCurrentAnimation(); as animation) {
         @if (getSortedKeyframes(animation.id); as keyframes) {
           @if (keyframes.length === 0) {
-            <div class="text-[10px] text-neutral-500 dark:text-neutral-400 italic">
+            <div
+              class="text-[10px] text-neutral-500 dark:text-neutral-400 italic"
+            >
               {{ "animationCreator.noKeyframes" | transloco }}
             </div>
           } @else {
@@ -130,8 +145,12 @@
                     type="number"
                     step="0.1"
                     [value]="editingKeyframeTime()"
-                    (input)="editingKeyframeTime.set(+$any($event.target).value)"
-                    (keydown.enter)="saveKeyframeTimeEdit(kf.id, editingKeyframeTime())"
+                    (input)="
+                      editingKeyframeTime.set(+$any($event.target).value)
+                    "
+                    (keydown.enter)="
+                      saveKeyframeTimeEdit(kf.id, editingKeyframeTime())
+                    "
                     (keydown.escape)="cancelKeyframeTimeEdit()"
                     (blur)="cancelKeyframeTimeEdit()"
                     class="w-16 px-2 py-1 text-[10px] rounded-sm border border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -141,21 +160,34 @@
                   <button
                     [id]="'keyframe-' + kf.id"
                     type="button"
-                    (click)="selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)"
+                    (click)="
+                      selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)
+                    "
                     (dblclick)="startEditingKeyframeTime(kf.id, kf.time)"
                     class="px-2 py-1 text-[10px] rounded-sm transition-colors relative"
                     [class.bg-blue-500]="selectedKeyframeId() === kf.id"
                     [class.text-white]="selectedKeyframeId() === kf.id"
                     [class.bg-neutral-300]="selectedKeyframeId() !== kf.id"
-                    [class.dark\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
-                    [class.hover\:bg-neutral-400]="selectedKeyframeId() !== kf.id"
-                    [class.dark\:hover\:bg-neutral-500]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:bg-neutral-600]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                    [class.hover\:bg-neutral-400]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                    [class.dark\:hover\:bg-neutral-500]="
+                      selectedKeyframeId() !== kf.id
+                    "
                     [class.text-neutral-900]="selectedKeyframeId() !== kf.id"
-                    [class.dark\:text-neutral-100]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:text-neutral-100]="
+                      selectedKeyframeId() !== kf.id
+                    "
                   >
                     {{ formatTime(kf.time) }}
                     @if (newKeyframeId() === kf.id) {
-                      <span class="absolute -top-1 -right-1 px-1 text-[8px] bg-green-500 text-white rounded-sm font-bold">NEW</span>
+                      <span
+                        class="absolute -top-1 -right-1 px-1 text-[8px] bg-green-500 text-white rounded-sm font-bold"
+                        >NEW</span
+                      >
                     }
                   </button>
                 }
