@@ -31,6 +31,7 @@
             id="menu-file-new-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onNewProject()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.new')"
           >
             {{ "file.new" | transloco }}
           </button>
@@ -38,6 +39,7 @@
             id="menu-file-open-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onOpenFromComputer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.open')"
           >
             {{ "file.openFromComputer" | transloco }}
           </button>
@@ -45,6 +47,7 @@
             id="menu-file-save-computer-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onSaveToComputer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.saveToComputer')"
           >
             {{ "file.saveToComputer" | transloco }}
           </button>
@@ -56,6 +59,7 @@
             id="menu-file-save-local-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onSave()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.save')"
           >
             {{ "file.saveLocal" | transloco }}
           </button>
@@ -96,6 +100,7 @@
             id="menu-insert-image-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onInsertImage()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('insert.image')"
           >
             {{ "insert.insertImage" | transloco }}
           </button>
@@ -108,6 +113,7 @@
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onUndo()"
       title="{{ 'menu.undo' | transloco }}"
+      [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.undo')"
     >
       {{ "menu.undo" | transloco }}
     </button>
@@ -117,6 +123,7 @@
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onRedo()"
       title="{{ 'menu.redo' | transloco }}"
+      [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.redo')"
     >
       {{ "menu.redo" | transloco }}
     </button>
@@ -147,19 +154,46 @@
             id="menu-tool-bone-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onSelectBoneTool()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.bone')"
           >
             {{ "tools.bone" | transloco }}
           </button>
         </div>
       }
     </div>
-    <button
-      type="button"
-      id="menu-help-button"
-      class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+    <div
+      id="menu-help-wrapper"
+      class="relative"
+      (mouseenter)="openHelpMenuHover()"
+      (mouseleave)="closeHelpMenuHover()"
     >
-      {{ "menu.help" | transloco }}
-    </button>
+      <button
+        type="button"
+        id="menu-help-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showHelpMenu.set(!showHelpMenu())"
+        [attr.aria-expanded]="showHelpMenu()"
+      >
+        {{ "menu.help" | transloco }}
+      </button>
+      @if (showHelpMenu()) {
+        <div
+          id="menu-help-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-44"
+          tabindex="0"
+          (focusin)="onHelpMenuFocusIn()"
+          (focusout)="onHelpMenuFocusOut()"
+        >
+          <button
+            id="menu-help-hotkeys-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onConfigureHotkeys()"
+          >
+            {{ "hotkeys.title" | transloco }}
+          </button>
+        </div>
+      }
+    </div>
   </nav>
   <div
     id="header-badges-container"
@@ -203,3 +237,5 @@
   (onConfirm)="handleInsertImageConfirm($event)"
   (onCancel)="handleInsertImageCancel()"
 />
+
+<pa-hotkey-config-dialog />

@@ -16,13 +16,15 @@ import {
   InsertImageResult,
 } from '../../../shared/components/insert-image-dialog/insert-image-dialog.component';
 import { EditorToolsService } from '../../../services/editor-tools.service';
+import { HotkeysService } from '../../../services/hotkeys.service';
+import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dialog/hotkey-config-dialog.component';
 
 @Component({
   selector: 'pa-editor-header',
   templateUrl: './editor-header.component.html',
   styleUrls: ['./editor-header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon, InsertImageDialog],
+  imports: [TranslocoPipe, NgIcon, InsertImageDialog, HotkeyConfigDialog],
   host: {
     class:
       'block w-full bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800',
@@ -34,16 +36,21 @@ export class EditorHeader {
   readonly i18n = inject(TranslocoService);
   readonly settings = inject(UserSettingsService);
   readonly tools = inject(EditorToolsService);
+  readonly hotkeys = inject(HotkeysService);
   readonly showFileMenu = signal(false);
   readonly showInsertMenu = signal(false);
   readonly showToolMenu = signal(false);
+  readonly showHelpMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
+  readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private insertHoverOpenTimer?: number;
   private insertHoverCloseTimer?: number;
   private toolHoverOpenTimer?: number;
   private toolHoverCloseTimer?: number;
+  private helpHoverOpenTimer?: number;
+  private helpHoverCloseTimer?: number;
 
   async onNewProject() {
     // Reset to a minimal new project
@@ -173,9 +180,145 @@ export class EditorHeader {
   };
 
   constructor() {
+    this.registerHotkeys();
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', this.keydownHandler as EventListener);
     }
+  }
+
+  private registerHotkeys() {
+    this.hotkeys.register({
+      id: 'file.new',
+      category: 'file',
+      defaultKey: 'ctrl+n',
+      handler: () => this.onNewProject(),
+    });
+
+    this.hotkeys.register({
+      id: 'file.open',
+      category: 'file',
+      defaultKey: 'ctrl+o',
+      handler: () => this.onOpenFromComputer(),
+    });
+
+    this.hotkeys.register({
+      id: 'file.save',
+      category: 'file',
+      defaultKey: 'ctrl+s',
+      handler: () => this.onSave(),
+    });
+
+    this.hotkeys.register({
+      id: 'file.saveToComputer',
+      category: 'file',
+      defaultKey: 'ctrl+shift+s',
+      handler: () => this.onSaveToComputer(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.undo',
+      category: 'edit',
+      defaultKey: 'ctrl+z',
+      handler: () => this.onUndo(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.redo',
+      category: 'edit',
+      defaultKey: 'ctrl+y',
+      handler: () => this.onRedo(),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.selectLayer',
+      category: 'tool',
+      defaultKey: 'v',
+      handler: () => this.tools.selectTool('select-layer'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.rectSelect',
+      category: 'tool',
+      defaultKey: 'm',
+      handler: () => this.tools.selectTool('rect-select'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.ellipseSelect',
+      category: 'tool',
+      defaultKey: 'e',
+      handler: () => this.tools.selectTool('ellipse-select'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.lassoSelect',
+      category: 'tool',
+      defaultKey: 'l',
+      handler: () => this.tools.selectTool('lasso-select'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.eyedropper',
+      category: 'tool',
+      defaultKey: 'i',
+      handler: () => this.tools.selectTool('eyedropper'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.fill',
+      category: 'tool',
+      defaultKey: 'g',
+      handler: () => this.tools.selectTool('fill'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.eraser',
+      category: 'tool',
+      defaultKey: 'e',
+      handler: () => this.tools.selectTool('eraser'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.line',
+      category: 'tool',
+      defaultKey: 'shift+l',
+      handler: () => this.tools.selectTool('line'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.circle',
+      category: 'tool',
+      defaultKey: 'c',
+      handler: () => this.tools.selectTool('circle'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.square',
+      category: 'tool',
+      defaultKey: 'r',
+      handler: () => this.tools.selectTool('square'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.brush',
+      category: 'tool',
+      defaultKey: 'b',
+      handler: () => this.tools.selectTool('brush'),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.bone',
+      category: 'tool',
+      defaultKey: 'shift+b',
+      handler: () => this.tools.selectTool('bone'),
+    });
+
+    this.hotkeys.register({
+      id: 'insert.image',
+      category: 'insert',
+      defaultKey: 'ctrl+i',
+      handler: () => this.onInsertImage(),
+    });
   }
 
   async onInsertImage() {
@@ -303,6 +446,56 @@ export class EditorHeader {
     this.showToolMenu.set(false);
   }
 
+  openHelpMenuHover() {
+    if (this.helpHoverCloseTimer) {
+      clearTimeout(this.helpHoverCloseTimer);
+      this.helpHoverCloseTimer = undefined;
+    }
+    if (!this.showHelpMenu()) {
+      this.helpHoverOpenTimer = window.setTimeout(() => {
+        this.showHelpMenu.set(true);
+        this.helpHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closeHelpMenuHover() {
+    if (this.helpHoverOpenTimer) {
+      clearTimeout(this.helpHoverOpenTimer);
+      this.helpHoverOpenTimer = undefined;
+    }
+    if (this.showHelpMenu()) {
+      this.helpHoverCloseTimer = window.setTimeout(() => {
+        this.showHelpMenu.set(false);
+        this.helpHoverCloseTimer = undefined;
+      }, 200);
+    }
+  }
+
+  onHelpMenuFocusIn() {
+    if (this.helpHoverCloseTimer) {
+      clearTimeout(this.helpHoverCloseTimer);
+      this.helpHoverCloseTimer = undefined;
+    }
+    this.showHelpMenu.set(true);
+  }
+
+  onHelpMenuFocusOut() {
+    if (this.helpHoverCloseTimer) clearTimeout(this.helpHoverCloseTimer);
+    this.helpHoverCloseTimer = window.setTimeout(() => {
+      this.showHelpMenu.set(false);
+      this.helpHoverCloseTimer = undefined;
+    }, 150);
+  }
+
+  onConfigureHotkeys() {
+    this.showHelpMenu.set(false);
+    const dialog = this.hotkeyConfigDialog();
+    if (dialog) {
+      dialog.open();
+    }
+  }
+
   ngOnDestroy(): void {
     if (typeof window !== 'undefined') {
       window.removeEventListener(
@@ -333,6 +526,14 @@ export class EditorHeader {
     if (this.toolHoverCloseTimer) {
       clearTimeout(this.toolHoverCloseTimer);
       this.toolHoverCloseTimer = undefined;
+    }
+    if (this.helpHoverOpenTimer) {
+      clearTimeout(this.helpHoverOpenTimer);
+      this.helpHoverOpenTimer = undefined;
+    }
+    if (this.helpHoverCloseTimer) {
+      clearTimeout(this.helpHoverCloseTimer);
+      this.helpHoverCloseTimer = undefined;
     }
   }
 

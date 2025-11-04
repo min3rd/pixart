@@ -288,5 +288,47 @@
     "noBonesFound": "No bones found. Draw some bones first using the Bone tool.",
     "pixelsBound": "{{count}} pixels bound to bones",
     "bindingsCleared": "All pixel bindings cleared"
+  },
+  "hotkeys": {
+    "title": "Keyboard Shortcuts",
+    "description": "Customize keyboard shortcuts for actions. Click Edit to change a shortcut, then press the desired key combination.",
+    "close": "Close",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "reset": "Reset",
+    "resetAll": "Reset All to Defaults",
+    "done": "Done",
+    "pressKey": "Press key...",
+    "conflictWith": "Conflicts with:",
+    "category": {
+      "file": "File",
+      "edit": "Edit",
+      "tool": "Tools",
+      "insert": "Insert",
+      "view": "View",
+      "help": "Help"
+    },
+    "action": {
+      "file.new": "New Project",
+      "file.open": "Open from Computer",
+      "file.save": "Save",
+      "file.saveToComputer": "Save to Computer",
+      "edit.undo": "Undo",
+      "edit.redo": "Redo",
+      "tool.selectLayer": "Select Layer Tool",
+      "tool.rectSelect": "Rectangle Select Tool",
+      "tool.ellipseSelect": "Ellipse Select Tool",
+      "tool.lassoSelect": "Lasso Select Tool",
+      "tool.eyedropper": "Eyedropper Tool",
+      "tool.fill": "Fill Tool",
+      "tool.eraser": "Eraser Tool",
+      "tool.line": "Line Tool",
+      "tool.circle": "Circle Tool",
+      "tool.square": "Square Tool",
+      "tool.brush": "Brush Tool",
+      "tool.bone": "Bone Tool",
+      "insert.image": "Insert Image"
+    }
   }
 }
