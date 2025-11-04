@@ -371,7 +371,42 @@
       "tool.square": "Công cụ hình vuông",
       "tool.brush": "Công cụ cọ vẽ",
       "tool.bone": "Công cụ xương",
-      "insert.image": "Chèn ảnh"
+      "insert.image": "Chèn ảnh",
+      "insert.pixelArt": "Tạo Pixel Art từ phác họa"
     }
+  },
+  "pixelGeneration": {
+    "title": "Tạo Pixel Art",
+    "description": "Tạo pixel art từ phác họa và mô tả văn bản",
+    "prompt": "Mô tả những gì bạn muốn tạo",
+    "promptPlaceholder": "Ví dụ: một cái cây nhỏ với lá xanh và thân màu nâu",
+    "width": "Chiều rộng",
+    "height": "Chiều cao",
+    "style": "Phong cách",
+    "customPalette": "Bảng màu tùy chỉnh",
+    "useCustomPalette": "Sử dụng màu tùy chỉnh",
+    "generate": "Tạo",
+    "cancel": "Hủy",
+    "processing": "Đang tạo...",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "progress": "Tiến độ",
+    "selectCurrentLayer": "Dùng layer hiện tại làm phác họa",
+    "noLayerSelected": "Vui lòng chọn layer trước",
+    "emptyLayer": "Layer đã chọn trống. Vui lòng vẽ gì đó trước.",
+    "apiNotConfigured": "API chưa được cấu hình. Sẽ xử lý cục bộ.",
+    "errorMessage": "Lỗi: {{message}}",
+    "styles": {
+      "retro-8bit": "8-bit cổ điển (8 màu)",
+      "retro-16bit": "16-bit cổ điển (16 màu)",
+      "pixel-modern": "Pixel Art hiện đại (32 màu)",
+      "low-res": "Độ phân giải thấp (4 màu)",
+      "high-detail": "Chi tiết cao (64 màu)"
+    },
+    "processingTime": "Thời gian xử lý: {{time}}ms",
+    "colorsUsed": "Số màu sử dụng: {{count}}",
+    "addToLayer": "Thêm vào layer mới",
+    "replaceLayer": "Thay thế layer hiện tại",
+    "viewResult": "Xem kết quả"
   }
 }

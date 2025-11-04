@@ -368,7 +368,42 @@
       "tool.square": "Square Tool",
       "tool.brush": "Brush Tool",
       "tool.bone": "Bone Tool",
-      "insert.image": "Insert Image"
+      "insert.image": "Insert Image",
+      "insert.pixelArt": "Generate Pixel Art from Sketch"
     }
+  },
+  "pixelGeneration": {
+    "title": "Generate Pixel Art",
+    "description": "Create pixel art from your sketch and text prompt",
+    "prompt": "Describe what you want to create",
+    "promptPlaceholder": "E.g., a small tree with green leaves and brown trunk",
+    "width": "Width",
+    "height": "Height",
+    "style": "Art Style",
+    "customPalette": "Custom Color Palette",
+    "useCustomPalette": "Use custom colors",
+    "generate": "Generate",
+    "cancel": "Cancel",
+    "processing": "Generating...",
+    "completed": "Generation Complete",
+    "failed": "Generation Failed",
+    "progress": "Progress",
+    "selectCurrentLayer": "Use current layer as sketch",
+    "noLayerSelected": "Please select a layer first",
+    "emptyLayer": "The selected layer is empty. Please draw something first.",
+    "apiNotConfigured": "The API is not configured. Using local processing instead.",
+    "errorMessage": "Error: {{message}}",
+    "styles": {
+      "retro-8bit": "8-bit Retro (8 colors)",
+      "retro-16bit": "16-bit Retro (16 colors)",
+      "pixel-modern": "Modern Pixel Art (32 colors)",
+      "low-res": "Low Resolution (4 colors)",
+      "high-detail": "High Detail (64 colors)"
+    },
+    "processingTime": "Processing time: {{time}}ms",
+    "colorsUsed": "Colors used: {{count}}",
+    "addToLayer": "Add to New Layer",
+    "replaceLayer": "Replace Current Layer",
+    "viewResult": "View Result"
   }
 }
