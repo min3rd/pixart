@@ -7,13 +7,14 @@ import { NgIcon } from '@ng-icons/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
 import { HotkeysService } from '../../../services/hotkeys.service';
+import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'pa-tool-palette',
   templateUrl: './tool-palette.component.html',
   styleUrls: ['./tool-palette.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, NgIcon, TranslocoPipe, FormsModule],
+  imports: [CommonModule, NgIcon, TranslocoPipe, FormsModule, TooltipDirective],
   host: {
     class: 'block h-full',
   },
@@ -41,6 +42,24 @@ export class ToolPalette {
       'square': 'tool.square',
       'brush': 'tool.brush',
       'bone': 'tool.bone',
+    };
+    return mapping[toolId] || '';
+  }
+
+  getToolTooltipKey(toolId: ToolId): string {
+    const mapping: Record<ToolId, string> = {
+      'select-layer': 'tooltips.tools.selectLayer',
+      'rect-select': 'tooltips.tools.rectSelect',
+      'ellipse-select': 'tooltips.tools.ellipseSelect',
+      'lasso-select': 'tooltips.tools.lassoSelect',
+      'eyedropper': 'tooltips.tools.eyedropper',
+      'fill': 'tooltips.tools.fill',
+      'eraser': 'tooltips.tools.eraser',
+      'line': 'tooltips.tools.line',
+      'circle': 'tooltips.tools.circle',
+      'square': 'tooltips.tools.square',
+      'brush': 'tooltips.tools.brush',
+      'bone': 'tooltips.tools.bone',
     };
     return mapping[toolId] || '';
   }

@@ -18,13 +18,20 @@ import {
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dialog/hotkey-config-dialog.component';
+import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'pa-editor-header',
   templateUrl: './editor-header.component.html',
   styleUrls: ['./editor-header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon, InsertImageDialog, HotkeyConfigDialog],
+  imports: [
+    TranslocoPipe,
+    NgIcon,
+    InsertImageDialog,
+    HotkeyConfigDialog,
+    TooltipDirective,
+  ],
   host: {
     class:
       'block w-full bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-800',
@@ -422,6 +429,11 @@ export class EditorHeader {
 
   onSelectBoneTool() {
     this.tools.selectTool('bone');
+    this.showToolMenu.set(false);
+  }
+
+  onSelectTool(toolId: string) {
+    this.tools.selectTool(toolId as any);
     this.showToolMenu.set(false);
   }
 

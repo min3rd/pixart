@@ -15,6 +15,7 @@ import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { CommonModule } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TooltipDirective } from '../shared/directives/tooltip.directive';
 
 @Component({
   selector: 'pa-editor-page',
@@ -31,6 +32,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     BonesPanel,
     AnimationCreatorPanel,
     EditorCanvas,
+    TooltipDirective,
   ],
   host: {
     class: 'block h-dvh w-dvw',

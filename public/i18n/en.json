@@ -25,6 +25,46 @@
     "brush": "Brush",
     "bone": "Bone"
   },
+  "tooltips": {
+    "menu": {
+      "file": "File operations",
+      "edit": "Edit operations",
+      "insert": "Insert content",
+      "tool": "Drawing and editing tools",
+      "help": "Help and settings",
+      "undo": "Undo last action",
+      "redo": "Redo last undone action"
+    },
+    "tools": {
+      "selectLayer": "Select and move layers",
+      "rectSelect": "Select a rectangular area",
+      "ellipseSelect": "Select an elliptical area",
+      "lassoSelect": "Select a free-form area",
+      "eyedropper": "Pick a color from the canvas",
+      "fill": "Fill an area with color",
+      "eraser": "Erase pixels",
+      "line": "Draw straight lines",
+      "circle": "Draw circles",
+      "square": "Draw squares and rectangles",
+      "brush": "Paint with a brush",
+      "bone": "Create and edit bone points for animation"
+    },
+    "panels": {
+      "layers": "Manage layers and their properties",
+      "bones": "Manage bones and skeletal animation",
+      "timeline": "Manage animation timeline and frames",
+      "animationCreator": "Create and edit keyframe animations"
+    },
+    "file": {
+      "new": "Create a new project",
+      "open": "Open a project from your computer",
+      "save": "Save project to browser storage",
+      "saveToComputer": "Download project to your computer"
+    },
+    "insert": {
+      "image": "Insert an image as a new layer"
+    }
+  },
   "layers": {
     "title": "Layers",
     "hide": "Hide",
