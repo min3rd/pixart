@@ -6,10 +6,10 @@ export interface ProjectSnapshot {
   layers: any[];
   layerBuffers: Record<string, string[]>;
   selectedLayerId: string;
-  selectedLayerIds: Set<string>;
+  selectedLayerIds: string[];
   selection: {
     rect: any;
-    shape: string;
+    shape: 'rect' | 'ellipse' | 'lasso';
     polygon: any;
     mask: any;
   } | null;
@@ -24,7 +24,7 @@ export interface ProjectSnapshot {
   pixelBindings: any;
   animationCurrentTime: number;
   animationDuration: number;
-  timelineMode: string;
+  timelineMode: 'frame' | 'time';
   toolSnapshot: any;
 }
 

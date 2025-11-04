@@ -26,6 +26,7 @@ import {
   isLayer,
 } from './editor/index';
 import { GradientType, ShapeFillMode, ToolMetaKey } from './tools/tool.types';
+import { ProjectSnapshot } from './editor/history.types';
 
 export type {
   FrameItem,
@@ -148,7 +149,7 @@ export class EditorDocumentService {
       layers,
       layerBuffers: buffers,
       selectedLayerId: this.layerService.selectedLayerId(),
-      selectedLayerIds: new Set(this.layerService.selectedLayerIds()),
+      selectedLayerIds: Array.from(this.layerService.selectedLayerIds()),
       selection: {
         rect: this.selectionService.selectionRect(),
         shape: this.selectionService.selectionShape(),
@@ -171,7 +172,7 @@ export class EditorDocumentService {
     };
   }
 
-  private restoreSnapshot(snapshot: any) {
+  private restoreSnapshot(snapshot: ProjectSnapshot) {
     if (!snapshot) return;
     
     this.canvasState.canvasWidth.set(snapshot.canvas.width);

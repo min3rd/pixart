@@ -65,7 +65,7 @@ export class EditorHistoryService {
         Object.entries(snapshot.layerBuffers).map(([k, v]) => [k, [...v]]),
       ),
       selectedLayerId: snapshot.selectedLayerId,
-      selectedLayerIds: new Set(snapshot.selectedLayerIds),
+      selectedLayerIds: [...snapshot.selectedLayerIds],
       selection: snapshot.selection
         ? {
             rect: snapshot.selection.rect ? { ...snapshot.selection.rect } : null,
