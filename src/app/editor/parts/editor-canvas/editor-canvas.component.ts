@@ -969,6 +969,7 @@ export class EditorCanvas {
     if (this.draggingPointId) {
       this.draggingPointId = null;
       this.draggingPointBoneId = null;
+      this.boneService.clearSelection();
       return;
     }
 
