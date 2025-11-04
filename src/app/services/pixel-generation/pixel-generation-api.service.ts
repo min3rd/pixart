@@ -16,6 +16,8 @@ export interface PixelGenerationApiConfig {
 
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationApiService {
+  private readonly MIN_KEYWORD_LENGTH = 2;
+  
   private readonly DEFAULT_CONFIG: PixelGenerationApiConfig = {
     endpoint: '/api/pixel-generation',
     timeout: 30000,
@@ -247,7 +249,7 @@ export class PixelGenerationApiService {
     return prompt
       .toLowerCase()
       .split(/\W+/)
-      .filter((word) => word.length > 2 && !stopWords.has(word))
+      .filter((word) => word.length > this.MIN_KEYWORD_LENGTH && !stopWords.has(word))
       .slice(0, 10);
   }
 

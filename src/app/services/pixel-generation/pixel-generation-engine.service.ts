@@ -16,6 +16,7 @@ export interface ProcessingJob {
 
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationEngineService {
+  private readonly POLL_INTERVAL_MS = 2000;
   private readonly jobs = signal<Map<string, ProcessingJob>>(new Map());
 
   readonly activeJobs = computed(() => Array.from(this.jobs().values()));
@@ -316,7 +317,7 @@ export class PixelGenerationEngineService {
           return jobs;
         });
       }
-    }, 2000);
+    }, this.POLL_INTERVAL_MS);
 
     this.jobs.update((jobs) => {
       const job = jobs.get(jobId);
