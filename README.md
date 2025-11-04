@@ -10,6 +10,7 @@ A minimal 2D pixel editor and animation timeline (work in progress). This is an 
   - Right layers panel
   - Bottom timeline with frames
   - Center canvas area
+- Customizable keyboard shortcuts (see [Hotkey Documentation](docs/HOTKEYS.md))
 
 ## Run locally
 
