@@ -18,6 +18,7 @@
         }"
         title="{{ t.labelKey ? (t.labelKey | transloco) : t.name }}"
         [attr.aria-pressed]="active"
+        [attr.aria-keyshortcuts]="hotkeys.getBinding(getToolHotkeyId(t.id))"
       >
         <ng-icon
           id="tool-palette-button-icon-{{ t.id }}"

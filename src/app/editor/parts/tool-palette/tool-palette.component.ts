@@ -6,6 +6,7 @@ import { GradientType, ToolId } from '../../../services/tools/tool.types';
 import { NgIcon } from '@ng-icons/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
+import { HotkeysService } from '../../../services/hotkeys.service';
 
 @Component({
   selector: 'pa-tool-palette',
@@ -20,9 +21,28 @@ import { CommonModule } from '@angular/common';
 export class ToolPalette {
   readonly document = inject(EditorDocumentService);
   readonly tools = inject(EditorToolsService);
+  readonly hotkeys = inject(HotkeysService);
 
   select(id: ToolId) {
     this.tools.selectTool(id);
+  }
+
+  getToolHotkeyId(toolId: ToolId): string {
+    const mapping: Record<ToolId, string> = {
+      'select-layer': 'tool.selectLayer',
+      'rect-select': 'tool.rectSelect',
+      'ellipse-select': 'tool.ellipseSelect',
+      'lasso-select': 'tool.lassoSelect',
+      'eyedropper': 'tool.eyedropper',
+      'fill': 'tool.fill',
+      'eraser': 'tool.eraser',
+      'line': 'tool.line',
+      'circle': 'tool.circle',
+      'square': 'tool.square',
+      'brush': 'tool.brush',
+      'bone': 'tool.bone',
+    };
+    return mapping[toolId] || '';
   }
 
   setFillMode(mode: 'color' | 'erase') {

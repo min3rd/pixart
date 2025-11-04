@@ -291,5 +291,47 @@
     "keyframeSaved": "Đã lưu keyframe với {{count}} vị trí điểm bone",
     "invalidTime": "Thời gian không hợp lệ. Thời gian phải nằm trong khoảng từ 0 đến thời lượng animation.",
     "editKeyframeTime": "Sửa thời gian"
+  },
+  "hotkeys": {
+    "title": "Phím tắt",
+    "description": "Tùy chỉnh phím tắt cho các thao tác. Click Sửa để thay đổi phím tắt, sau đó nhấn tổ hợp phím mong muốn.",
+    "close": "Đóng",
+    "edit": "Sửa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "reset": "Đặt lại",
+    "resetAll": "Đặt lại tất cả về mặc định",
+    "done": "Hoàn tất",
+    "pressKey": "Nhấn phím...",
+    "conflictWith": "Trùng với:",
+    "category": {
+      "file": "Tệp",
+      "edit": "Chỉnh sửa",
+      "tool": "Công cụ",
+      "insert": "Chèn",
+      "view": "Hiển thị",
+      "help": "Trợ giúp"
+    },
+    "action": {
+      "file.new": "Tạo dự án mới",
+      "file.open": "Mở từ máy tính",
+      "file.save": "Lưu",
+      "file.saveToComputer": "Lưu về máy tính",
+      "edit.undo": "Quay lại",
+      "edit.redo": "Bước tiếp",
+      "tool.selectLayer": "Công cụ chọn layer",
+      "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
+      "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
+      "tool.lassoSelect": "Công cụ chọn vùng tự do",
+      "tool.eyedropper": "Công cụ chấm điểm màu",
+      "tool.fill": "Công cụ đổ màu",
+      "tool.eraser": "Công cụ tẩy",
+      "tool.line": "Công cụ vẽ đường",
+      "tool.circle": "Công cụ hình tròn",
+      "tool.square": "Công cụ hình vuông",
+      "tool.brush": "Công cụ cọ vẽ",
+      "tool.bone": "Công cụ xương",
+      "insert.image": "Chèn ảnh"
+    }
   }
 }
