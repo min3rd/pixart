@@ -1517,6 +1517,21 @@ export class EditorCanvas {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         
+        const getPointPosition = (point: BonePoint): { x: number; y: number } => {
+          if (shouldApplyBoneTransforms) {
+            const transform = this.document.keyframeService.interpolateBoneTransform(
+              animationId,
+              bone.id,
+              point.id,
+              currentTime,
+            );
+            if (transform) {
+              return { x: transform.x, y: transform.y };
+            }
+          }
+          return { x: point.x, y: point.y };
+        };
+        
         const drawnConnections = new Set<string>();
         
         const drawConnection = (point: BonePoint) => {
@@ -1526,9 +1541,11 @@ export class EditorCanvas {
             
             const parent = bone.points.find(p => p.id === point.parentId);
             if (parent) {
+              const parentPos = getPointPosition(parent);
+              const pointPos = getPointPosition(point);
               ctx.beginPath();
-              ctx.moveTo(parent.x + 0.5, parent.y + 0.5);
-              ctx.lineTo(point.x + 0.5, point.y + 0.5);
+              ctx.moveTo(parentPos.x + 0.5, parentPos.y + 0.5);
+              ctx.lineTo(pointPos.x + 0.5, pointPos.y + 0.5);
               ctx.stroke();
               drawnConnections.add(connectionKey);
             }
@@ -1542,10 +1559,11 @@ export class EditorCanvas {
         for (const point of bone.points) {
           const isSelected = this.boneService.getSelectedPoint() === point.id;
           const radius = Math.max(3 / scale, 0.5);
+          const pos = getPointPosition(point);
           
           ctx.fillStyle = bone.color;
           ctx.beginPath();
-          ctx.arc(point.x + 0.5, point.y + 0.5, radius, 0, Math.PI * 2);
+          ctx.arc(pos.x + 0.5, pos.y + 0.5, radius, 0, Math.PI * 2);
           ctx.fill();
           
           if (isSelected) {
