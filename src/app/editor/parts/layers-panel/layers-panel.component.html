@@ -178,41 +178,59 @@
           id="layers-context-menu-select-pixel"
           class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
           (click)="onSelectPixel()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.selectPixel')"
         >
           <ng-icon
             id="layers-context-menu-select-pixel-icon"
             name="heroIconsSquare2StackMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span id="layers-context-menu-select-pixel-label">{{
+          <span
+            id="layers-context-menu-select-pixel-label"
+            class="flex-1"
+            >{{
             "editor.layers.selectPixel" | transloco
           }}</span>
+          @if (getShortcut('edit.selectPixel')) {
+            <span
+              id="layers-context-menu-select-pixel-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut('edit.selectPixel') }}</span
+            >
+          }
         </button>
         <button
           type="button"
           id="layers-context-menu-duplicate"
           class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
           (click)="onDuplicate()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.duplicateLayer')"
         >
           <ng-icon
             id="layers-context-menu-duplicate-icon"
             name="heroIconsDocumentDuplicateMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span id="layers-context-menu-duplicate-label">{{
+          <span
+            id="layers-context-menu-duplicate-label"
+            class="flex-1"
+            >{{
             "editor.layers.duplicate" | transloco
           }}</span>
-          <span
-            id="layers-context-menu-duplicate-shortcut"
-            class="ml-auto text-xs opacity-60"
-            >Ctrl+D</span
-          >
+          @if (getShortcut('edit.duplicateLayer')) {
+            <span
+              id="layers-context-menu-duplicate-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut('edit.duplicateLayer') }}</span
+            >
+          }
         </button>
         <button
           type="button"
           id="layers-context-menu-lock"
           class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
           (click)="onToggleLock()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.lockLayer')"
         >
           <ng-icon
             id="layers-context-menu-lock-icon"
@@ -223,17 +241,22 @@
             "
             class="w-4 h-4"
           ></ng-icon>
-          <span id="layers-context-menu-lock-label">{{
+          <span
+            id="layers-context-menu-lock-label"
+            class="flex-1"
+            >{{
             (isContextMenuItemLocked
               ? "editor.layers.unlock"
               : "editor.layers.lock"
             ) | transloco
           }}</span>
-          <span
-            id="layers-context-menu-lock-shortcut"
-            class="ml-auto text-xs opacity-60"
-            >Ctrl+L</span
-          >
+          @if (getShortcut('edit.lockLayer')) {
+            <span
+              id="layers-context-menu-lock-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut('edit.lockLayer') }}</span
+            >
+          }
         </button>
         @if (selectedCount >= 2) {
           <button
@@ -241,35 +264,52 @@
             id="layers-context-menu-merge"
             class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
             (click)="onMerge()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.mergeLayer')"
           >
             <ng-icon
               id="layers-context-menu-merge-icon"
               name="heroIconsRectangleStackMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span id="layers-context-menu-merge-label">{{
+            <span
+              id="layers-context-menu-merge-label"
+              class="flex-1"
+              >{{
               "editor.layers.merge" | transloco
             }}</span>
+            @if (getShortcut('edit.mergeLayer')) {
+              <span
+                id="layers-context-menu-merge-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut('edit.mergeLayer') }}</span
+              >
+            }
           </button>
           <button
             type="button"
             id="layers-context-menu-group"
             class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
             (click)="onGroup()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.groupLayers')"
           >
             <ng-icon
               id="layers-context-menu-group-icon"
               name="heroIconsFolderMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span id="layers-context-menu-group-label">{{
+            <span
+              id="layers-context-menu-group-label"
+              class="flex-1"
+              >{{
               "editor.layers.group" | transloco
             }}</span>
-            <span
-              id="layers-context-menu-group-shortcut"
-              class="ml-auto text-xs opacity-60"
-              >Ctrl+G</span
-            >
+            @if (getShortcut('edit.groupLayers')) {
+              <span
+                id="layers-context-menu-group-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut('edit.groupLayers') }}</span
+              >
+            }
           </button>
         }
         @if (isContextMenuItemGroup) {
@@ -278,20 +318,26 @@
             id="layers-context-menu-ungroup"
             class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
             (click)="onUngroup()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.ungroupLayers')"
           >
             <ng-icon
               id="layers-context-menu-ungroup-icon"
               name="heroIconsFolderOpenMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span id="layers-context-menu-ungroup-label">{{
+            <span
+              id="layers-context-menu-ungroup-label"
+              class="flex-1"
+              >{{
               "editor.layers.ungroup" | transloco
             }}</span>
-            <span
-              id="layers-context-menu-ungroup-shortcut"
-              class="ml-auto text-xs opacity-60"
-              >Ctrl+Shift+G</span
-            >
+            @if (getShortcut('edit.ungroupLayers')) {
+              <span
+                id="layers-context-menu-ungroup-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut('edit.ungroupLayers') }}</span
+              >
+            }
           </button>
         }
         <button
@@ -299,20 +345,26 @@
           id="layers-context-menu-delete"
           class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
           (click)="onDelete()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.deleteLayer')"
         >
           <ng-icon
             id="layers-context-menu-delete-icon"
             name="heroIconsTrashMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span id="layers-context-menu-delete-label">{{
+          <span
+            id="layers-context-menu-delete-label"
+            class="flex-1"
+            >{{
             "editor.layers.delete" | transloco
           }}</span>
-          <span
-            id="layers-context-menu-delete-shortcut"
-            class="ml-auto text-xs opacity-60"
-            >Del</span
-          >
+          @if (getShortcut('edit.deleteLayer')) {
+            <span
+              id="layers-context-menu-delete-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut('edit.deleteLayer') }}</span
+            >
+          }
         </button>
       </div>
     </div>

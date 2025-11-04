@@ -20,6 +20,7 @@ import {
   heroEllipsisVertical,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
+import { HotkeysService } from '../../../services/hotkeys.service';
 
 @Component({
   selector: 'pa-timeline-panel',
@@ -41,6 +42,7 @@ import { EditorDocumentService } from '../../../services/editor-document.service
 })
 export class TimelinePanel implements AfterViewInit {
   readonly document = inject(EditorDocumentService);
+  readonly hotkeys = inject(HotkeysService);
 
   readonly contextMenuVisible = signal(false);
   readonly contextMenuX = signal(0);
@@ -54,6 +56,8 @@ export class TimelinePanel implements AfterViewInit {
   frameCanvases?: QueryList<ElementRef<HTMLCanvasElement>>;
 
   constructor() {
+    this.registerTimelineHotkeys();
+
     effect(() => {
       if (this.contextMenuVisible()) {
         const handler = (e: MouseEvent) => {
@@ -72,6 +76,39 @@ export class TimelinePanel implements AfterViewInit {
       const frames = this.document.frames();
       const currentIndex = this.document.currentFrameIndex();
       setTimeout(() => this.renderAllPreviews(), 0);
+    });
+  }
+
+  private registerTimelineHotkeys() {
+    this.hotkeys.register({
+      id: 'edit.duplicateFrame',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+d',
+      handler: () => {
+        const currentIdx = this.document.currentFrameIndex();
+        const frames = this.document.frames();
+        if (currentIdx >= 0 && currentIdx < frames.length) {
+          const frameId = frames[currentIdx].id;
+          this.document.saveCurrentFrameState();
+          this.document.duplicateFrame(frameId);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.deleteFrame',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+delete',
+      handler: () => {
+        const frames = this.document.frames();
+        if (frames.length > 1) {
+          const currentIdx = this.document.currentFrameIndex();
+          if (currentIdx >= 0 && currentIdx < frames.length) {
+            const frameId = frames[currentIdx].id;
+            this.document.removeFrame(frameId);
+          }
+        }
+      },
     });
   }
 
@@ -205,5 +242,10 @@ export class TimelinePanel implements AfterViewInit {
       }
     }
     return result;
+  }
+
+  getShortcut(hotkeyId: string): string | null {
+    const binding = this.hotkeys.getBinding(hotkeyId);
+    return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
   }
 }

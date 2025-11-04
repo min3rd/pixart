@@ -25,6 +25,7 @@ import {
   Bone,
   BonePoint,
 } from '../../../services/editor/editor-bone.service';
+import { HotkeysService } from '../../../services/hotkeys.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -76,6 +77,7 @@ export class EditorCanvas {
   readonly documentSvc: EditorDocumentService = this.document;
   readonly tools = inject(EditorToolsService);
   readonly boneService = inject(EditorBoneService);
+  readonly hotkeys = inject(HotkeysService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -182,6 +184,59 @@ export class EditorCanvas {
       if (tool !== 'bone' && this.currentBoneId) {
         this.currentBoneId = null;
       }
+    });
+
+    this.registerCanvasHotkeys();
+  }
+
+  private registerCanvasHotkeys() {
+    this.hotkeys.register({
+      id: 'edit.deselect',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+d',
+      handler: () => this.document.clearSelection(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.invertSelection',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+i',
+      handler: () => this.document.invertSelection(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy1px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+1',
+      handler: () => this.document.growSelection(1),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy2px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+2',
+      handler: () => this.document.growSelection(2),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy5px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+5',
+      handler: () => this.document.growSelection(5),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.makeCopyLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+j',
+      handler: () => this.document.makeCopyLayer(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.mergeVisibleToNewLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+m',
+      handler: () => this.document.mergeVisibleToNewLayer(),
     });
   }
 
@@ -942,6 +997,24 @@ export class EditorCanvas {
   closeInputDialog() {
     this.inputDialogVisible.set(false);
     this.inputDialogCallback.set(null);
+  }
+
+  getShortcutForAction(actionId: ContextMenuActionId): string | null {
+    const hotkeyMap: Record<ContextMenuActionId, string | null> = {
+      deselect: 'edit.deselect',
+      invertSelection: 'edit.invertSelection',
+      growSelection: null,
+      growBy1px: 'edit.growBy1px',
+      growBy2px: 'edit.growBy2px',
+      growBy5px: 'edit.growBy5px',
+      growCustom: null,
+      makeCopyLayer: 'edit.makeCopyLayer',
+      mergeVisibleToNewLayer: 'edit.mergeVisibleToNewLayer',
+    };
+    const hotkeyId = hotkeyMap[actionId];
+    if (!hotkeyId) return null;
+    const binding = this.hotkeys.getBinding(hotkeyId);
+    return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
   }
 
   onInputDialogSubmit() {

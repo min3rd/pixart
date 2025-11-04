@@ -14,6 +14,7 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 import { FormsModule } from '@angular/forms';
+import { HotkeysService } from '../../../services/hotkeys.service';
 
 @Component({
   selector: 'pa-layers-panel',
@@ -27,6 +28,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class LayersPanel {
   readonly document = inject(EditorDocumentService);
+  readonly hotkeys = inject(HotkeysService);
   private dragIndex: number | null = null;
   private lastSelectedIndex: number | null = null;
   readonly contextMenuVisible = signal(false);
@@ -40,6 +42,96 @@ export class LayersPanel {
 
   readonly isGroup = isGroup;
   readonly isLayer = isLayer;
+
+  constructor() {
+    this.registerLayerHotkeys();
+  }
+
+  private registerLayerHotkeys() {
+    this.hotkeys.register({
+      id: 'edit.selectPixel',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+p',
+      handler: () => {
+        const layerId = this.document.selectedLayerId();
+        if (layerId) {
+          this.document.selectPixelForLayer(layerId);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.duplicateLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+d',
+      handler: () => {
+        const layerId = this.document.selectedLayerId();
+        if (layerId) {
+          this.document.duplicateLayer(layerId);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.lockLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+l',
+      handler: () => {
+        const layerId = this.document.selectedLayerId();
+        if (layerId) {
+          this.document.toggleLayerLock(layerId);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.mergeLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+e',
+      handler: () => {
+        const selectedIds = Array.from(this.document.selectedLayerIds());
+        if (selectedIds.length >= 2) {
+          this.document.mergeLayers(selectedIds);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.groupLayers',
+      category: 'edit',
+      defaultKey: 'ctrl+g',
+      handler: () => {
+        const selectedIds = Array.from(this.document.selectedLayerIds());
+        if (selectedIds.length >= 2) {
+          this.document.groupLayers(selectedIds);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.ungroupLayers',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+g',
+      handler: () => {
+        const layerId = this.document.selectedLayerId();
+        if (layerId) {
+          this.document.ungroupLayers(layerId);
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.deleteLayer',
+      category: 'edit',
+      defaultKey: 'delete',
+      handler: () => {
+        const selectedIds = Array.from(this.document.selectedLayerIds());
+        for (const id of selectedIds) {
+          this.document.removeLayer(id);
+        }
+      },
+    });
+  }
 
   select(id: string, event?: MouseEvent) {
     if (event?.ctrlKey || event?.metaKey) {
@@ -281,5 +373,10 @@ export class LayersPanel {
     };
     traverse(this.document.layers(), 0);
     return result;
+  }
+
+  getShortcut(hotkeyId: string): string | null {
+    const binding = this.hotkeys.getBinding(hotkeyId);
+    return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
   }
 }

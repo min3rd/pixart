@@ -243,6 +243,7 @@
               ? onSubmenuTrigger(item, $event, menuButton)
               : null
           "
+          [attr.aria-keyshortcuts]="getShortcutForAction(item.id)"
         >
           <ng-icon
             id="editor-canvas-context-action-icon-{{ item.id }}"
@@ -255,6 +256,14 @@
           >
             {{ item.labelKey | transloco }}
           </span>
+          @if (getShortcutForAction(item.id)) {
+            <span
+              id="editor-canvas-context-action-shortcut-{{ item.id }}"
+              class="ml-2 text-xs opacity-60"
+            >
+              {{ getShortcutForAction(item.id) }}
+            </span>
+          }
           @if (item.submenu && item.submenu.length > 0) {
             <ng-icon
               name="heroIconsChevronRightMini"
@@ -277,15 +286,27 @@
             type="button"
             class="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-xs text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
             (click)="onContextMenuAction(subitem.id, $event)"
+            [attr.aria-keyshortcuts]="getShortcutForAction(subitem.id)"
           >
             <ng-icon
               id="editor-canvas-context-subaction-icon-{{ subitem.id }}"
               [name]="subitem.icon"
               class="h-3 w-3 text-neutral-600 dark:text-neutral-300"
             ></ng-icon>
-            <span id="editor-canvas-context-subaction-label-{{ subitem.id }}">
+            <span
+              id="editor-canvas-context-subaction-label-{{ subitem.id }}"
+              class="flex-1"
+            >
               {{ subitem.labelKey | transloco }}
             </span>
+            @if (getShortcutForAction(subitem.id)) {
+              <span
+                id="editor-canvas-context-subaction-shortcut-{{ subitem.id }}"
+                class="ml-2 text-xs opacity-60"
+              >
+                {{ getShortcutForAction(subitem.id) }}
+              </span>
+            }
           </button>
         }
       </div>
