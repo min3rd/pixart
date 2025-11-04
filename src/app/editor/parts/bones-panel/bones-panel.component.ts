@@ -161,6 +161,12 @@ export class BonesPanel {
     return anim ? anim.boneIds.length : 0;
   }
 
+  getAttachedBonesText(): string {
+    const count = this.getAttachedBonesCount();
+    const key = count === 1 ? 'bones.boneAttached' : 'bones.bonesAttached';
+    return `${count} ${this.translocoService.translate(key)}`;
+  }
+
   getPointsCount(bone: Bone): number {
     return bone.points.length;
   }
