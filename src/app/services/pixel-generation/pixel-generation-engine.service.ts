@@ -299,6 +299,22 @@ export class PixelGenerationEngineService {
         }
       } catch (error) {
         console.error(`Error polling job ${jobId}:`, error);
+        clearInterval(checkInterval);
+        
+        this.jobs.update((jobs) => {
+          const job = jobs.get(jobId);
+          if (job) {
+            const newJobs = new Map(jobs);
+            const failedResponse: PixelGenerationResponse = {
+              ...job.response,
+              status: 'failed',
+              error: error instanceof Error ? error.message : 'Failed to check job status',
+            };
+            newJobs.set(jobId, { ...job, response: failedResponse, checkInterval: undefined });
+            return newJobs;
+          }
+          return jobs;
+        });
       }
     }, 2000);
 
