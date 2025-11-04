@@ -74,6 +74,14 @@ export class EditPointDialog {
 
   onColorInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.pointColor.set(input.value);
+    const value = input.value;
+    if (this.isValidColor(value)) {
+      this.pointColor.set(value);
+    }
+  }
+
+  private isValidColor(color: string): boolean {
+    const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexPattern.test(color);
   }
 }
