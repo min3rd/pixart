@@ -116,7 +116,7 @@
       </div>
       
       @if (animationService.getCurrentAnimation(); as animation) {
-        @if (keyframeService.getKeyframes(animation.id); as keyframes) {
+        @if (getSortedKeyframes(animation.id); as keyframes) {
           @if (keyframes.length === 0) {
             <div class="text-[10px] text-neutral-500 dark:text-neutral-400 italic">
               {{ "animationCreator.noKeyframes" | transloco }}
@@ -146,10 +146,12 @@
                     class="px-2 py-1 text-[10px] rounded-sm transition-colors relative"
                     [class.bg-blue-500]="selectedKeyframeId() === kf.id"
                     [class.text-white]="selectedKeyframeId() === kf.id"
-                    [class.bg-neutral-200]="selectedKeyframeId() !== kf.id"
-                    [class.dark\:bg-neutral-700]="selectedKeyframeId() !== kf.id"
-                    [class.hover\:bg-neutral-300]="selectedKeyframeId() !== kf.id"
-                    [class.dark\:hover\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
+                    [class.bg-neutral-300]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:bg-neutral-600]="selectedKeyframeId() !== kf.id"
+                    [class.hover\:bg-neutral-400]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:hover\:bg-neutral-500]="selectedKeyframeId() !== kf.id"
+                    [class.text-neutral-900]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:text-neutral-100]="selectedKeyframeId() !== kf.id"
                   >
                     {{ formatTime(kf.time) }}
                     @if (newKeyframeId() === kf.id) {
