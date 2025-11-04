@@ -2,7 +2,6 @@ import { Injectable, inject } from '@angular/core';
 import { GradientType, ShapeFillMode } from '../tools/tool.types';
 import { EditorCanvasStateService } from './editor-canvas-state.service';
 import { EditorColorService } from './editor-color.service';
-import { EditorHistoryService } from './editor-history.service';
 import { EditorSelectionService } from './editor-selection.service';
 
 interface ShapeDrawOptions {
@@ -20,7 +19,6 @@ interface ShapeDrawOptions {
 export class EditorDrawingService {
   private readonly canvasState = inject(EditorCanvasStateService);
   private readonly colorService = inject(EditorColorService);
-  private readonly historyService = inject(EditorHistoryService);
   private readonly selectionService = inject(EditorSelectionService);
 
   applyBrushToLayer(
@@ -71,7 +69,6 @@ export class EditorDrawingService {
           continue;
         }
         if (oldVal !== newVal) {
-          this.historyService.recordPixelChange(layerId, idx, oldVal, newVal);
           buf[idx] = newVal;
           changed = true;
         }
@@ -113,7 +110,6 @@ export class EditorDrawingService {
     while (stack.length > 0) {
       const idx = stack.pop() as number;
       if (buf[idx] !== target) continue;
-      this.historyService.recordPixelChange(layerId, idx, target, newVal);
       buf[idx] = newVal;
       changed++;
       const y0 = Math.floor(idx / w);
@@ -550,7 +546,6 @@ export class EditorDrawingService {
   ): boolean {
     const previous = buf[idx] || '';
     if (previous === value) return false;
-    this.historyService.recordPixelChange(layerId, idx, previous, value);
     buf[idx] = value;
     return true;
   }
