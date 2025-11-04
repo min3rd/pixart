@@ -26,6 +26,10 @@ import {
   BonePoint,
 } from '../../../services/editor/editor-bone.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
+import {
+  PixelGenerationDialog,
+  GeneratePixelArtRequest,
+} from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -46,7 +50,10 @@ type ContextMenuActionId =
   | 'growBy5px'
   | 'growCustom'
   | 'makeCopyLayer'
-  | 'mergeVisibleToNewLayer';
+  | 'mergeVisibleToNewLayer'
+  | 'generate'
+  | 'generateFromLayer'
+  | 'generateFromVisible';
 
 interface ContextMenuAction {
   id: ContextMenuActionId;
@@ -60,7 +67,7 @@ interface ContextMenuAction {
   selector: 'pa-editor-canvas',
   templateUrl: './editor-canvas.component.html',
   styleUrls: ['./editor-canvas.component.css'],
-  imports: [CommonModule, TranslocoPipe, NgIcon],
+  imports: [CommonModule, TranslocoPipe, NgIcon, PixelGenerationDialog],
   host: {
     class: 'block h-full w-full',
     '(wheel)': 'onWheel($event)',
@@ -73,6 +80,8 @@ export class EditorCanvas {
   canvasContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('canvasWrapper', { static: true })
   canvasWrapper!: ElementRef<HTMLDivElement>;
+  @ViewChild(PixelGenerationDialog, { static: false })
+  pixelGenerationDialog!: PixelGenerationDialog;
   readonly document = inject(EditorDocumentService);
   readonly documentSvc: EditorDocumentService = this.document;
   readonly tools = inject(EditorToolsService);
@@ -838,6 +847,24 @@ export class EditorCanvas {
     const hasNonEmptySelection = this.hasNonEmptySelection();
     if (hasSelection) {
       actions.push({
+        id: 'generate',
+        labelKey: 'editor.canvas.menu.generate',
+        icon: 'heroIconsSparklesMini',
+        disabled: !hasNonEmptySelection,
+        submenu: [
+          {
+            id: 'generateFromLayer',
+            labelKey: 'pixelGeneration.generateFromLayer',
+            icon: 'heroIconsSquare2StackMini',
+          },
+          {
+            id: 'generateFromVisible',
+            labelKey: 'pixelGeneration.generateFromVisible',
+            icon: 'heroIconsEyeMini',
+          },
+        ],
+      });
+      actions.push({
         id: 'invertSelection',
         labelKey: 'editor.canvas.menu.invertSelection',
         icon: 'heroIconsBarsArrowUpMini',
@@ -957,7 +984,11 @@ export class EditorCanvas {
   }
 
   onContextMenuAction(actionId: ContextMenuActionId, event?: MouseEvent) {
-    if (actionId === 'deselect') {
+    if (actionId === 'generateFromLayer') {
+      this.handleGenerateFromSelection('layer');
+    } else if (actionId === 'generateFromVisible') {
+      this.handleGenerateFromSelection('visible');
+    } else if (actionId === 'deselect') {
       this.document.clearSelection();
     } else if (actionId === 'invertSelection') {
       this.document.invertSelection();
@@ -1010,6 +1041,9 @@ export class EditorCanvas {
       growCustom: null,
       makeCopyLayer: 'edit.makeCopyLayer',
       mergeVisibleToNewLayer: 'edit.mergeVisibleToNewLayer',
+      generate: null,
+      generateFromLayer: null,
+      generateFromVisible: null,
     };
     const hotkeyId = hotkeyMap[actionId];
     if (!hotkeyId) return null;
@@ -2447,5 +2481,91 @@ export class EditorCanvas {
       }
     }
     return null;
+  }
+
+  private handleGenerateFromSelection(
+    sourceType: 'layer' | 'visible'
+  ): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    const sketchDataUrl = this.extractSketchFromSelection(sourceType);
+    if (!sketchDataUrl) {
+      return;
+    }
+
+    this.pixelGenerationDialog?.show(
+      sketchDataUrl,
+      sel.width,
+      sel.height,
+      'selection'
+    );
+  }
+
+  private extractSketchFromSelection(sourceType: 'layer' | 'visible'): string | null {
+    const sel = this.document.selectionRect();
+    if (!sel) return null;
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const canvas = document.createElement('canvas');
+    canvas.width = sel.width;
+    canvas.height = sel.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    if (sourceType === 'layer') {
+      const layerId = this.document.selectedLayerId();
+      const buf = this.document.getLayerBuffer(layerId);
+      if (!buf) return null;
+
+      for (let y = 0; y < sel.height; y++) {
+        for (let x = 0; x < sel.width; x++) {
+          const srcX = sel.x + x;
+          const srcY = sel.y + y;
+          if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
+            if (this.isPointInSelection(srcX, srcY)) {
+              const col = buf[srcY * w + srcX];
+              if (col && col.length) {
+                ctx.fillStyle = col;
+                ctx.fillRect(x, y, 1, 1);
+              }
+            }
+          }
+        }
+      }
+    } else {
+      const layers = this.document.getFlattenedLayers();
+      for (let li = layers.length - 1; li >= 0; li--) {
+        const layer = layers[li];
+        if (!layer.visible) continue;
+        const buf = this.document.getLayerBuffer(layer.id);
+        if (!buf) continue;
+
+        for (let y = 0; y < sel.height; y++) {
+          for (let x = 0; x < sel.width; x++) {
+            const srcX = sel.x + x;
+            const srcY = sel.y + y;
+            if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
+              if (this.isPointInSelection(srcX, srcY)) {
+                const col = buf[srcY * w + srcX];
+                if (col && col.length) {
+                  ctx.fillStyle = col;
+                  ctx.fillRect(x, y, 1, 1);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return canvas.toDataURL('image/png');
+  }
+
+  handleGenerate(request: GeneratePixelArtRequest): void {
+    console.log('Generate pixel art request:', request);
   }
 }

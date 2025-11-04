@@ -232,7 +232,8 @@
       "duplicate": "Nhân bản",
       "merge": "Gộp layer",
       "group": "Nhóm",
-      "ungroup": "Tách nhóm"
+      "ungroup": "Tách nhóm",
+      "generate": "Tạo Pixel Art"
     },
     "canvas": {
       "menu": {
@@ -244,7 +245,8 @@
         "growBy5px": "+5 px",
         "growCustom": "Tùy chỉnh...",
         "makeCopyLayer": "Tạo layer sao chép",
-        "mergeVisibleToNewLayer": "Gộp layer hiển thị"
+        "mergeVisibleToNewLayer": "Gộp layer hiển thị",
+        "generate": "Tạo Pixel Art"
       }
     }
   },
@@ -426,6 +428,12 @@
     "colorsUsed": "Số màu sử dụng: {{count}}",
     "addToLayer": "Thêm vào layer mới",
     "replaceLayer": "Thay thế layer hiện tại",
-    "viewResult": "Xem kết quả"
+    "viewResult": "Xem kết quả",
+    "sourceLayer": "Nguồn: Layer hiện tại",
+    "sourceVisible": "Nguồn: Tất cả layer hiển thị",
+    "sourceSelection": "Nguồn: Vùng chọn",
+    "sketchPreview": "Xem trước phác họa",
+    "generateFromLayer": "Từ layer",
+    "generateFromVisible": "Từ tầng hiển thị"
   }
 }

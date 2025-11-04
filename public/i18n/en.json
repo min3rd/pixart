@@ -232,7 +232,8 @@
       "duplicate": "Duplicate",
       "merge": "Merge Layers",
       "group": "Group",
-      "ungroup": "Ungroup"
+      "ungroup": "Ungroup",
+      "generate": "Generate"
     },
     "canvas": {
       "menu": {
@@ -244,7 +245,8 @@
         "growBy5px": "+5 px",
         "growCustom": "Custom...",
         "makeCopyLayer": "Make a copy layer",
-        "mergeVisibleToNewLayer": "Merge visible to new layer"
+        "mergeVisibleToNewLayer": "Merge visible to new layer",
+        "generate": "Generate"
       }
     }
   },
@@ -423,6 +425,12 @@
     "colorsUsed": "Colors used: {{count}}",
     "addToLayer": "Add to New Layer",
     "replaceLayer": "Replace Current Layer",
-    "viewResult": "View Result"
+    "viewResult": "View Result",
+    "sourceLayer": "Source: Current layer",
+    "sourceVisible": "Source: All visible layers",
+    "sourceSelection": "Source: Selection area",
+    "sketchPreview": "Sketch preview",
+    "generateFromLayer": "From layer",
+    "generateFromVisible": "From visible"
   }
 }
