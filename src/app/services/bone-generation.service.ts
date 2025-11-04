@@ -231,7 +231,7 @@ export class BoneGenerationService {
     const template = this.getTemplate(templateType);
     if (!template) return [];
 
-    const boneId = `bone-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const boneId = `bone-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const points: BonePoint[] = [];
 
     template.points.forEach((tPoint, index) => {

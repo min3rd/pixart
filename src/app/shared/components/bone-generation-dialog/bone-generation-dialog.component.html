@@ -68,6 +68,7 @@
             *ngIf="template.type === suggestedTemplate()" 
             class="text-xs text-green-600 dark:text-green-500 mt-1"
             [id]="'bone-generation-dialog-template-recommended-' + template.type"
+            [attr.aria-label]="'boneGeneration.recommended' | transloco"
           >
             {{ 'boneGeneration.recommended' | transloco }}
           </div>
