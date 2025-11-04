@@ -121,7 +121,8 @@ export class HotkeysService {
       if (!key) return;
 
       for (const [actionId, action] of this.actions.entries()) {
-        const binding = this.customBindings().get(actionId) ?? action.defaultKey;
+        const binding =
+          this.customBindings().get(actionId) ?? action.defaultKey;
         if (binding === key) {
           event.preventDefault();
           action.handler();

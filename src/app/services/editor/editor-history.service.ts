@@ -84,7 +84,9 @@ export class EditorHistoryService {
       selectedLayerIds: [...snapshot.selectedLayerIds],
       selection: snapshot.selection
         ? {
-            rect: snapshot.selection.rect ? { ...snapshot.selection.rect } : null,
+            rect: snapshot.selection.rect
+              ? { ...snapshot.selection.rect }
+              : null,
             shape: snapshot.selection.shape,
             polygon: snapshot.selection.polygon
               ? [...snapshot.selection.polygon]

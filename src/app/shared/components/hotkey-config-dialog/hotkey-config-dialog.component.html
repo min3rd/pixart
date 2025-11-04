@@ -27,29 +27,23 @@
         </button>
       </div>
 
-      <div
-        id="hotkey-config-content"
-        class="flex-1 overflow-y-auto px-4 py-3"
-      >
-        <p id="hotkey-config-description" class="text-sm mb-4 text-neutral-600 dark:text-neutral-400">
+      <div id="hotkey-config-content" class="flex-1 overflow-y-auto px-4 py-3">
+        <p
+          id="hotkey-config-description"
+          class="text-sm mb-4 text-neutral-600 dark:text-neutral-400"
+        >
           {{ "hotkeys.description" | transloco }}
         </p>
 
         @for (group of groupedActions() | keyvalue; track group.key) {
-          <div
-            [id]="'hotkey-group-' + group.key"
-            class="mb-4"
-          >
+          <div [id]="'hotkey-group-' + group.key" class="mb-4">
             <h3
               [id]="'hotkey-group-title-' + group.key"
               class="text-sm font-semibold mb-2"
             >
               {{ "hotkeys.category." + group.key | transloco }}
             </h3>
-            <div
-              [id]="'hotkey-group-items-' + group.key"
-              class="space-y-2"
-            >
+            <div [id]="'hotkey-group-items-' + group.key" class="space-y-2">
               @for (action of group.value; track action.id) {
                 <div
                   [id]="'hotkey-row-' + action.id"

@@ -7,10 +7,16 @@
     class="bg-white dark:bg-gray-800 rounded-sm shadow-lg w-full max-w-md mx-4 p-4"
     id="bone-generation-dialog-content"
   >
-    <div class="flex items-center justify-between mb-4" id="bone-generation-dialog-header">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="bone-generation-dialog-title">
+    <div
+      class="flex items-center justify-between mb-4"
+      id="bone-generation-dialog-header"
+    >
+      <h2
+        class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+        id="bone-generation-dialog-title"
+      >
         <ng-icon name="heroSparkles" class="inline-block w-5 h-5 mr-2" />
-        {{ 'boneGeneration.title' | transloco }}
+        {{ "boneGeneration.title" | transloco }}
       </h2>
       <button
         type="button"
@@ -24,26 +30,44 @@
     </div>
 
     <div class="mb-4" id="bone-generation-dialog-description">
-      <p class="text-sm text-gray-600 dark:text-gray-400" id="bone-generation-dialog-description-text">
-        {{ 'boneGeneration.description' | transloco }}
+      <p
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="bone-generation-dialog-description-text"
+      >
+        {{ "boneGeneration.description" | transloco }}
       </p>
     </div>
 
     <div class="mb-4" id="bone-generation-dialog-suggested">
-      <div class="flex items-center gap-2 mb-2" id="bone-generation-dialog-suggested-header">
-        <ng-icon name="heroCheckCircle" class="w-5 h-5 text-green-600 dark:text-green-500" />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="bone-generation-dialog-suggested-label">
-          {{ 'boneGeneration.suggested' | transloco }}
+      <div
+        class="flex items-center gap-2 mb-2"
+        id="bone-generation-dialog-suggested-header"
+      >
+        <ng-icon
+          name="heroCheckCircle"
+          class="w-5 h-5 text-green-600 dark:text-green-500"
+        />
+        <span
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+          id="bone-generation-dialog-suggested-label"
+        >
+          {{ "boneGeneration.suggested" | transloco }}
         </span>
       </div>
-      <p class="text-sm text-gray-800 dark:text-gray-200 ml-7" id="bone-generation-dialog-suggested-template">
-        {{ 'boneGeneration.templates.' + suggestedTemplate() | transloco }}
+      <p
+        class="text-sm text-gray-800 dark:text-gray-200 ml-7"
+        id="bone-generation-dialog-suggested-template"
+      >
+        {{ "boneGeneration.templates." + suggestedTemplate() | transloco }}
       </p>
     </div>
 
     <div class="mb-4" id="bone-generation-dialog-templates">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="bone-generation-dialog-select-label">
-        {{ 'boneGeneration.selectTemplate' | transloco }}
+      <label
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        id="bone-generation-dialog-select-label"
+      >
+        {{ "boneGeneration.selectTemplate" | transloco }}
       </label>
       <div class="space-y-2" id="bone-generation-dialog-template-list">
         <button
@@ -61,29 +85,37 @@
           class="w-full text-left p-2 border-2 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           [id]="'bone-generation-dialog-template-' + template.type"
         >
-          <div class="font-medium text-gray-900 dark:text-gray-100" [id]="'bone-generation-dialog-template-name-' + template.type">
+          <div
+            class="font-medium text-gray-900 dark:text-gray-100"
+            [id]="'bone-generation-dialog-template-name-' + template.type"
+          >
             {{ template.labelKey | transloco }}
           </div>
-          <div 
-            *ngIf="template.type === suggestedTemplate()" 
+          <div
+            *ngIf="template.type === suggestedTemplate()"
             class="text-xs text-green-600 dark:text-green-500 mt-1"
-            [id]="'bone-generation-dialog-template-recommended-' + template.type"
+            [id]="
+              'bone-generation-dialog-template-recommended-' + template.type
+            "
             [attr.aria-label]="'boneGeneration.recommended' | transloco"
           >
-            {{ 'boneGeneration.recommended' | transloco }}
+            {{ "boneGeneration.recommended" | transloco }}
           </div>
         </button>
       </div>
     </div>
 
-    <div class="flex justify-end gap-2 mt-4" id="bone-generation-dialog-actions">
+    <div
+      class="flex justify-end gap-2 mt-4"
+      id="bone-generation-dialog-actions"
+    >
       <button
         type="button"
         (click)="cancel()"
         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-600"
         id="bone-generation-dialog-cancel-button"
       >
-        {{ 'bones.cancel' | transloco }}
+        {{ "bones.cancel" | transloco }}
       </button>
       <button
         type="button"
@@ -91,7 +123,7 @@
         class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-sm"
         id="bone-generation-dialog-generate-button"
       >
-        {{ 'boneGeneration.generate' | transloco }}
+        {{ "boneGeneration.generate" | transloco }}
       </button>
     </div>
   </div>

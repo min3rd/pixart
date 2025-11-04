@@ -14,10 +14,10 @@
       id="bones-generate-button"
       [attr.aria-label]="'bones.generateBones' | transloco"
     >
-      <ng-icon 
-        [name]="isGenerating() ? 'heroArrowPath' : 'heroSparkles'" 
+      <ng-icon
+        [name]="isGenerating() ? 'heroArrowPath' : 'heroSparkles'"
         [class.animate-spin]="isGenerating()"
-        class="w-4 h-4" 
+        class="w-4 h-4"
       />
       {{ "bones.generateBones" | transloco }}
     </button>
