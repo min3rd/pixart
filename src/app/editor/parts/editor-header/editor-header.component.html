@@ -35,10 +35,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.new')"
           >
             <span>{{ "file.new" | transloco }}</span>
-            @if (hotkeys.getBinding('file.new')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.new')!) }}
-            </span>
+            @if (hotkeys.getBinding("file.new")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.new")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -48,10 +52,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.open')"
           >
             <span>{{ "file.openFromComputer" | transloco }}</span>
-            @if (hotkeys.getBinding('file.open')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.open')!) }}
-            </span>
+            @if (hotkeys.getBinding("file.open")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.open")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -61,10 +69,16 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.saveToComputer')"
           >
             <span>{{ "file.saveToComputer" | transloco }}</span>
-            @if (hotkeys.getBinding('file.saveToComputer')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.saveToComputer')!) }}
-            </span>
+            @if (hotkeys.getBinding("file.saveToComputer")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("file.saveToComputer")!
+                  )
+                }}
+              </span>
             }
           </button>
           <div
@@ -78,10 +92,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('file.save')"
           >
             <span>{{ "file.saveLocal" | transloco }}</span>
-            @if (hotkeys.getBinding('file.save')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('file.save')!) }}
-            </span>
+            @if (hotkeys.getBinding("file.save")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.save")!)
+                }}
+              </span>
             }
           </button>
         </div>
@@ -126,10 +144,16 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('insert.image')"
           >
             <span>{{ "insert.insertImage" | transloco }}</span>
-            @if (hotkeys.getBinding('insert.image')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('insert.image')!) }}
-            </span>
+            @if (hotkeys.getBinding("insert.image")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("insert.image")!
+                  )
+                }}
+              </span>
             }
           </button>
         </div>
@@ -188,10 +212,16 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.selectLayer')"
           >
             <span>{{ "tools.selectLayer" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.selectLayer')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.selectLayer')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.selectLayer")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.selectLayer")!
+                  )
+                }}
+              </span>
             }
           </button>
           <button
@@ -201,10 +231,16 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.rectSelect')"
           >
             <span>{{ "tools.rectSelect" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.rectSelect')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.rectSelect')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.rectSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.rectSelect")!
+                  )
+                }}
+              </span>
             }
           </button>
           <button
@@ -214,10 +250,16 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.ellipseSelect')"
           >
             <span>{{ "tools.ellipseSelect" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.ellipseSelect')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.ellipseSelect')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.ellipseSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.ellipseSelect")!
+                  )
+                }}
+              </span>
             }
           </button>
           <button
@@ -227,13 +269,21 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.lassoSelect')"
           >
             <span>{{ "tools.lassoSelect" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.lassoSelect')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.lassoSelect')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.lassoSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.lassoSelect")!
+                  )
+                }}
+              </span>
             }
           </button>
-          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
           <button
             id="menu-tool-brush-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
@@ -241,10 +291,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.brush')"
           >
             <span>{{ "tools.brush" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.brush')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.brush')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.brush")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.brush")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -254,10 +308,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eraser')"
           >
             <span>{{ "tools.eraser" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.eraser')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.eraser')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.eraser")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.eraser")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -267,10 +325,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.fill')"
           >
             <span>{{ "tools.fill" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.fill')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.fill')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.fill")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.fill")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -280,13 +342,21 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eyedropper')"
           >
             <span>{{ "tools.eyedropper" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.eyedropper')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.eyedropper')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.eyedropper")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.eyedropper")!
+                  )
+                }}
+              </span>
             }
           </button>
-          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
           <button
             id="menu-tool-line-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
@@ -294,10 +364,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.line')"
           >
             <span>{{ "tools.line" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.line')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.line')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.line")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.line")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -307,10 +381,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.circle')"
           >
             <span>{{ "tools.circle" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.circle')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.circle')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.circle")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.circle")!)
+                }}
+              </span>
             }
           </button>
           <button
@@ -320,13 +398,19 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.square')"
           >
             <span>{{ "tools.square" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.square')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.square')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.square")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.square")!)
+                }}
+              </span>
             }
           </button>
-          <div class="border-t border-neutral-100 dark:border-neutral-700"></div>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
           <button
             id="menu-tool-bone-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
@@ -334,10 +418,14 @@
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.bone')"
           >
             <span>{{ "tools.bone" | transloco }}</span>
-            @if (hotkeys.getBinding('tool.bone')) {
-            <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">
-              {{ hotkeys.keyStringToDisplay(hotkeys.getBinding('tool.bone')!) }}
-            </span>
+            @if (hotkeys.getBinding("tool.bone")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.bone")!)
+                }}
+              </span>
             }
           </button>
         </div>

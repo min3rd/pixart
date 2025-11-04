@@ -8,7 +8,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
-import { HotkeysService, HotkeyRegistration } from '../../../services/hotkeys.service';
+import {
+  HotkeysService,
+  HotkeyRegistration,
+} from '../../../services/hotkeys.service';
 
 @Component({
   selector: 'pa-hotkey-config-dialog',

@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Bone, BonePoint } from './editor/editor-bone.service';
 
-export type BoneTemplateType = 'human' | 'quadruped' | 'flying' | 'fish' | 'snake';
+export type BoneTemplateType =
+  | 'human'
+  | 'quadruped'
+  | 'flying'
+  | 'fish'
+  | 'snake';
 
 export interface BoneTemplate {
   type: BoneTemplateType;
@@ -271,13 +276,17 @@ export class BoneGenerationService {
     color = '#ff6600',
     thickness = 2,
   ): GenerateBoneResult {
-    let bounds = this.analyzeLayerPixels(layerBuffer, canvasWidth, canvasHeight);
-    
+    let bounds = this.analyzeLayerPixels(
+      layerBuffer,
+      canvasWidth,
+      canvasHeight,
+    );
+
     if (!bounds) {
       const centerX = canvasWidth / 2;
       const centerY = canvasHeight / 2;
       const defaultSize = Math.min(canvasWidth, canvasHeight) * 0.6;
-      
+
       bounds = {
         minX: centerX - defaultSize / 2,
         maxX: centerX + defaultSize / 2,
@@ -291,7 +300,12 @@ export class BoneGenerationService {
     }
 
     const suggestedTemplate = templateType || this.suggestBoneTemplate(bounds);
-    const bones = this.generateBones(suggestedTemplate, bounds, color, thickness);
+    const bones = this.generateBones(
+      suggestedTemplate,
+      bounds,
+      color,
+      thickness,
+    );
 
     return {
       suggestedTemplate,

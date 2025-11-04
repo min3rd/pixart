@@ -158,8 +158,11 @@ export class EditorDocumentService {
       },
       frames: this.frameService.frames().map((f) => ({ ...f })),
       currentFrameIndex: this.frameService.currentFrameIndex(),
-      animations: this.animationCollectionService.animations().map((a) => ({ ...a })),
-      currentAnimationIndex: this.animationCollectionService.currentAnimationIndex(),
+      animations: this.animationCollectionService
+        .animations()
+        .map((a) => ({ ...a })),
+      currentAnimationIndex:
+        this.animationCollectionService.currentAnimationIndex(),
       boneHierarchy: this.boneHierarchyService.bones().map((b) => ({ ...b })),
       selectedBoneId: this.boneHierarchyService.selectedBoneId(),
       bones: bonesData,
@@ -174,43 +177,52 @@ export class EditorDocumentService {
 
   private restoreSnapshot(snapshot: ProjectSnapshot) {
     if (!snapshot) return;
-    
+
     this.canvasState.canvasWidth.set(snapshot.canvas.width);
     this.canvasState.canvasHeight.set(snapshot.canvas.height);
-    
+
     this.layerService.layers.set(snapshot.layers.map((l: any) => ({ ...l })));
-    
+
     const newBuffers = new Map<string, string[]>();
     for (const k of Object.keys(snapshot.layerBuffers)) {
       newBuffers.set(k, [...snapshot.layerBuffers[k]]);
     }
     this.canvasState.replaceAllBuffers(newBuffers);
-    
+
     this.layerService.selectedLayerId.set(snapshot.selectedLayerId);
     this.layerService.selectedLayerIds.set(new Set(snapshot.selectedLayerIds));
-    
+
     if (snapshot.selection) {
       this.selectionService.selectionRect.set(snapshot.selection.rect);
       this.selectionService.selectionShape.set(snapshot.selection.shape);
       this.selectionService.selectionPolygon.set(snapshot.selection.polygon);
       this.selectionService.selectionMask.set(snapshot.selection.mask);
     }
-    
+
     this.frameService.frames.set(snapshot.frames.map((f: any) => ({ ...f })));
     this.frameService.currentFrameIndex.set(snapshot.currentFrameIndex);
-    
-    this.animationCollectionService.animations.set(snapshot.animations.map((a: any) => ({ ...a })));
-    this.animationCollectionService.currentAnimationIndex.set(snapshot.currentAnimationIndex);
-    
-    this.boneHierarchyService.bones.set(snapshot.boneHierarchy.map((b: any) => ({ ...b })));
+
+    this.animationCollectionService.animations.set(
+      snapshot.animations.map((a: any) => ({ ...a })),
+    );
+    this.animationCollectionService.currentAnimationIndex.set(
+      snapshot.currentAnimationIndex,
+    );
+
+    this.boneHierarchyService.bones.set(
+      snapshot.boneHierarchy.map((b: any) => ({ ...b })),
+    );
     this.boneHierarchyService.selectedBoneId.set(snapshot.selectedBoneId);
-    
+
     const bonesMap = new Map<string, any[]>();
     for (const frameId of Object.keys(snapshot.bones)) {
-      bonesMap.set(frameId, snapshot.bones[frameId].map((b: any) => ({ ...b })));
+      bonesMap.set(
+        frameId,
+        snapshot.bones[frameId].map((b: any) => ({ ...b })),
+      );
     }
     this.boneService.restore(bonesMap);
-    
+
     this.keyframeService.restore({
       keyframes: snapshot.keyframes,
       pixelBindings: snapshot.pixelBindings,
@@ -218,13 +230,13 @@ export class EditorDocumentService {
       animationDuration: snapshot.animationDuration,
       timelineMode: snapshot.timelineMode,
     });
-    
+
     if (snapshot.toolSnapshot) {
       this.tools.applySnapshot(snapshot.toolSnapshot, {
         maxBrush: Math.max(snapshot.canvas.width, snapshot.canvas.height),
       });
     }
-    
+
     this.canvasState.incrementPixelsVersion();
   }
 

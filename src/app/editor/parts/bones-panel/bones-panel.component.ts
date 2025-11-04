@@ -356,8 +356,7 @@ export class BonesPanel {
     this.isGenerating.set(true);
 
     setTimeout(() => {
-      const layerBuffer =
-        currentFrame.buffers?.[selectedLayer.id] || [];
+      const layerBuffer = currentFrame.buffers?.[selectedLayer.id] || [];
       const canvasWidth = this.document.canvasWidth();
       const canvasHeight = this.document.canvasHeight();
 
@@ -369,7 +368,7 @@ export class BonesPanel {
 
       const templates = this.boneGenerationService.getTemplates();
       this.boneGenerationDialog?.open(result.suggestedTemplate, templates);
-      
+
       this.isGenerating.set(false);
     }, 100);
   }
@@ -386,8 +385,7 @@ export class BonesPanel {
       return;
     }
 
-    const layerBuffer =
-      currentFrame.buffers?.[selectedLayer.id] || [];
+    const layerBuffer = currentFrame.buffers?.[selectedLayer.id] || [];
     const canvasWidth = this.document.canvasWidth();
     const canvasHeight = this.document.canvasHeight();
 
@@ -407,6 +405,5 @@ export class BonesPanel {
     }
   }
 
-  handleGenerateBonesCancel() {
-  }
+  handleGenerateBonesCancel() {}
 }
