@@ -659,6 +659,7 @@ export class EditorCanvas {
         if (clickedPoint) {
           this.draggingPointId = clickedPoint.pointId;
           this.draggingPointBoneId = clickedPoint.boneId;
+          this.currentBoneId = clickedPoint.boneId;
           this.boneService.selectPoint(clickedPoint.pointId);
         } else {
           if (!this.currentBoneId) {
