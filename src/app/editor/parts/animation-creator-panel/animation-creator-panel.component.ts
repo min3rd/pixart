@@ -21,7 +21,10 @@ import {
 import { EditorKeyframeService } from '../../../services/editor/editor-keyframe.service';
 import { EditorAnimationCollectionService } from '../../../services/editor/editor-animation-collection.service';
 import { EditorBoneService } from '../../../services/editor/editor-bone.service';
-import { EditorDocumentService, isLayer } from '../../../services/editor-document.service';
+import {
+  EditorDocumentService,
+  isLayer,
+} from '../../../services/editor-document.service';
 
 @Component({
   selector: 'pa-animation-creator-panel',
@@ -113,9 +116,9 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
     ctx.clearRect(0, 0, width, height);
 
-    ctx.fillStyle = getComputedStyle(canvas).getPropertyValue(
-      '--timeline-bg-color',
-    ) || '#f5f5f5';
+    ctx.fillStyle =
+      getComputedStyle(canvas).getPropertyValue('--timeline-bg-color') ||
+      '#f5f5f5';
     ctx.fillRect(0, 0, width, height);
 
     const zoom = this.zoomLevel();
@@ -294,8 +297,8 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
     const frameId = currentAnimation.frames[0]?.id || 'default';
     const bones = this.boneService.getBones(frameId);
-    
-    const boneTransforms = bones.flatMap((bone) => 
+
+    const boneTransforms = bones.flatMap((bone) =>
       bone.points.map((point) => ({
         boneId: bone.id,
         bonePointId: point.id,
@@ -304,7 +307,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
         rotation: 0,
         scaleX: 1,
         scaleY: 1,
-      }))
+      })),
     );
 
     const keyframe = {
@@ -316,11 +319,11 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     this.keyframeService.addKeyframe(currentAnimation.id, keyframe);
     this.selectedKeyframeId.set(keyframe.id);
     this.newKeyframeId.set(keyframe.id);
-    
+
     if (this.newKeyframeBadgeTimeoutId !== null) {
       clearTimeout(this.newKeyframeBadgeTimeoutId);
     }
-    
+
     this.newKeyframeBadgeTimeoutId = window.setTimeout(() => {
       if (this.newKeyframeId() === keyframe.id) {
         this.newKeyframeId.set(null);
@@ -328,7 +331,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
       }
       this.newKeyframeBadgeTimeoutId = null;
     }, 3000);
-    
+
     this.renderTimeline();
   }
 

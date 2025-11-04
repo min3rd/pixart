@@ -141,7 +141,7 @@ export class TimelinePanel implements AfterViewInit {
     canvas: HTMLCanvasElement,
     frameId: string,
     width: number,
-    height: number
+    height: number,
   ) {
     const frame = this.document.frames().find((f) => f.id === frameId);
     if (!frame || !frame.layers || !frame.buffers) {
@@ -155,7 +155,7 @@ export class TimelinePanel implements AfterViewInit {
 
     const canvasWidth = this.document.canvasWidth();
     const canvasHeight = this.document.canvasHeight();
-    
+
     const scaleX = width / canvasWidth;
     const scaleY = height / canvasHeight;
     const scale = Math.min(scaleX, scaleY);

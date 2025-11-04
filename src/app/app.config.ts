@@ -22,7 +22,12 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(),
-    provideIcons({ ...heroIcons, ...heroIconsMini, ...featherIcons, ...bootstrapIcons }),
+    provideIcons({
+      ...heroIcons,
+      ...heroIconsMini,
+      ...featherIcons,
+      ...bootstrapIcons,
+    }),
     provideTransloco({
       config: {
         availableLangs: ['en', 'vi'],

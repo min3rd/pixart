@@ -104,13 +104,7 @@ export class EditorDrawingService {
     const selPoly = this.selectionService.selectionPolygon();
     if (
       sel &&
-      !this.selectionService.isPixelWithinSelection(
-        x,
-        y,
-        sel,
-        shape,
-        selPoly,
-      )
+      !this.selectionService.isPixelWithinSelection(x, y, sel, shape, selPoly)
     ) {
       return 0;
     }
@@ -275,8 +269,7 @@ export class EditorDrawingService {
     ).trim();
     const gradientStartParsed =
       this.colorService.parseHexColor(gradientStartColor);
-    const gradientEndParsed =
-      this.colorService.parseHexColor(gradientEndColor);
+    const gradientEndParsed = this.colorService.parseHexColor(gradientEndColor);
     const fallbackStart = gradientStartColor || gradientEndColor || fillColor;
     const fallbackEnd = gradientEndColor || gradientStartColor || fillColor;
     const gradientAvailable = !!(fallbackStart || fallbackEnd);
@@ -442,8 +435,7 @@ export class EditorDrawingService {
     const gradientAvailable = !!(fallbackStart || fallbackEnd);
     const gradientStartParsed =
       this.colorService.parseHexColor(gradientStartColor);
-    const gradientEndParsed =
-      this.colorService.parseHexColor(gradientEndColor);
+    const gradientEndParsed = this.colorService.parseHexColor(gradientEndColor);
     const gradientType: GradientType =
       options.gradientType === 'linear' ? 'linear' : 'radial';
     const gradientAngle =

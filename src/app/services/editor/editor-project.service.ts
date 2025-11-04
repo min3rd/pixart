@@ -11,7 +11,12 @@ import { EditorAnimationCollectionService } from './editor-animation-collection.
 import { EditorBoneService } from './editor-bone.service';
 import { EditorBoneHierarchyService } from './editor-bone-hierarchy.service';
 import { EditorKeyframeService } from './editor-keyframe.service';
-import { FrameItem, LayerTreeItem, AnimationItem, BoneItem } from './editor.types';
+import {
+  FrameItem,
+  LayerTreeItem,
+  AnimationItem,
+  BoneItem,
+} from './editor.types';
 
 @Injectable({ providedIn: 'root' })
 export class EditorProjectService {
@@ -22,7 +27,9 @@ export class EditorProjectService {
   private readonly selectionService = inject(EditorSelectionService);
   private readonly tools = inject(EditorToolsService);
   private readonly animationService = inject(EditorAnimationService);
-  private readonly animationCollectionService = inject(EditorAnimationCollectionService);
+  private readonly animationCollectionService = inject(
+    EditorAnimationCollectionService,
+  );
   private readonly boneService = inject(EditorBoneService);
   private readonly boneHierarchyService = inject(EditorBoneHierarchyService);
   private readonly keyframeService = inject(EditorKeyframeService);
@@ -55,9 +62,9 @@ export class EditorProjectService {
     const bonesSnapshot = this.boneService.snapshot();
     const bonesData: Record<string, any[]> = {};
     for (const [frameId, bones] of bonesSnapshot.entries()) {
-      bonesData[frameId] = bones.map(b => ({
+      bonesData[frameId] = bones.map((b) => ({
         id: b.id,
-        points: b.points.map(p => ({
+        points: b.points.map((p) => ({
           id: p.id,
           x: p.x,
           y: p.y,
@@ -258,7 +265,10 @@ export class EditorProjectService {
           })) as FrameItem[],
         );
 
-      if (parsed.animationCollections && Array.isArray(parsed.animationCollections))
+      if (
+        parsed.animationCollections &&
+        Array.isArray(parsed.animationCollections)
+      )
         this.animationCollectionService.animations.set(
           (parsed.animationCollections as any[]).map((a) => ({
             id: a.id,
@@ -337,8 +347,7 @@ export class EditorProjectService {
       const s = parsed[shapeName];
       if (typeof s.strokeThickness === 'number')
         shape.strokeThickness = s.strokeThickness;
-      if (typeof s.strokeColor === 'string')
-        shape.strokeColor = s.strokeColor;
+      if (typeof s.strokeColor === 'string') shape.strokeColor = s.strokeColor;
       if (s.fillMode === 'solid' || s.fillMode === 'gradient')
         shape.fillMode = s.fillMode;
       if (typeof s.fillColor === 'string') shape.fillColor = s.fillColor;

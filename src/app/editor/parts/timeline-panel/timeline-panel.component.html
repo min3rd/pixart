@@ -9,10 +9,8 @@
       (click)="playAnimation()"
       class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 flex items-center gap-1"
       [title]="
-        (document.isAnimationPlaying()
-          ? 'timeline.stop'
-          : 'timeline.play'
-        ) | transloco
+        (document.isAnimationPlaying() ? 'timeline.stop' : 'timeline.play')
+          | transloco
       "
     >
       <ng-icon
@@ -26,7 +24,9 @@
     </button>
 
     <div id="timeline-fps-control" class="flex items-center gap-1 ml-2">
-      <label for="fps-input" class="text-xs">{{ "timeline.fps" | transloco }}:</label>
+      <label for="fps-input" class="text-xs"
+        >{{ "timeline.fps" | transloco }}:</label
+      >
       <input
         id="fps-input"
         type="number"
@@ -52,7 +52,10 @@
     </div>
   </div>
 
-  <div id="timeline-frames-container" class="flex-1 flex items-stretch overflow-hidden">
+  <div
+    id="timeline-frames-container"
+    class="flex-1 flex items-stretch overflow-hidden"
+  >
     <div
       id="timeline-sidebar"
       class="w-32 shrink-0 border-r border-neutral-200 dark:border-neutral-800 p-2 text-xs bg-neutral-50 dark:bg-neutral-900"
@@ -60,12 +63,12 @@
       {{ "timeline.title" | transloco }}
     </div>
     <div id="timeline-frames-scroll" class="flex-1 overflow-auto">
-      <div id="timeline-frames-list" class="flex items-start gap-2 p-2 min-h-full">
+      <div
+        id="timeline-frames-list"
+        class="flex items-start gap-2 p-2 min-h-full"
+      >
         @for (f of document.frames(); let i = $index; track f.id) {
-          <div
-            [id]="'frame-' + f.id"
-            class="flex flex-col gap-1 shrink-0"
-          >
+          <div [id]="'frame-' + f.id" class="flex flex-col gap-1 shrink-0">
             <div
               class="relative group"
               (click)="setFrame(i)"
@@ -75,9 +78,13 @@
                 [id]="'frame-preview-' + f.id"
                 class="w-20 h-16 border-2 rounded-sm overflow-hidden cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-neutral-100 dark:bg-neutral-800"
                 [class.border-blue-500]="document.currentFrameIndex() === i"
-                [class.dark\:border-blue-400]="document.currentFrameIndex() === i"
+                [class.dark\:border-blue-400]="
+                  document.currentFrameIndex() === i
+                "
                 [class.border-neutral-300]="document.currentFrameIndex() !== i"
-                [class.dark\:border-neutral-700]="document.currentFrameIndex() !== i"
+                [class.dark\:border-neutral-700]="
+                  document.currentFrameIndex() !== i
+                "
               >
                 <canvas
                   #frameCanvas
@@ -88,7 +95,7 @@
                   [attr.data-frame-id]="f.id"
                 ></canvas>
               </div>
-              
+
               <button
                 [id]="'frame-menu-' + f.id"
                 type="button"

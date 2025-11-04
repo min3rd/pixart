@@ -83,7 +83,9 @@ export class BoneToolService implements ToolService<BoneToolSnapshot> {
       this.autoBindEnabled.set(snapshot.autoBindEnabled);
     }
     if (typeof snapshot.autoBindRadius === 'number') {
-      this.autoBindRadius.set(Math.max(1, Math.min(Math.floor(snapshot.autoBindRadius), 100)));
+      this.autoBindRadius.set(
+        Math.max(1, Math.min(Math.floor(snapshot.autoBindRadius), 100)),
+      );
     }
   }
 
