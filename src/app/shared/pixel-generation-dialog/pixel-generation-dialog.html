@@ -132,11 +132,26 @@
         id="pixel-generation-dialog-footer"
         class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-end gap-2"
       >
+        @if (generating()) {
+          <div
+            id="pixel-generation-dialog-status"
+            class="flex items-center gap-2 mr-auto text-sm text-neutral-600 dark:text-neutral-400"
+          >
+            <div
+              id="pixel-generation-dialog-spinner"
+              class="w-4 h-4 border-2 border-neutral-400 dark:border-neutral-500 border-t-transparent rounded-full animate-spin"
+            ></div>
+            <span id="pixel-generation-dialog-status-text">{{
+              "pixelGeneration.processing" | transloco
+            }}</span>
+          </div>
+        }
         <button
           type="button"
           id="pixel-generation-dialog-cancel-button"
-          class="px-4 py-2 text-sm rounded-sm border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          class="px-4 py-2 text-sm rounded-sm border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
           (click)="handleCancel()"
+          [disabled]="generating()"
         >
           {{ "pixelGeneration.cancel" | transloco }}
         </button>
@@ -145,7 +160,7 @@
           id="pixel-generation-dialog-generate-button"
           class="px-4 py-2 text-sm rounded-sm bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-900 hover:bg-neutral-700 dark:hover:bg-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
           (click)="handleGenerate()"
-          [disabled]="!prompt().trim()"
+          [disabled]="!prompt().trim() || generating()"
         >
           {{ "pixelGeneration.generate" | transloco }}
         </button>
