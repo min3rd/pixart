@@ -146,7 +146,8 @@ export class PixelArtGenerationDialog implements OnDestroy {
         this.currentJobId.set(jobId);
         this.pollJobStatus(jobId);
       } else {
-        throw new Error('No layer selected');
+        const errorKey = 'pixelGeneration.noLayerSelected';
+        throw new Error(errorKey);
       }
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : 'Unknown error');
