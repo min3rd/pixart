@@ -32,10 +32,7 @@
         >{{ "bones.currentAnimation" | transloco }}:
         {{ getCurrentAnimationName() }}</span
       >
-      <span
-        >{{ getAttachedBonesCount() }}
-        {{ "bones.bonesAttached" | transloco }}</span
-      >
+      <span>{{ getAttachedBonesText() }}</span>
     </div>
     <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-500">
       {{ "bones.drawInstruction" | transloco }}
@@ -114,7 +111,8 @@
                   [class.dark\:text-green-400]="
                     isBoneAttachedToCurrentAnimation(bone.id)
                   "
-                  [title]="'bones.attachToAnimation' | transloco"
+                  [title]="'bones.attachToAnimationHelp' | transloco"
+                  [attr.aria-label]="'bones.attachToAnimation' | transloco"
                 >
                   <ng-icon name="heroLink" size="16"></ng-icon>
                 </button>
