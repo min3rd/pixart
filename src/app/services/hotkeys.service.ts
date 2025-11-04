@@ -117,6 +117,14 @@ export class HotkeysService {
     if (typeof window === 'undefined') return;
 
     window.addEventListener('keydown', (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || target.isContentEditable) {
+          return;
+        }
+      }
+
       const key = this.eventToKeyString(event);
       if (!key) return;
 
