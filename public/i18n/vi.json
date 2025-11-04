@@ -60,7 +60,6 @@
     "removeBone": "Xóa Bone",
     "renameBone": "Đổi tên Bone",
     "attachToAnimation": "Gắn vào Animation",
-    "attachToAnimationHelp": "Liên kết bone này với animation hiện tại. Các bone đã gắn có thể được tạo hoạt ảnh bằng keyframe để tạo chuyển động và biến đổi.",
     "confirmRemove": "Bạn có chắc chắn muốn xóa bone này?",
     "confirmRemovePoint": "Bạn có chắc chắn muốn xóa điểm bone này? Các điểm con sẽ được gắn lại với cha.",
     "emptyState": "Chưa có bone nào. Sử dụng công cụ Bone để vẽ bone trên canvas.",
