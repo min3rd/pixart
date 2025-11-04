@@ -78,6 +78,7 @@ export class BonesPanel {
   readonly editingPointBoneId = signal<string>('');
   readonly editingPointId = signal<string>('');
   readonly autoBindingBoneId = signal<string>('');
+  readonly isGenerating = signal<boolean>(false);
 
   readonly currentFrameBones = computed(() => {
     const currentFrame =
@@ -346,23 +347,25 @@ export class BonesPanel {
       return;
     }
 
-    const layerBuffer =
-      currentFrame.buffers?.[selectedLayer.id] || [];
-    const canvasWidth = this.document.canvasWidth();
-    const canvasHeight = this.document.canvasHeight();
+    this.isGenerating.set(true);
 
-    const result = this.boneGenerationService.generateBonesForLayer(
-      layerBuffer,
-      canvasWidth,
-      canvasHeight,
-    );
+    setTimeout(() => {
+      const layerBuffer =
+        currentFrame.buffers?.[selectedLayer.id] || [];
+      const canvasWidth = this.document.canvasWidth();
+      const canvasHeight = this.document.canvasHeight();
 
-    if (!result) {
-      return;
-    }
+      const result = this.boneGenerationService.generateBonesForLayer(
+        layerBuffer,
+        canvasWidth,
+        canvasHeight,
+      );
 
-    const templates = this.boneGenerationService.getTemplates();
-    this.boneGenerationDialog?.open(result.suggestedTemplate, templates);
+      const templates = this.boneGenerationService.getTemplates();
+      this.boneGenerationDialog?.open(result.suggestedTemplate, templates);
+      
+      this.isGenerating.set(false);
+    }, 100);
   }
 
   handleGenerateBonesConfirm(result: BoneGenerationResult) {

@@ -7,11 +7,18 @@
     <button
       type="button"
       (click)="openGenerateBonesDialog()"
-      class="px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-sm flex items-center gap-1"
+      [disabled]="isGenerating()"
+      [class.opacity-50]="isGenerating()"
+      [class.cursor-not-allowed]="isGenerating()"
+      class="px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:hover:bg-blue-600 rounded-sm flex items-center gap-1"
       id="bones-generate-button"
       [attr.aria-label]="'bones.generateBones' | transloco"
     >
-      <ng-icon name="heroSparkles" class="w-4 h-4" />
+      <ng-icon 
+        [name]="isGenerating() ? 'heroArrowPath' : 'heroSparkles'" 
+        [class.animate-spin]="isGenerating()"
+        class="w-4 h-4" 
+      />
       {{ "bones.generateBones" | transloco }}
     </button>
   </div>

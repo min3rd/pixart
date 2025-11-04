@@ -270,9 +270,25 @@ export class BoneGenerationService {
     templateType?: BoneTemplateType,
     color = '#ff6600',
     thickness = 2,
-  ): GenerateBoneResult | null {
-    const bounds = this.analyzeLayerPixels(layerBuffer, canvasWidth, canvasHeight);
-    if (!bounds) return null;
+  ): GenerateBoneResult {
+    let bounds = this.analyzeLayerPixels(layerBuffer, canvasWidth, canvasHeight);
+    
+    if (!bounds) {
+      const centerX = canvasWidth / 2;
+      const centerY = canvasHeight / 2;
+      const defaultSize = Math.min(canvasWidth, canvasHeight) * 0.6;
+      
+      bounds = {
+        minX: centerX - defaultSize / 2,
+        maxX: centerX + defaultSize / 2,
+        minY: centerY - defaultSize / 2,
+        maxY: centerY + defaultSize / 2,
+        width: defaultSize,
+        height: defaultSize,
+        centerX,
+        centerY,
+      };
+    }
 
     const suggestedTemplate = templateType || this.suggestBoneTemplate(bounds);
     const bones = this.generateBones(suggestedTemplate, bounds, color, thickness);
