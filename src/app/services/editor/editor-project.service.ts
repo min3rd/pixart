@@ -69,6 +69,8 @@ export class EditorProjectService {
           x: p.x,
           y: p.y,
           parentId: p.parentId,
+          name: p.name,
+          color: p.color,
         })),
         color: b.color,
         thickness: b.thickness,
@@ -313,6 +315,8 @@ export class EditorProjectService {
                       x: Number(p.x) || 0,
                       y: Number(p.y) || 0,
                       parentId: p.parentId,
+                      name: p.name,
+                      color: p.color,
                     }))
                   : [],
                 color: typeof b.color === 'string' ? b.color : '#ff6600',
