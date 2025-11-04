@@ -656,11 +656,13 @@ export class EditorCanvas {
         const clickedPoint = this.findBonePointAt(frameId, logicalX, logicalY);
 
         if (clickedPoint) {
+          this.document.saveSnapshot('Move bone point');
           this.draggingPointId = clickedPoint.pointId;
           this.draggingPointBoneId = clickedPoint.boneId;
           this.currentBoneId = clickedPoint.boneId;
           this.boneService.selectPoint(clickedPoint.pointId);
         } else {
+          this.document.saveSnapshot('Add bone point');
           if (!this.currentBoneId) {
             const newBone: Bone = {
               id: `bone-${Date.now()}-${Math.random().toString(36).substring(7)}`,

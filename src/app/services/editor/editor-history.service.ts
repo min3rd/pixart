@@ -35,19 +35,35 @@ export class EditorHistoryService {
   popUndo(): HistoryEntry | null {
     if (!this.canUndo()) return null;
     const entry = this.undoStack.pop() as HistoryEntry;
-    this.redoStack.push(entry);
     this.undoVersion.update((v) => v + 1);
-    this.redoVersion.update((v) => v + 1);
     return entry;
   }
 
   popRedo(): HistoryEntry | null {
     if (!this.canRedo()) return null;
     const entry = this.redoStack.pop() as HistoryEntry;
-    this.undoStack.push(entry);
-    this.undoVersion.update((v) => v + 1);
     this.redoVersion.update((v) => v + 1);
     return entry;
+  }
+
+  pushToUndoStack(snapshot: ProjectSnapshot) {
+    const entry: HistoryEntry = {
+      snapshot: this.deepCloneSnapshot(snapshot),
+      description: '',
+      timestamp: Date.now(),
+    };
+    this.undoStack.push(entry);
+    this.undoVersion.update((v) => v + 1);
+  }
+
+  pushToRedoStack(snapshot: ProjectSnapshot) {
+    const entry: HistoryEntry = {
+      snapshot: this.deepCloneSnapshot(snapshot),
+      description: '',
+      timestamp: Date.now(),
+    };
+    this.redoStack.push(entry);
+    this.redoVersion.update((v) => v + 1);
   }
 
   clearHistory() {

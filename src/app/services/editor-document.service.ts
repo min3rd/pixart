@@ -845,8 +845,10 @@ export class EditorDocumentService {
 
   undo() {
     if (!this.canUndo()) return false;
+    const currentState = this.captureProjectSnapshot();
     const entry = this.historyService.popUndo();
     if (!entry) return false;
+    this.historyService.pushToRedoStack(currentState);
     this.restoreSnapshot(entry.snapshot);
     this.canvasState.setCanvasSaved(false);
     return true;
@@ -854,8 +856,10 @@ export class EditorDocumentService {
 
   redo() {
     if (!this.canRedo()) return false;
+    const currentState = this.captureProjectSnapshot();
     const entry = this.historyService.popRedo();
     if (!entry) return false;
+    this.historyService.pushToUndoStack(currentState);
     this.restoreSnapshot(entry.snapshot);
     this.canvasState.setCanvasSaved(false);
     return true;
@@ -946,18 +950,22 @@ export class EditorDocumentService {
   }
 
   addAnimation(name?: string): AnimationItem {
+    this.saveSnapshotForUndo('Add animation');
     return this.animationCollectionService.addAnimation(name);
   }
 
   removeAnimation(id: string): boolean {
+    this.saveSnapshotForUndo('Remove animation');
     return this.animationCollectionService.removeAnimation(id);
   }
 
   renameAnimation(id: string, newName: string): boolean {
+    this.saveSnapshotForUndo('Rename animation');
     return this.animationCollectionService.renameAnimation(id, newName);
   }
 
   reorderAnimations(fromIndex: number, toIndex: number): boolean {
+    this.saveSnapshotForUndo('Reorder animations');
     return this.animationCollectionService.reorderAnimations(
       fromIndex,
       toIndex,
@@ -965,14 +973,17 @@ export class EditorDocumentService {
   }
 
   attachBoneToAnimation(animationId: string, boneId: string): boolean {
+    this.saveSnapshotForUndo('Attach bone to animation');
     return this.animationCollectionService.attachBone(animationId, boneId);
   }
 
   detachBoneFromAnimation(animationId: string, boneId: string): boolean {
+    this.saveSnapshotForUndo('Detach bone from animation');
     return this.animationCollectionService.detachBone(animationId, boneId);
   }
 
   addFrameToAnimation(animationId: string, name?: string): FrameItem | null {
+    this.saveSnapshotForUndo('Add frame to animation');
     return this.animationCollectionService.addFrameToAnimation(
       animationId,
       name,
@@ -980,6 +991,7 @@ export class EditorDocumentService {
   }
 
   removeFrameFromAnimation(animationId: string, frameId: string): boolean {
+    this.saveSnapshotForUndo('Remove frame from animation');
     return this.animationCollectionService.removeFrameFromAnimation(
       animationId,
       frameId,
@@ -996,18 +1008,22 @@ export class EditorDocumentService {
     x = 0,
     y = 0,
   ): BoneItem {
+    this.saveSnapshotForUndo('Add bone');
     return this.boneHierarchyService.addBone(name, parentId, x, y);
   }
 
   removeBone(id: string): boolean {
+    this.saveSnapshotForUndo('Remove bone');
     return this.boneHierarchyService.removeBone(id);
   }
 
   renameBone(id: string, newName: string): boolean {
+    this.saveSnapshotForUndo('Rename bone');
     return this.boneHierarchyService.renameBone(id, newName);
   }
 
   updateBone(id: string, updates: Partial<Omit<BoneItem, 'id'>>): boolean {
+    this.saveSnapshotForUndo('Update bone');
     return this.boneHierarchyService.updateBone(id, updates);
   }
 
