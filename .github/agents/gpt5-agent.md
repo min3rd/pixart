@@ -39,7 +39,7 @@ security_and_privacy: |
 
 notes: |
   - File này được tạo theo yêu cầu branch `5-selection-context-menu-actions`.
-  - Nếu cần thay đổi quy tắc project_instructions, update tập trung trong `.github/agents/gpt-5-codex.md` và ghi lại trong `docs/agents.md`.
+  - Nếu cần thay đổi quy tắc project_instructions, update tập trung trong `.github/agents/gpt5-agent.md` và ghi lại trong `docs/agents.md`.
 ---
 
 # Quick reference (tóm tắt cho contributors)
