@@ -54,6 +54,8 @@ export class PixelArtGenerationDialog implements OnDestroy {
   private readonly editorDoc = inject(EditorDocumentService);
   private pollingIntervalId: number | null = null;
 
+  private readonly POLL_INTERVAL_MS = 1000;
+
   readonly visible = signal(false);
   readonly prompt = signal('');
   readonly targetWidth = signal(64);
@@ -207,6 +209,6 @@ export class PixelArtGenerationDialog implements OnDestroy {
         this.processing.set(false);
         this.error.set(err instanceof Error ? err.message : 'Failed to check status');
       }
-    }, 1000);
+    }, this.POLL_INTERVAL_MS);
   }
 }
