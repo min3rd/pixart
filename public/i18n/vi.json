@@ -73,7 +73,14 @@
     "removePoint": "Xóa điểm",
     "autoBindSettings": "Cài đặt tự động gắn",
     "autoBindEnabled": "Bật tự động gắn pixel",
-    "autoBindRadius": "Bán kính gắn"
+    "autoBindRadius": "Bán kính gắn",
+    "editPoint": "Chỉnh sửa điểm",
+    "pointName": "Tên điểm",
+    "pointNamePlaceholder": "Nhập tên điểm",
+    "pointColor": "Màu điểm",
+    "colorPreview": "Xem trước màu",
+    "ok": "OK",
+    "cancel": "Hủy"
   },
   "theme": {
     "toggle": "Chuyển chủ đề"

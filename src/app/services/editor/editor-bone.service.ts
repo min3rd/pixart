@@ -6,6 +6,8 @@ export interface BonePoint {
   x: number;
   y: number;
   parentId?: string;
+  name?: string;
+  color?: string;
 }
 
 export interface Bone {
@@ -105,6 +107,29 @@ export class EditorBoneService {
     if (animationId && typeof currentTime === 'number') {
       this.saveBoneTransformToKeyframe(animationId, boneId, pointId, x, y, currentTime);
     }
+  }
+
+  updatePointProperties(
+    frameId: string,
+    boneId: string,
+    pointId: string,
+    updates: Partial<BonePoint>,
+  ): void {
+    const current = new Map(this.bones());
+    const frameBones = current.get(frameId) || [];
+    const updated = frameBones.map((b) => {
+      if (b.id === boneId) {
+        return {
+          ...b,
+          points: b.points.map((p) =>
+            p.id === pointId ? { ...p, ...updates } : p,
+          ),
+        };
+      }
+      return b;
+    });
+    current.set(frameId, updated);
+    this.bones.set(current);
   }
 
   private saveBoneTransformToKeyframe(

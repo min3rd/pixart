@@ -73,7 +73,14 @@
     "removePoint": "Remove Point",
     "autoBindSettings": "Auto-Bind Settings",
     "autoBindEnabled": "Enable auto-bind pixels",
-    "autoBindRadius": "Binding radius"
+    "autoBindRadius": "Binding radius",
+    "editPoint": "Edit Point",
+    "pointName": "Point Name",
+    "pointNamePlaceholder": "Enter point name",
+    "pointColor": "Point Color",
+    "colorPreview": "Color Preview",
+    "ok": "OK",
+    "cancel": "Cancel"
   },
   "theme": {
     "toggle": "Toggle theme"

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -11,15 +11,16 @@ import {
   heroXMark,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
-import { EditorBoneService, type Bone } from '../../../services/editor/editor-bone.service';
+import { EditorBoneService, type Bone, type BonePoint } from '../../../services/editor/editor-bone.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
+import { EditPointDialog, type EditPointResult } from '../../../shared/components/edit-point-dialog/edit-point-dialog.component';
 
 @Component({
   selector: 'pa-bones-panel',
   templateUrl: './bones-panel.component.html',
   styleUrls: ['./bones-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIconComponent, FormsModule],
+  imports: [CommonModule, TranslocoPipe, NgIconComponent, FormsModule, EditPointDialog],
   providers: [
     provideIcons({
       heroPlus,
@@ -34,12 +35,16 @@ import { EditorToolsService } from '../../../services/editor-tools.service';
   },
 })
 export class BonesPanel {
+  @ViewChild(EditPointDialog) editPointDialog?: EditPointDialog;
+  
   readonly document = inject(EditorDocumentService);
   readonly boneService = inject(EditorBoneService);
   readonly translocoService = inject(TranslocoService);
   readonly tools = inject(EditorToolsService);
   readonly editingBoneId = signal<string>('');
   readonly newBoneName = signal<string>('');
+  readonly editingPointBoneId = signal<string>('');
+  readonly editingPointId = signal<string>('');
 
   readonly currentFrameBones = computed(() => {
     const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
@@ -158,6 +163,78 @@ export class BonesPanel {
         this.boneService.deletePoint(currentFrame.id, boneId, pointId);
       }
     }
+  }
+
+  onPointDoubleClick(boneId: string, point: BonePoint, event: Event) {
+    event.stopPropagation();
+    this.editingPointBoneId.set(boneId);
+    this.editingPointId.set(point.id);
+    const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+    if (!currentFrame) return;
+    const bone = this.currentFrameBones().find(b => b.id === boneId);
+    if (!bone) return;
+    this.editPointDialog?.open(point.id, point.name, point.color || bone.color);
+  }
+
+  handleEditPointConfirm(result: EditPointResult) {
+    const boneId = this.editingPointBoneId();
+    const pointId = this.editingPointId();
+    const currentFrame = this.document.frames()[this.document.currentFrameIndex()];
+    if (!currentFrame || !boneId || !pointId) return;
+
+    const bone = this.currentFrameBones().find(b => b.id === boneId);
+    const point = bone?.points.find(p => p.id === pointId);
+    if (!point) return;
+
+    const oldColor = point.color || bone?.color;
+    const updates: Partial<BonePoint> = {};
+    if (result.name) {
+      updates.name = result.name;
+    }
+    if (result.color) {
+      updates.color = result.color;
+    }
+
+    this.boneService.updatePointProperties(currentFrame.id, boneId, pointId, updates);
+
+    if (result.color && oldColor !== result.color) {
+      this.updateBoundPixelColors(currentFrame.id, boneId, pointId, result.color);
+    }
+
+    this.editingPointBoneId.set('');
+    this.editingPointId.set('');
+  }
+
+  handleEditPointCancel() {
+    this.editingPointBoneId.set('');
+    this.editingPointId.set('');
+  }
+
+  private updateBoundPixelColors(frameId: string, boneId: string, pointId: string, newColor: string) {
+    const bindings = this.document.keyframeService.getPixelBindings(frameId);
+    const pointBindings = bindings.filter(
+      b => b.boneId === boneId && b.bonePointId === pointId
+    );
+
+    if (pointBindings.length === 0) return;
+
+    for (const binding of pointBindings) {
+      this.document.applyBrushToLayer(
+        binding.layerId,
+        binding.pixelX,
+        binding.pixelY,
+        1,
+        newColor
+      );
+    }
+  }
+
+  getPointDisplayName(point: BonePoint): string {
+    return point.name || `Point (${point.x}, ${point.y})`;
+  }
+
+  getPointDisplayColor(bone: Bone, point: BonePoint): string {
+    return point.color || bone.color;
   }
 
   get autoBindEnabled(): boolean {

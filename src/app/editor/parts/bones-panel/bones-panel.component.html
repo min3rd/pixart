@@ -120,9 +120,10 @@
                         [class.bg-blue-100]="isSelected"
                         [class.dark\:bg-blue-900]="isSelected"
                         (click)="selectPoint(point.id, $event)"
+                        (dblclick)="onPointDoubleClick(bone.id, point, $event)"
                       >
-                        <span class="text-xs">●</span>
-                        <span class="text-xs flex-1">Point ({{ point.x }}, {{ point.y }})</span>
+                        <span class="text-xs" [style.color]="getPointDisplayColor(bone, point)">●</span>
+                        <span class="text-xs flex-1">{{ getPointDisplayName(point) }}</span>
                         <button
                           type="button"
                           (click)="removePoint(bone.id, point.id, $event)"
@@ -141,9 +142,10 @@
                             [class.bg-blue-100]="isChildSelected"
                             [class.dark\:bg-blue-900]="isChildSelected"
                             (click)="selectPoint(childPoint.id, $event)"
+                            (dblclick)="onPointDoubleClick(bone.id, childPoint, $event)"
                           >
-                            <span class="text-xs">└─●</span>
-                            <span class="text-xs flex-1">Point ({{ childPoint.x }}, {{ childPoint.y }})</span>
+                            <span class="text-xs" [style.color]="getPointDisplayColor(bone, childPoint)">└─●</span>
+                            <span class="text-xs flex-1">{{ getPointDisplayName(childPoint) }}</span>
                             <button
                               type="button"
                               (click)="removePoint(bone.id, childPoint.id, $event)"
@@ -165,4 +167,9 @@
       </div>
     }
   </div>
+
+  <pa-edit-point-dialog
+    (onConfirm)="handleEditPointConfirm($event)"
+    (onCancel)="handleEditPointCancel()"
+  ></pa-edit-point-dialog>
 </div>
