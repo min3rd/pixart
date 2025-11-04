@@ -645,12 +645,11 @@ export class EditorCanvas {
         if (selectionActive && !this.isPointInSelection(logicalX, logicalY)) {
           return;
         }
-        this.document.beginAction('fill');
+        this.document.saveSnapshot('Fill');
         const layerId = this.document.selectedLayerId();
         const fillMode = this.tools.fillMode();
         const fillColor = fillMode === 'erase' ? null : this.tools.fillColor();
         this.document.applyFillToLayer(layerId, logicalX, logicalY, fillColor);
-        this.document.endAction();
       } else if (tool === 'bone' && insideCanvas) {
         this.capturePointer(ev);
         const frameId = this.getCurrentFrameId();
@@ -739,7 +738,7 @@ export class EditorCanvas {
           return;
         }
         this.capturePointer(ev);
-        this.document.beginAction('paint');
+        this.document.saveSnapshot('Paint');
         this.painting = true;
         this.lastPaintPos = { x: logicalX, y: logicalY };
         const layerId = this.document.selectedLayerId();
@@ -963,7 +962,6 @@ export class EditorCanvas {
     if (this.painting) {
       this.painting = false;
       this.lastPaintPos = null;
-      this.document.endAction();
     }
 
     if (this.draggingPointId) {
@@ -1851,7 +1849,7 @@ export class EditorCanvas {
       x: this.clampCoord(x, width),
       y: this.clampCoord(y, height),
     };
-    this.document.beginAction(mode);
+    this.document.saveSnapshot(mode);
     this.shaping = true;
     this.activeShapeTool.set(mode);
     this.shapeStart.set(point);
@@ -1864,13 +1862,11 @@ export class EditorCanvas {
     const start = this.shapeStart();
     const current = this.shapeCurrent();
     if (!mode || !start || !current) {
-      this.document.endAction();
       this.clearShapeState();
       return;
     }
     const layerId = this.document.selectedLayerId();
     if (!layerId) {
-      this.document.endAction();
       this.clearShapeState();
       return;
     }
@@ -1913,13 +1909,11 @@ export class EditorCanvas {
         constrainSquare,
       );
     }
-    this.document.endAction();
     this.clearShapeState();
   }
 
   private cancelShape() {
     if (!this.shaping) return;
-    this.document.endAction();
     this.clearShapeState();
   }
 

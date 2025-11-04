@@ -101,10 +101,6 @@ export class EditorDocumentService {
   readonly redoVersion = this.historyService.redoVersion;
 
   constructor() {
-    this.tools.registerHistoryAdapter((key, previous, next) =>
-      this.commitMetaChange({ key, previous, next }),
-    );
-
     this.animationService.setLoadFrameCallback((index: number) => {
       this.loadFrameState(index);
     });
@@ -117,6 +113,127 @@ export class EditorDocumentService {
     if (firstFrame && !firstFrame.layers && !firstFrame.buffers) {
       this.saveFrameStateById(firstFrame.id);
     }
+  }
+
+  private captureProjectSnapshot() {
+    const layers = this.layerService.layers().map((l) => ({ ...l }));
+    const buffers: Record<string, string[]> = {};
+    for (const [id, buf] of this.canvasState.getAllBuffers().entries()) {
+      buffers[id] = buf.slice();
+    }
+    const toolSnapshot = this.tools.snapshot();
+    const bonesSnapshot = this.boneService.snapshot();
+    const bonesData: Record<string, any[]> = {};
+    for (const [frameId, bones] of bonesSnapshot.entries()) {
+      bonesData[frameId] = bones.map((b) => ({
+        id: b.id,
+        points: b.points.map((p) => ({
+          id: p.id,
+          x: p.x,
+          y: p.y,
+          parentId: p.parentId,
+          name: p.name,
+          color: p.color,
+        })),
+        color: b.color,
+        thickness: b.thickness,
+      }));
+    }
+    const keyframeSnapshot = this.keyframeService.snapshot();
+    return {
+      canvas: {
+        width: this.canvasState.canvasWidth(),
+        height: this.canvasState.canvasHeight(),
+      },
+      layers,
+      layerBuffers: buffers,
+      selectedLayerId: this.layerService.selectedLayerId(),
+      selectedLayerIds: new Set(this.layerService.selectedLayerIds()),
+      selection: {
+        rect: this.selectionService.selectionRect(),
+        shape: this.selectionService.selectionShape(),
+        polygon: this.selectionService.selectionPolygon(),
+        mask: this.selectionService.selectionMask(),
+      },
+      frames: this.frameService.frames().map((f) => ({ ...f })),
+      currentFrameIndex: this.frameService.currentFrameIndex(),
+      animations: this.animationCollectionService.animations().map((a) => ({ ...a })),
+      currentAnimationIndex: this.animationCollectionService.currentAnimationIndex(),
+      boneHierarchy: this.boneHierarchyService.bones().map((b) => ({ ...b })),
+      selectedBoneId: this.boneHierarchyService.selectedBoneId(),
+      bones: bonesData,
+      keyframes: keyframeSnapshot.keyframes,
+      pixelBindings: keyframeSnapshot.pixelBindings,
+      animationCurrentTime: keyframeSnapshot.currentTime,
+      animationDuration: keyframeSnapshot.animationDuration,
+      timelineMode: keyframeSnapshot.timelineMode,
+      toolSnapshot,
+    };
+  }
+
+  private restoreSnapshot(snapshot: any) {
+    if (!snapshot) return;
+    
+    this.canvasState.canvasWidth.set(snapshot.canvas.width);
+    this.canvasState.canvasHeight.set(snapshot.canvas.height);
+    
+    this.layerService.layers.set(snapshot.layers.map((l: any) => ({ ...l })));
+    
+    const newBuffers = new Map<string, string[]>();
+    for (const k of Object.keys(snapshot.layerBuffers)) {
+      newBuffers.set(k, [...snapshot.layerBuffers[k]]);
+    }
+    this.canvasState.replaceAllBuffers(newBuffers);
+    
+    this.layerService.selectedLayerId.set(snapshot.selectedLayerId);
+    this.layerService.selectedLayerIds.set(new Set(snapshot.selectedLayerIds));
+    
+    if (snapshot.selection) {
+      this.selectionService.selectionRect.set(snapshot.selection.rect);
+      this.selectionService.selectionShape.set(snapshot.selection.shape);
+      this.selectionService.selectionPolygon.set(snapshot.selection.polygon);
+      this.selectionService.selectionMask.set(snapshot.selection.mask);
+    }
+    
+    this.frameService.frames.set(snapshot.frames.map((f: any) => ({ ...f })));
+    this.frameService.currentFrameIndex.set(snapshot.currentFrameIndex);
+    
+    this.animationCollectionService.animations.set(snapshot.animations.map((a: any) => ({ ...a })));
+    this.animationCollectionService.currentAnimationIndex.set(snapshot.currentAnimationIndex);
+    
+    this.boneHierarchyService.bones.set(snapshot.boneHierarchy.map((b: any) => ({ ...b })));
+    this.boneHierarchyService.selectedBoneId.set(snapshot.selectedBoneId);
+    
+    const bonesMap = new Map<string, any[]>();
+    for (const frameId of Object.keys(snapshot.bones)) {
+      bonesMap.set(frameId, snapshot.bones[frameId].map((b: any) => ({ ...b })));
+    }
+    this.boneService.restore(bonesMap);
+    
+    this.keyframeService.restore({
+      keyframes: snapshot.keyframes,
+      pixelBindings: snapshot.pixelBindings,
+      currentTime: snapshot.animationCurrentTime,
+      animationDuration: snapshot.animationDuration,
+      timelineMode: snapshot.timelineMode,
+    });
+    
+    if (snapshot.toolSnapshot) {
+      this.tools.applySnapshot(snapshot.toolSnapshot, {
+        maxBrush: Math.max(snapshot.canvas.width, snapshot.canvas.height),
+      });
+    }
+    
+    this.canvasState.incrementPixelsVersion();
+  }
+
+  saveSnapshot(description?: string) {
+    const snapshot = this.captureProjectSnapshot();
+    this.historyService.pushSnapshot(snapshot, description);
+  }
+
+  private saveSnapshotForUndo(description?: string) {
+    this.saveSnapshot(description);
   }
 
   loadProjectFromLocalStorage(): Observable<boolean> {
@@ -171,24 +288,13 @@ export class EditorDocumentService {
   }
 
   setCanvasSize(width: number, height: number) {
-    const prevSnapshot = this.snapshotLayersAndBuffers();
-    const prevSize = {
-      width: this.canvasState.canvasWidth(),
-      height: this.canvasState.canvasHeight(),
-      buffers: prevSnapshot.buffers,
-    };
+    this.saveSnapshotForUndo('Resize canvas');
     this.canvasState.setCanvasSize(width, height);
     const layers = this.layerService.layers();
     for (const l of layers) {
       this.canvasState.ensureLayerBuffer(l.id, width, height);
     }
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    const nextSize = { width, height, buffers: nextSnapshot.buffers };
-    this.commitMetaChange({
-      key: 'canvasSnapshot',
-      previous: prevSize,
-      next: nextSize,
-    });
+    this.canvasState.incrementPixelsVersion();
   }
 
   getLayerBuffer(layerId: string): string[] {
@@ -208,11 +314,9 @@ export class EditorDocumentService {
   }
 
   renameLayer(id: string, newName: string) {
-    const prev = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Rename layer');
     this.layerService.renameLayer(id, newName);
     this.canvasState.incrementPixelsVersion();
-    const next = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({ key: 'layersSnapshot', previous: prev, next });
   }
 
   toggleGroupExpanded(id: string) {
@@ -220,22 +324,18 @@ export class EditorDocumentService {
   }
 
   toggleLayerVisibility(id: string) {
-    const prev = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Toggle layer visibility');
     this.layerService.toggleLayerVisibility(id);
     this.canvasState.incrementPixelsVersion();
-    const next = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({ key: 'layersSnapshot', previous: prev, next });
   }
 
   toggleLayerLock(id: string) {
-    const prev = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Toggle layer lock');
     this.layerService.toggleLayerLock(id);
-    const next = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({ key: 'layersSnapshot', previous: prev, next });
   }
 
   removeLayer(id: string): boolean {
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Remove layer');
     const item = this.layerService.findItemById(this.layerService.layers(), id);
     const success = this.layerService.removeLayer(id);
     if (!success) return false;
@@ -250,38 +350,24 @@ export class EditorDocumentService {
       }
     }
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     return true;
   }
 
   addLayer(name?: string) {
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Add layer');
     const item = this.layerService.addLayer(name);
     this.canvasState.ensureLayerBuffer(
       item.id,
       this.canvasState.canvasWidth(),
       this.canvasState.canvasHeight(),
     );
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     return item;
   }
 
   reorderLayers(fromIndex: number, toIndex: number) {
-    const prev = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Reorder layers');
     const success = this.layerService.reorderLayers(fromIndex, toIndex);
     if (!success) return false;
-    const next = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({ key: 'layersSnapshot', previous: prev, next });
     return true;
   }
 
@@ -289,7 +375,7 @@ export class EditorDocumentService {
     const id = layerId || this.layerService.selectedLayerId();
     const item = this.layerService.findItemById(this.layerService.layers(), id);
     if (!item || !isLayer(item)) return null;
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Duplicate layer');
     const newLayerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const newLayer: LayerItem = {
       id: newLayerId,
@@ -312,12 +398,6 @@ export class EditorDocumentService {
     this.layerService.selectedLayerId.set(newLayerId);
     this.layerService.selectedLayerIds.set(new Set([newLayerId]));
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     this.canvasState.setCanvasSaved(false);
     return newLayer;
   }
@@ -347,7 +427,7 @@ export class EditorDocumentService {
     if (minX > maxX || minY > maxY) {
       return;
     }
-    const prevSelection = this.selectionService.getSelectionSnapshot();
+    this.saveSnapshotForUndo('Select pixels');
     this.selectionService.selectionRect.set({
       x: minX,
       y: minY,
@@ -357,16 +437,11 @@ export class EditorDocumentService {
     this.selectionService.selectionShape.set('rect');
     this.selectionService.selectionPolygon.set(null);
     this.selectionService.selectionMask.set(null);
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: prevSelection,
-      next: this.selectionService.getSelectionSnapshot(),
-    });
   }
 
   mergeLayers(layerIds: string[]): LayerItem | null {
     if (layerIds.length < 2) return null;
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Merge layers');
     const w = this.canvasState.canvasWidth();
     const h = this.canvasState.canvasHeight();
     const mergedBuf = new Array<string>(w * h).fill('');
@@ -403,42 +478,24 @@ export class EditorDocumentService {
     this.layerService.selectedLayerId.set(newLayerId);
     this.layerService.selectedLayerIds.set(new Set([newLayerId]));
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     this.canvasState.setCanvasSaved(false);
     return newLayer;
   }
 
   groupLayers(layerIds: string[]): GroupItem | null {
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Group layers');
     const group = this.layerService.groupLayers(layerIds);
     if (!group) return null;
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     this.canvasState.setCanvasSaved(false);
     return group;
   }
 
   ungroupLayers(groupId: string): boolean {
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Ungroup layers');
     const success = this.layerService.ungroupLayers(groupId);
     if (!success) return false;
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     this.canvasState.setCanvasSaved(false);
     return true;
   }
@@ -475,7 +532,6 @@ export class EditorDocumentService {
       const startY = 0;
       const buf = this.canvasState.getLayerBuffer(newLayer.id);
       if (!buf || buf.length === 0) return null;
-      this.beginAction(`Insert image: ${layerName}`);
       for (let y = 0; y < finalHeight; y++) {
         for (let x = 0; x < finalWidth; x++) {
           const px = startX + x;
@@ -493,21 +549,11 @@ export class EditorDocumentService {
               ? `rgb(${r},${g},${b})`
               : `rgba(${r},${g},${b},${a.toFixed(3)})`;
           const idx = py * canvasWidth + px;
-          const oldVal = buf[idx] || '';
-          if (oldVal !== color) {
-            this.historyService.recordPixelChange(
-              newLayer.id,
-              idx,
-              oldVal,
-              color,
-            );
-            buf[idx] = color;
-          }
+          buf[idx] = color;
         }
       }
       this.canvasState.incrementPixelsVersion();
       this.canvasState.setCanvasSaved(false);
-      this.endAction();
       const bounds = {
         x: startX,
         y: startY,
@@ -627,18 +673,6 @@ export class EditorDocumentService {
     );
   }
 
-  beginAction(description?: string) {
-    this.historyService.beginAction(description);
-  }
-
-  endAction() {
-    this.historyService.endAction();
-  }
-
-  private commitMetaChange(meta: { key: string; previous: any; next: any }) {
-    this.historyService.commitMetaChange(meta);
-  }
-
   beginSelection(
     x: number,
     y: number,
@@ -656,65 +690,41 @@ export class EditorDocumentService {
   }
 
   endSelection() {
-    const snapshot = this.selectionService.getSelectionSnapshot();
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: null,
-      next: snapshot,
-    });
+    this.saveSnapshotForUndo('Create selection');
   }
 
   clearSelection() {
     const prev = this.selectionService.getSelectionSnapshot();
     if (!prev.rect) return;
+    this.saveSnapshotForUndo('Clear selection');
     this.selectionService.clearSelection();
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: prev,
-      next: null,
-    });
   }
 
   moveSelection(dx: number, dy: number) {
-    const prevSelection = this.selectionService.getSelectionSnapshot();
+    this.saveSnapshotForUndo('Move selection');
     this.selectionService.moveSelection(
       dx,
       dy,
       this.canvasState.canvasWidth(),
       this.canvasState.canvasHeight(),
     );
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: prevSelection,
-      next: this.selectionService.getSelectionSnapshot(),
-    });
   }
 
   invertSelection() {
-    const prevSelection = this.selectionService.getSelectionSnapshot();
+    this.saveSnapshotForUndo('Invert selection');
     this.selectionService.invertSelection(
       this.canvasState.canvasWidth(),
       this.canvasState.canvasHeight(),
     );
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: prevSelection,
-      next: this.selectionService.getSelectionSnapshot(),
-    });
   }
 
   growSelection(pixels: number) {
-    const prevSelection = this.selectionService.getSelectionSnapshot();
+    this.saveSnapshotForUndo('Grow selection');
     this.selectionService.growSelection(
       pixels,
       this.canvasState.canvasWidth(),
       this.canvasState.canvasHeight(),
     );
-    this.commitMetaChange({
-      key: 'selectionSnapshot',
-      previous: prevSelection,
-      next: this.selectionService.getSelectionSnapshot(),
-    });
   }
 
   makeCopyLayer() {
@@ -727,7 +737,7 @@ export class EditorDocumentService {
     if (!sourceBuf || sourceBuf.length === 0) return null;
     const w = this.canvasState.canvasWidth();
     const h = this.canvasState.canvasHeight();
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Copy selection to layer');
     const sourceItem = this.layerService.findItemById(
       this.layerService.layers(),
       sourceLayerId,
@@ -766,12 +776,6 @@ export class EditorDocumentService {
     this.canvasState.setLayerBuffer(newLayerId, newBuf);
     this.layerService.selectedLayerId.set(newLayerId);
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     return newLayer;
   }
 
@@ -782,7 +786,7 @@ export class EditorDocumentService {
     const poly = this.selectionService.selectionPolygon();
     const w = this.canvasState.canvasWidth();
     const h = this.canvasState.canvasHeight();
-    const prevSnapshot = this.snapshotLayersAndBuffers();
+    this.saveSnapshotForUndo('Merge visible layers');
     const mergedBuf = new Array<string>(w * h).fill('');
     const layers = this.layerService.layers();
     for (let li = layers.length - 1; li >= 0; li--) {
@@ -827,80 +831,7 @@ export class EditorDocumentService {
     this.canvasState.setLayerBuffer(newLayerId, mergedBuf);
     this.layerService.selectedLayerId.set(newLayerId);
     this.canvasState.incrementPixelsVersion();
-    const nextSnapshot = this.snapshotLayersAndBuffers();
-    this.commitMetaChange({
-      key: 'layersSnapshot',
-      previous: prevSnapshot,
-      next: nextSnapshot,
-    });
     return newLayer;
-  }
-
-  private snapshotLayersAndBuffers(): {
-    layers: LayerTreeItem[];
-    buffers: Record<string, string[]>;
-  } {
-    const layersCopy = this.layerService.layers().map((l) => ({ ...l }));
-    const buffers: Record<string, string[]> = {};
-    for (const [id, buf] of this.canvasState.getAllBuffers().entries()) {
-      buffers[id] = buf.slice();
-    }
-    return { layers: layersCopy, buffers };
-  }
-
-  private applyMetaChange(
-    meta: { key: string; previous: any; next: any },
-    useNext: boolean,
-  ) {
-    const val = useNext ? meta.next : meta.previous;
-    switch (meta.key) {
-      case 'currentTool':
-      case 'brushSize':
-      case 'brushColor':
-      case 'eraserStrength':
-      case 'eraserSize':
-        this.tools.applyMeta(meta.key as ToolMetaKey, val);
-        break;
-      case 'layersSnapshot':
-        if (val && typeof val === 'object') {
-          const layers = (val.layers as LayerItem[]) || [];
-          const buffers = (val.buffers as Record<string, string[]>) || {};
-          this.layerService.layers.set(layers.map((l) => ({ ...l })));
-          const newBuffers = new Map<string, string[]>();
-          for (const k of Object.keys(buffers)) {
-            newBuffers.set(k, (buffers[k] || []).slice());
-          }
-          this.canvasState.replaceAllBuffers(newBuffers);
-          this.layerService.ensureValidSelection();
-          this.canvasState.incrementPixelsVersion();
-        }
-        break;
-      case 'canvasSnapshot':
-        if (val && typeof val === 'object') {
-          const w = Number(val.width) || this.canvasState.canvasWidth();
-          const h = Number(val.height) || this.canvasState.canvasHeight();
-          this.canvasState.canvasWidth.set(w);
-          this.canvasState.canvasHeight.set(h);
-          if (val.buffers && typeof val.buffers === 'object') {
-            const newBuffers = new Map<string, string[]>();
-            for (const k of Object.keys(val.buffers)) {
-              newBuffers.set(k, (val.buffers[k] || []).slice());
-            }
-            this.canvasState.replaceAllBuffers(newBuffers);
-            this.canvasState.incrementPixelsVersion();
-          } else {
-            for (const l of this.layerService.layers())
-              this.canvasState.ensureLayerBuffer(l.id, w, h);
-          }
-        }
-        break;
-      case 'selectionSnapshot':
-        this.selectionService.restoreSelection(val);
-        break;
-      default:
-        try {
-        } catch {}
-    }
   }
 
   canUndo(): boolean {
@@ -915,21 +846,7 @@ export class EditorDocumentService {
     if (!this.canUndo()) return false;
     const entry = this.historyService.popUndo();
     if (!entry) return false;
-    if (entry.pixelChanges) {
-      for (const ch of entry.pixelChanges) {
-        const buf = this.canvasState.getLayerBuffer(ch.layerId);
-        if (!buf || buf.length === 0) continue;
-        for (let i = 0; i < ch.indices.length; i++) {
-          buf[ch.indices[i]] = ch.previous[i];
-        }
-      }
-    }
-    if (entry.metaChanges) {
-      for (const m of entry.metaChanges) {
-        this.applyMetaChange(m, false);
-      }
-    }
-    this.canvasState.incrementPixelsVersion();
+    this.restoreSnapshot(entry.snapshot);
     this.canvasState.setCanvasSaved(false);
     return true;
   }
@@ -938,21 +855,7 @@ export class EditorDocumentService {
     if (!this.canRedo()) return false;
     const entry = this.historyService.popRedo();
     if (!entry) return false;
-    if (entry.pixelChanges) {
-      for (const ch of entry.pixelChanges) {
-        const buf = this.canvasState.getLayerBuffer(ch.layerId);
-        if (!buf || buf.length === 0) continue;
-        for (let i = 0; i < ch.indices.length; i++) {
-          buf[ch.indices[i]] = ch.next[i];
-        }
-      }
-    }
-    if (entry.metaChanges) {
-      for (const m of entry.metaChanges) {
-        this.applyMetaChange(m, true);
-      }
-    }
-    this.canvasState.incrementPixelsVersion();
+    this.restoreSnapshot(entry.snapshot);
     this.canvasState.setCanvasSaved(false);
     return true;
   }

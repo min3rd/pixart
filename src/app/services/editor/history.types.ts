@@ -1,3 +1,39 @@
+export interface ProjectSnapshot {
+  canvas: {
+    width: number;
+    height: number;
+  };
+  layers: any[];
+  layerBuffers: Record<string, string[]>;
+  selectedLayerId: string;
+  selectedLayerIds: Set<string>;
+  selection: {
+    rect: any;
+    shape: string;
+    polygon: any;
+    mask: any;
+  } | null;
+  frames: any[];
+  currentFrameIndex: number;
+  animations: any[];
+  currentAnimationIndex: number;
+  boneHierarchy: any[];
+  selectedBoneId: string;
+  bones: Record<string, any[]>;
+  keyframes: any;
+  pixelBindings: any;
+  animationCurrentTime: number;
+  animationDuration: number;
+  timelineMode: string;
+  toolSnapshot: any;
+}
+
+export interface HistoryEntry {
+  snapshot: ProjectSnapshot;
+  description?: string;
+  timestamp: number;
+}
+
 export interface LayerChange {
   layerId: string;
   indices: number[];
@@ -9,12 +45,6 @@ export interface MetaChange {
   key: string;
   previous: any;
   next: any;
-}
-
-export interface HistoryEntry {
-  pixelChanges?: LayerChange[];
-  metaChanges?: MetaChange[];
-  description?: string;
 }
 
 export interface CurrentAction {
