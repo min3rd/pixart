@@ -27,33 +27,36 @@ hoặc (or):
 
 ### Các model có sẵn (Available models):
 
-**📝 Lưu ý:** Danh sách dưới đây chỉ là ví dụ. Để tìm model pixel art ONNX thực tế, hãy:
-1. Tìm kiếm trên Hugging Face với từ khóa: "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
-2. Kiểm tra model có file .onnx công khai không
-3. Sử dụng tùy chọn "Custom URL" để tải model bạn chọn
+### Các model có sẵn (Available models):
 
-**NOTE:** The list below contains example models. To find actual pixel art ONNX models:
-1. Search Hugging Face for: "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
-2. Verify the model has publicly accessible .onnx files
-3. Use the "Custom URL" option to download your chosen model
+✅ **Các model sau đã được test và có thể download:**
 
-1. **Example: ONNX Community ResNet-50** (~100MB)
-   - Model ví dụ - ResNet-50 cho phân loại ảnh
-   - Công khai và có thể truy cập (chỉ để test script)
+**NOTE:** The following models have been tested and are ready to download from ONNX Model Zoo:
 
-2. **Example: ONNX Community MobileNet v3 Small** (~10MB)
-   - Model ví dụ nhẹ để kiểm tra
-   - Công khai và có thể truy cập (chỉ để test script)
+1. **SqueezeNet 1.0 (ONNX Model Zoo)** (~5MB)
+   - Lightweight image classification model
+   - Good for testing the download script
+   - ✅ Verified working
 
-3. **Custom URL - For Your Pixel Art Model**
-   - Nhập URL Hugging Face hoặc link download trực tiếp
-   - Sử dụng option này cho model pixel art thực tế của bạn
+2. **MobileNet v2 (ONNX Model Zoo)** (~14MB)
+   - Mobile-optimized image classification model
+   - ✅ Verified working
+
+3. **ResNet-50 (ONNX Model Zoo)** (~98MB)
+   - Deep residual network for image classification
+   - ✅ Verified working
+
+4. **Custom URL - For Your Pixel Art Model**
+   - Nhập URL từ Hugging Face, ONNX Model Zoo, hoặc link trực tiếp
+   - Use this option for pixel art specific models from Hugging Face
+
+**💡 Tìm pixel art models:** Search Hugging Face for "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
 
 ## Tính năng (Features)
 
-- ✅ Tìm kiếm và liệt kê các model pixel art từ Hugging Face
+- ✅ Download models from ONNX Model Zoo (tested and working)
 - ✅ Cho phép chọn và tải nhiều model
-- ✅ Hỗ trợ custom URL cho model không có sẵn trong danh sách
+- ✅ Hỗ trợ custom URL cho Hugging Face và các nguồn khác
 - ✅ Kiểm tra file tồn tại và hỏi ghi đè
 - ✅ Log chi tiết quá trình tải (start, progress, done, error)
 - ✅ Hiển thị tiến độ download theo phần trăm
@@ -72,55 +75,56 @@ hoặc (or):
 ========================================
   ONNX Model Downloader for Pixel Art  
 ========================================
+  ONNX Model Downloader for Pixel Art  
+========================================
 
-This script downloads ONNX models from Hugging Face
-for pixel art generation.
+This script downloads ONNX models for testing and development.
 
 Target directory: /path/to/public/assets/models
 
-📝 NOTE: The pre-configured models are examples.
-   For pixel art models, search Hugging Face for:
-   - "pixel art onnx"
-   - "stable diffusion onnx pixel"
-   - "controlnet onnx"
-   Then use the "Custom URL" option to download your chosen model.
-
-💡 TIP: Make sure the model URL ends with .onnx and is publicly accessible.
+✅ Pre-configured models are from ONNX Model Zoo and ready to download.
+💡 For pixel art specific models, use the "Custom URL" option with:
+   - Hugging Face models (search: "pixel art onnx")
+   - Your own trained models
+   - Direct download links to .onnx files
 
 
 === Available Pixel Art ONNX Models ===
 
-1. Example: ONNX Community ResNet-50
-   Size: ~100MB
-   Description: Example model - ResNet-50 for image classification
-   URL: https://huggingface.co/...
+1. SqueezeNet 1.0 (ONNX Model Zoo)
+   Size: ~5MB
+   Description: Lightweight image classification model - good for testing the download script
+   URL: https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.0-12.onnx
 
-2. Example: ONNX Community MobileNet v3 Small
-   Size: ~10MB
-   Description: Example lightweight model for testing
-   URL: https://huggingface.co/...
+2. MobileNet v2 (ONNX Model Zoo)
+   Size: ~14MB
+   Description: Mobile-optimized image classification model
+   URL: https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx
 
-3. Custom URL - For Your Pixel Art Model
+3. ResNet-50 (ONNX Model Zoo)
+   Size: ~98MB
+   Description: Deep residual network for image classification
+   URL: https://github.com/onnx/models/raw/main/validated/vision/classification/resnet/model/resnet50-v1-7.onnx
+
+4. Custom URL - For Your Pixel Art Model
    Size: Unknown
-   Description: Enter your own Hugging Face model URL
+   Description: Enter your own URL (Hugging Face, ONNX Model Zoo, or direct download link)
 
-Select a model (1-3) or "q" to quit: 3
-
-Enter the Hugging Face model URL: https://huggingface.co/your-model/resolve/main/model.onnx
-Enter the output filename (e.g., my-model.onnx): my-pixel-art.onnx
+Select a model (1-4) or "q" to quit: 1
 
 Add another model? (y/n): n
 
 [INFO] Preparing to download 1 model(s)...
 
-[START] Downloading "Custom Model" to "my-pixel-art.onnx"
-[INFO] Starting download from: https://huggingface.co/your-model/resolve/main/model.onnx
-[PROGRESS] 5% - 5 MB / 100 MB
-[PROGRESS] 10% - 10 MB / 100 MB
+[START] Downloading "SqueezeNet 1.0 (ONNX Model Zoo)" to "squeezenet1.0-12.onnx"
+[INFO] Starting download from: https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.0-12.onnx
+[INFO] Following redirect to: https://media.githubusercontent.com/media/onnx/models/main/validated/vision/classification/squeezenet/model/squeezenet1.0-12.onnx
+[PROGRESS] 5% - 0.24 MB / 4.72 MB
+[PROGRESS] 10% - 0.47 MB / 4.72 MB
 ...
-[PROGRESS] 100% - 100 MB / 100 MB
-[SUCCESS] Download completed: 100 MB
-[DONE] Model saved to: /path/to/public/assets/models/my-pixel-art.onnx
+[PROGRESS] 100% - 4.72 MB / 4.72 MB
+[SUCCESS] Download completed: 4.72 MB
+[DONE] Model saved to: /path/to/public/assets/models/squeezenet1.0-12.onnx
 
 [SUMMARY] Downloaded 1 out of 1 model(s)
 ```
