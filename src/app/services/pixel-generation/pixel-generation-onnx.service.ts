@@ -31,6 +31,14 @@ export class PixelGenerationOnnxService {
     outputSize: 512,
   };
 
+  private readonly COMMON_MODEL_NAMES = [
+    'pixel-art-generator.onnx',
+    'resnet50.onnx',
+    'model.onnx',
+    'stable-diffusion.onnx',
+    'controlnet.onnx',
+  ];
+
   constructor() {
     this.initializeOnnxRuntime();
   }
@@ -89,17 +97,21 @@ export class PixelGenerationOnnxService {
     console.log(`[ONNX] Attempting to load model from: ${url}`);
     console.log(`[ONNX] Execution providers: ${executionProviders.join(', ')}`);
 
-    return from(this.checkModelFileExists(url)).pipe(
-      switchMap((exists) => {
-        if (!exists) {
-          const errorMsg = `Model file not found at path: ${url}. Please ensure the ONNX model is downloaded to the correct location. See public/assets/models/README.md for instructions.`;
+    return from(this.findAvailableModel(url)).pipe(
+      switchMap((availableUrl) => {
+        if (!availableUrl) {
+          const errorMsg = `No ONNX model found. Checked:\n- ${url}\n${this.COMMON_MODEL_NAMES.map(name => `- /assets/models/${name}`).join('\n')}\n\nPlease download an ONNX model to public/assets/models/. See public/assets/models/README.md for instructions.`;
           console.error(`[ONNX] ${errorMsg}`);
           throw new Error(errorMsg);
         }
 
+        if (availableUrl !== url) {
+          console.log(`[ONNX] Default model not found, using alternative: ${availableUrl}`);
+        }
+
         console.log(`[ONNX] Model file exists, creating inference session...`);
         return from(
-          ort.InferenceSession.create(url, {
+          ort.InferenceSession.create(availableUrl, {
             executionProviders,
           }),
         );
@@ -108,7 +120,7 @@ export class PixelGenerationOnnxService {
         this.session = session;
         this.modelLoaded.set(true);
         this.modelLoading.set(false);
-        console.log(`[ONNX] Model loaded successfully from: ${url}`);
+        console.log(`[ONNX] Model loaded successfully`);
         console.log(`[ONNX] Model inputs:`, session.inputNames);
         console.log(`[ONNX] Model outputs:`, session.outputNames);
       }),
@@ -116,11 +128,34 @@ export class PixelGenerationOnnxService {
         const errorDetails = this.buildDetailedErrorMessage(error, url);
         this.loadError.set(errorDetails);
         this.modelLoading.set(false);
-        console.error(`[ONNX] Failed to load model from ${url}:`, error);
+        console.error(`[ONNX] Failed to load model:`, error);
         console.error(`[ONNX] Error details:`, errorDetails);
         throw new Error(errorDetails);
       }),
     );
+  }
+
+  private async findAvailableModel(preferredUrl: string): Promise<string | null> {
+    console.log(`[ONNX] Searching for available ONNX models...`);
+    
+    if (await this.checkModelFileExists(preferredUrl)) {
+      console.log(`[ONNX] Found preferred model: ${preferredUrl}`);
+      return preferredUrl;
+    }
+
+    console.log(`[ONNX] Preferred model not found: ${preferredUrl}`);
+    console.log(`[ONNX] Checking for alternative models...`);
+
+    for (const modelName of this.COMMON_MODEL_NAMES) {
+      const modelUrl = `/assets/models/${modelName}`;
+      if (await this.checkModelFileExists(modelUrl)) {
+        console.log(`[ONNX] Found alternative model: ${modelUrl}`);
+        return modelUrl;
+      }
+    }
+
+    console.error(`[ONNX] No ONNX models found in /assets/models/`);
+    return null;
   }
 
   private async checkModelFileExists(url: string): Promise<boolean> {
