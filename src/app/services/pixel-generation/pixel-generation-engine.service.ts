@@ -1,14 +1,11 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
-import { switchMap, map, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   PixelGenerationResponse,
   PixelArtStyle,
-  PIXEL_ART_STYLE_CONFIGS,
-  PixelGenerationMetadata,
 } from './pixel-generation-models';
 import { PixelGenerationLocalService } from './pixel-generation-local.service';
-import { PixelGenerationOnnxService } from './pixel-generation-onnx.service';
 
 export interface ProcessingJob {
   id: string;
@@ -16,43 +13,18 @@ export interface ProcessingJob {
   startTime: number;
 }
 
-export type GenerationMode = 'auto' | 'onnx' | 'local';
-
 @Injectable({ providedIn: 'root' })
 export class PixelGenerationEngineService {
   private readonly jobs = signal<Map<string, ProcessingJob>>(new Map());
-  private readonly generationMode = signal<GenerationMode>('auto');
-  private readonly useAI = signal(true);
 
   readonly activeJobs = computed(() => Array.from(this.jobs().values()));
   readonly processingCount = computed(
     () => this.activeJobs().filter((job) => job.response.status === 'processing').length,
   );
-  readonly isOnnxAvailable = computed(() => this.onnxService.isModelReady());
-  readonly aiEnabled = this.useAI;
 
   constructor(
     private readonly localService: PixelGenerationLocalService,
-    private readonly onnxService: PixelGenerationOnnxService,
   ) {}
-
-  setGenerationMode(mode: GenerationMode): void {
-    this.generationMode.set(mode);
-  }
-
-  setAIEnabled(enabled: boolean): void {
-    this.useAI.set(enabled);
-  }
-
-  initializeAI(): Observable<boolean> {
-    return this.onnxService.loadModel().pipe(
-      map(() => true),
-      catchError((error) => {
-        console.error('Failed to initialize AI model:', error);
-        return from([false]);
-      }),
-    );
-  }
 
   generatePixelArt(
     sketchImageData: ImageData,
@@ -80,55 +52,14 @@ export class PixelGenerationEngineService {
       return newJobs;
     });
 
-    const mode = this.generationMode();
-    const shouldUseAI = this.useAI() && (mode === 'auto' || mode === 'onnx');
-
-    let generationObservable: Observable<PixelGenerationResponse>;
-
-    if (shouldUseAI && this.onnxService.isModelReady()) {
-      generationObservable = this.onnxService.generateWithOnnx(
-        sketchImageData,
-        prompt,
-        targetWidth,
-        targetHeight,
-        style,
-      );
-    } else if (shouldUseAI && mode === 'onnx') {
-      generationObservable = this.onnxService.loadModel().pipe(
-        switchMap(() =>
-          this.onnxService.generateWithOnnx(
-            sketchImageData,
-            prompt,
-            targetWidth,
-            targetHeight,
-            style,
-          ),
-        ),
-        catchError((error) => {
-          console.warn(
-            'ONNX generation failed, falling back to local processing:',
-            error,
-          );
-          return this.localService.processLocally(
-            sketchImageData,
-            prompt,
-            targetWidth,
-            targetHeight,
-            style,
-            customColorPalette,
-          );
-        }),
-      );
-    } else {
-      generationObservable = this.localService.processLocally(
-        sketchImageData,
-        prompt,
-        targetWidth,
-        targetHeight,
-        style,
-        customColorPalette,
-      );
-    }
+    const generationObservable = this.localService.processLocally(
+      sketchImageData,
+      prompt,
+      targetWidth,
+      targetHeight,
+      style,
+      customColorPalette,
+    );
 
     setTimeout(() => {
       generationObservable.subscribe({

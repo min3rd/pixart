@@ -62,7 +62,6 @@ export class PixelArtGenerationDialog implements OnDestroy {
   readonly targetHeight = signal(64);
   readonly selectedStyle = signal<PixelArtStyle>('pixel-modern');
   readonly useCurrentLayer = signal(true);
-  readonly useAI = signal(true);
   readonly processing = signal(false);
   readonly currentJobId = signal<string | null>(null);
   readonly error = signal<string | null>(null);
@@ -78,8 +77,6 @@ export class PixelArtGenerationDialog implements OnDestroy {
     'low-res',
     'high-detail',
   ];
-
-  readonly isOnnxAvailable = computed(() => this.pixelEngine.isOnnxAvailable());
 
   readonly canGenerate = computed(() => {
     return this.prompt().trim().length > 0 && !this.processing();
@@ -102,18 +99,11 @@ export class PixelArtGenerationDialog implements OnDestroy {
     this.targetHeight.set(64);
     this.selectedStyle.set('pixel-modern');
     this.useCurrentLayer.set(true);
-    this.useAI.set(true);
     this.processing.set(false);
     this.currentJobId.set(null);
     this.error.set(null);
     this.completed.set(false);
     this.visible.set(true);
-    
-    this.pixelEngine.initializeAI().subscribe({
-      error: (err) => {
-        console.warn('AI initialization failed, will use traditional processing:', err);
-      },
-    });
   }
 
   close() {
@@ -135,8 +125,6 @@ export class PixelArtGenerationDialog implements OnDestroy {
     this.processing.set(true);
     this.error.set(null);
     this.completed.set(false);
-
-    this.pixelEngine.setAIEnabled(this.useAI());
 
     const selectedLayer = this.editorDoc.selectedLayer();
     const canvasWidth = this.editorDoc.canvasWidth();
