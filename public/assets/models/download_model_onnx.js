@@ -14,11 +14,11 @@ const MODELS_DIR = __dirname;
 
 const PIXEL_ART_MODELS = [
   {
-    name: 'Stable Diffusion 1.5 (ONNX) - Pixel Art Fine-tuned',
+    name: 'epiCPhotoGasm (Artistic ONNX Model)',
     url: 'https://huggingface.co/Yntec/epiCPhotoGasm/resolve/main/epiCPhotoGasm.onnx',
-    filename: 'stable-diffusion-pixel-art.onnx',
+    filename: 'epicphotogasm.onnx',
     size: '~1.5GB',
-    description: 'Fine-tuned Stable Diffusion model for pixel art generation'
+    description: 'High-quality artistic image generation model, can be adapted for pixel art'
   },
   {
     name: 'ControlNet Pixel Art (ONNX)',
@@ -28,18 +28,18 @@ const PIXEL_ART_MODELS = [
     description: 'ControlNet model specialized for pixel art style transfer'
   },
   {
-    name: 'Waifu Diffusion Pixel (ONNX)',
+    name: 'Waifu Diffusion U-Net (ONNX)',
     url: 'https://huggingface.co/hakurei/waifu-diffusion-onnx/resolve/main/unet/model.onnx',
-    filename: 'waifu-diffusion-pixel.onnx',
+    filename: 'waifu-diffusion-unet.onnx',
     size: '~1.7GB',
-    description: 'Anime/pixel art styled diffusion model'
+    description: 'Anime-styled diffusion model U-Net component, suitable for stylized art'
   },
   {
-    name: 'MobileNet Pixel Art Generator (ONNX)',
+    name: 'MobileNet v3 Small (ONNX)',
     url: 'https://huggingface.co/onnx-community/mobilenet-v3-small/resolve/main/model.onnx',
-    filename: 'mobilenet-pixel-art.onnx',
+    filename: 'mobilenet-v3-small.onnx',
     size: '~10MB',
-    description: 'Lightweight mobile-optimized model for fast pixel art generation'
+    description: 'Lightweight MobileNet model for feature extraction (base model, requires fine-tuning for pixel art)'
   },
   {
     name: 'Custom URL',
@@ -112,7 +112,12 @@ async function downloadFile(url, outputPath, onProgress) {
           resolve(outputPath);
         })
         .catch((err) => {
-          fs.unlinkSync(outputPath);
+          if (fs.existsSync(outputPath)) {
+            try {
+              fs.unlinkSync(outputPath);
+            } catch (unlinkErr) {
+            }
+          }
           reject(err);
         });
     }).on('error', (err) => {
