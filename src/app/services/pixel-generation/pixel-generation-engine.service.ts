@@ -45,10 +45,16 @@ export class PixelGenerationEngineService {
   }
 
   initializeAI(): Observable<boolean> {
+    console.log('[PixelEngine] Initializing AI model...');
     return this.onnxService.loadModel().pipe(
-      map(() => true),
+      map(() => {
+        console.log('[PixelEngine] AI model initialized successfully');
+        return true;
+      }),
       catchError((error) => {
-        console.error('Failed to initialize AI model:', error);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error during AI initialization';
+        console.error('[PixelEngine] Failed to initialize AI model:', errorMsg);
+        console.error('[PixelEngine] The app will continue using traditional processing methods');
         return from([false]);
       }),
     );
@@ -86,6 +92,7 @@ export class PixelGenerationEngineService {
     let generationObservable: Observable<PixelGenerationResponse>;
 
     if (shouldUseAI && this.onnxService.isModelReady()) {
+      console.log('[PixelEngine] Using ONNX model for generation (model already loaded)');
       generationObservable = this.onnxService.generateWithOnnx(
         sketchImageData,
         prompt,
@@ -94,6 +101,7 @@ export class PixelGenerationEngineService {
         style,
       );
     } else if (shouldUseAI && mode === 'onnx') {
+      console.log('[PixelEngine] Loading ONNX model before generation...');
       generationObservable = this.onnxService.loadModel().pipe(
         switchMap(() =>
           this.onnxService.generateWithOnnx(
@@ -105,9 +113,10 @@ export class PixelGenerationEngineService {
           ),
         ),
         catchError((error) => {
+          const errorMsg = error instanceof Error ? error.message : 'ONNX generation failed';
           console.warn(
-            'ONNX generation failed, falling back to local processing:',
-            error,
+            '[PixelEngine] ONNX generation failed, falling back to local processing:',
+            errorMsg,
           );
           return this.localService.processLocally(
             sketchImageData,
@@ -120,6 +129,7 @@ export class PixelGenerationEngineService {
         }),
       );
     } else {
+      console.log('[PixelEngine] Using local processing (AI disabled or not in auto/onnx mode)');
       generationObservable = this.localService.processLocally(
         sketchImageData,
         prompt,

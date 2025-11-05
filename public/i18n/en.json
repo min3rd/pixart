@@ -414,6 +414,7 @@
     "emptyLayer": "The selected layer is empty. Please draw something first.",
     "apiNotConfigured": "The API is not configured. Using local processing instead.",
     "errorMessage": "Error: {{message}}",
+    "errorOccurred": "An error occurred",
     "styles": {
       "retro-8bit": "8-bit Retro (8 colors)",
       "retro-16bit": "16-bit Retro (16 colors)",
