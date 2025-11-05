@@ -27,21 +27,21 @@ hoặc (or):
 
 ### Các model có sẵn (Available models):
 
-1. **Stable Diffusion 1.5 (ONNX) - Pixel Art Fine-tuned** (~1.5GB)
-   - Model Stable Diffusion được fine-tune cho pixel art generation
-   - Chất lượng cao nhưng kích thước lớn
+1. **epiCPhotoGasm (Artistic ONNX Model)** (~1.5GB)
+   - Model sinh ảnh nghệ thuật chất lượng cao
+   - Có thể điều chỉnh cho pixel art generation
 
 2. **ControlNet Pixel Art (ONNX)** (~200MB)
    - Model ControlNet chuyên về pixel art style transfer
    - Cân bằng giữa chất lượng và kích thước
 
-3. **Waifu Diffusion Pixel (ONNX)** (~1.7GB)
-   - Model diffusion phong cách anime/pixel art
-   - Phù hợp cho character generation
+3. **Waifu Diffusion U-Net (ONNX)** (~1.7GB)
+   - Model diffusion phong cách anime, thành phần U-Net
+   - Phù hợp cho stylized art generation
 
-4. **MobileNet Pixel Art Generator (ONNX)** (~10MB)
-   - Model nhẹ được tối ưu cho mobile
-   - Tốc độ nhanh nhưng chất lượng thấp hơn
+4. **MobileNet v3 Small (ONNX)** (~10MB)
+   - Model nhẹ cho feature extraction
+   - Model cơ bản, cần fine-tuning cho pixel art
 
 5. **Custom URL**
    - Nhập URL Hugging Face tùy chỉnh
