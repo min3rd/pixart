@@ -1,5 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
 import { switchMap, map, catchError } from 'rxjs/operators';
 import {
   PixelGenerationResponse,
@@ -156,7 +156,7 @@ export class PixelGenerationEngineService {
       });
     }, 100);
 
-    return from([jobId]);
+    return of(jobId);
   }
 
   generateFromCanvas(
@@ -218,12 +218,12 @@ export class PixelGenerationEngineService {
 
   getResultAsImageData(jobId: string): Observable<ImageData | null> {
     const job = this.jobs().get(jobId);
-    if (!job) return from([null]);
+    if (!job) return of(null);
 
     const { response } = job;
-    if (response.status !== 'completed') return from([null]);
+    if (response.status !== 'completed') return of(null);
 
-    return from([response.resultImageData || null]);
+    return of(response.resultImageData || null);
   }
 
   getResultAsLayerBuffer(
@@ -235,7 +235,7 @@ export class PixelGenerationEngineService {
       map((imageData) => {
         if (!imageData) return null;
         return this.imageDataToLayerBuffer(imageData, canvasWidth, canvasHeight);
-      }),
+      })
     );
   }
 

@@ -162,11 +162,13 @@ export class PixelGenerationOnnxService {
 
         const processingTime = performance.now() - startTime;
 
+        const promptEmbedding = this.encodePrompt(prompt);
+
         const metadata: PixelGenerationMetadata = {
           colorsUsed: this.countUniqueColors(resultImageData),
           pixelCount: width * height,
           algorithm: `onnx-webgpu-${style}`,
-          promptTokens: this.encodePrompt(prompt).length,
+          promptTokens: promptEmbedding.length,
         };
 
         return {
@@ -187,7 +189,7 @@ export class PixelGenerationOnnxService {
           progress: 0,
           error: errorMsg,
         } as PixelGenerationResponse);
-      }),
+      })
     );
   }
 
