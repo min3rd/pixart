@@ -404,8 +404,6 @@
     "style": "Phong cách",
     "customPalette": "Bảng màu tùy chỉnh",
     "useCustomPalette": "Sử dụng màu tùy chỉnh",
-    "useAI": "Sử dụng AI (WebGPU/ONNX)",
-    "aiNotAvailable": "Model AI chưa tải, dùng xử lý truyền thống",
     "generate": "Tạo",
     "cancel": "Hủy",
     "processing": "Đang tạo...",
@@ -415,7 +413,6 @@
     "selectCurrentLayer": "Dùng layer hiện tại làm phác họa",
     "noLayerSelected": "Vui lòng chọn layer trước",
     "emptyLayer": "Layer đã chọn trống. Vui lòng vẽ gì đó trước.",
-    "apiNotConfigured": "API chưa được cấu hình. Sẽ xử lý cục bộ.",
     "errorMessage": "Lỗi: {{message}}",
     "styles": {
       "retro-8bit": "8-bit cổ điển (8 màu)",
