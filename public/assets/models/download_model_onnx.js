@@ -14,39 +14,25 @@ const MODELS_DIR = __dirname;
 
 const PIXEL_ART_MODELS = [
   {
-    name: 'epiCPhotoGasm (Artistic ONNX Model)',
-    url: 'https://huggingface.co/Yntec/epiCPhotoGasm/resolve/main/epiCPhotoGasm.onnx',
-    filename: 'epicphotogasm.onnx',
-    size: '~1.5GB',
-    description: 'High-quality artistic image generation model, can be adapted for pixel art'
+    name: 'Example: ONNX Community ResNet-50',
+    url: 'https://huggingface.co/onnx-community/resnet-50/resolve/main/model.onnx',
+    filename: 'resnet-50.onnx',
+    size: '~100MB',
+    description: 'Example model - ResNet-50 for image classification (not pixel art specific, but publicly accessible for testing)'
   },
   {
-    name: 'ControlNet Pixel Art (ONNX)',
-    url: 'https://huggingface.co/camenduru/controlnet-pixelart/resolve/main/model.onnx',
-    filename: 'controlnet-pixel-art.onnx',
-    size: '~200MB',
-    description: 'ControlNet model specialized for pixel art style transfer'
-  },
-  {
-    name: 'Waifu Diffusion U-Net (ONNX)',
-    url: 'https://huggingface.co/hakurei/waifu-diffusion-onnx/resolve/main/unet/model.onnx',
-    filename: 'waifu-diffusion-unet.onnx',
-    size: '~1.7GB',
-    description: 'Anime-styled diffusion model U-Net component, suitable for stylized art'
-  },
-  {
-    name: 'MobileNet v3 Small (ONNX)',
+    name: 'Example: ONNX Community MobileNet v3 Small',
     url: 'https://huggingface.co/onnx-community/mobilenet-v3-small/resolve/main/model.onnx',
     filename: 'mobilenet-v3-small.onnx',
     size: '~10MB',
-    description: 'Lightweight MobileNet model for feature extraction (base model, requires fine-tuning for pixel art)'
+    description: 'Example lightweight model for testing (publicly accessible, not pixel art specific)'
   },
   {
-    name: 'Custom URL',
+    name: 'Custom URL - For Your Pixel Art Model',
     url: null,
     filename: null,
     size: 'Unknown',
-    description: 'Enter your own Hugging Face model URL'
+    description: 'Enter your own Hugging Face model URL or direct download link to an ONNX model'
   }
 ];
 
@@ -229,6 +215,13 @@ async function main() {
   console.log('This script downloads ONNX models from Hugging Face');
   console.log('for pixel art generation.\n');
   console.log(`Target directory: ${MODELS_DIR}\n`);
+  console.log('📝 NOTE: The pre-configured models are examples.');
+  console.log('   For pixel art models, search Hugging Face for:');
+  console.log('   - "pixel art onnx"');
+  console.log('   - "stable diffusion onnx pixel"');
+  console.log('   - "controlnet onnx"');
+  console.log('   Then use the "Custom URL" option to download your chosen model.\n');
+  console.log('💡 TIP: Make sure the model URL ends with .onnx and is publicly accessible.\n');
   
   try {
     await downloadMultipleModels();

@@ -27,25 +27,27 @@ hoặc (or):
 
 ### Các model có sẵn (Available models):
 
-1. **epiCPhotoGasm (Artistic ONNX Model)** (~1.5GB)
-   - Model sinh ảnh nghệ thuật chất lượng cao
-   - Có thể điều chỉnh cho pixel art generation
+**📝 Lưu ý:** Danh sách dưới đây chỉ là ví dụ. Để tìm model pixel art ONNX thực tế, hãy:
+1. Tìm kiếm trên Hugging Face với từ khóa: "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
+2. Kiểm tra model có file .onnx công khai không
+3. Sử dụng tùy chọn "Custom URL" để tải model bạn chọn
 
-2. **ControlNet Pixel Art (ONNX)** (~200MB)
-   - Model ControlNet chuyên về pixel art style transfer
-   - Cân bằng giữa chất lượng và kích thước
+**NOTE:** The list below contains example models. To find actual pixel art ONNX models:
+1. Search Hugging Face for: "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
+2. Verify the model has publicly accessible .onnx files
+3. Use the "Custom URL" option to download your chosen model
 
-3. **Waifu Diffusion U-Net (ONNX)** (~1.7GB)
-   - Model diffusion phong cách anime, thành phần U-Net
-   - Phù hợp cho stylized art generation
+1. **Example: ONNX Community ResNet-50** (~100MB)
+   - Model ví dụ - ResNet-50 cho phân loại ảnh
+   - Công khai và có thể truy cập (chỉ để test script)
 
-4. **MobileNet v3 Small (ONNX)** (~10MB)
-   - Model nhẹ cho feature extraction
-   - Model cơ bản, cần fine-tuning cho pixel art
+2. **Example: ONNX Community MobileNet v3 Small** (~10MB)
+   - Model ví dụ nhẹ để kiểm tra
+   - Công khai và có thể truy cập (chỉ để test script)
 
-5. **Custom URL**
-   - Nhập URL Hugging Face tùy chỉnh
-   - Linh hoạt cho các model khác
+3. **Custom URL - For Your Pixel Art Model**
+   - Nhập URL Hugging Face hoặc link download trực tiếp
+   - Sử dụng option này cho model pixel art thực tế của bạn
 
 ## Tính năng (Features)
 
@@ -76,30 +78,49 @@ for pixel art generation.
 
 Target directory: /path/to/public/assets/models
 
+📝 NOTE: The pre-configured models are examples.
+   For pixel art models, search Hugging Face for:
+   - "pixel art onnx"
+   - "stable diffusion onnx pixel"
+   - "controlnet onnx"
+   Then use the "Custom URL" option to download your chosen model.
+
+💡 TIP: Make sure the model URL ends with .onnx and is publicly accessible.
+
 
 === Available Pixel Art ONNX Models ===
 
-1. Stable Diffusion 1.5 (ONNX) - Pixel Art Fine-tuned
-   Size: ~1.5GB
-   Description: Fine-tuned Stable Diffusion model for pixel art generation
+1. Example: ONNX Community ResNet-50
+   Size: ~100MB
+   Description: Example model - ResNet-50 for image classification
    URL: https://huggingface.co/...
 
-...
+2. Example: ONNX Community MobileNet v3 Small
+   Size: ~10MB
+   Description: Example lightweight model for testing
+   URL: https://huggingface.co/...
 
-Select a model (1-5) or "q" to quit: 4
+3. Custom URL - For Your Pixel Art Model
+   Size: Unknown
+   Description: Enter your own Hugging Face model URL
+
+Select a model (1-3) or "q" to quit: 3
+
+Enter the Hugging Face model URL: https://huggingface.co/your-model/resolve/main/model.onnx
+Enter the output filename (e.g., my-model.onnx): my-pixel-art.onnx
 
 Add another model? (y/n): n
 
 [INFO] Preparing to download 1 model(s)...
 
-[START] Downloading "MobileNet Pixel Art Generator (ONNX)" to "mobilenet-pixel-art.onnx"
-[INFO] Starting download from: https://huggingface.co/...
-[PROGRESS] 5% - 512.5 KB / 10 MB
-[PROGRESS] 10% - 1 MB / 10 MB
+[START] Downloading "Custom Model" to "my-pixel-art.onnx"
+[INFO] Starting download from: https://huggingface.co/your-model/resolve/main/model.onnx
+[PROGRESS] 5% - 5 MB / 100 MB
+[PROGRESS] 10% - 10 MB / 100 MB
 ...
-[PROGRESS] 100% - 10 MB / 10 MB
-[SUCCESS] Download completed: 10 MB
-[DONE] Model saved to: /path/to/public/assets/models/mobilenet-pixel-art.onnx
+[PROGRESS] 100% - 100 MB / 100 MB
+[SUCCESS] Download completed: 100 MB
+[DONE] Model saved to: /path/to/public/assets/models/my-pixel-art.onnx
 
 [SUMMARY] Downloaded 1 out of 1 model(s)
 ```
@@ -108,18 +129,30 @@ Add another model? (y/n): n
 
 - Các model lớn có thể mất nhiều thời gian để tải
 - Đảm bảo có đủ dung lượng ổ đĩa trước khi tải
-- Một số URL có thể thay đổi, cập nhật trong source code nếu cần
+- **QUAN TRỌNG:** Đảm bảo URL model là công khai và không yêu cầu xác thực
+- **IMPORTANT:** Make sure the model URL is publicly accessible and doesn't require authentication
+- Tìm model pixel art thực tế trên Hugging Face với từ khóa phù hợp
 - Script có thể được tích hợp vào CI/CD pipeline
 
 ## Tùy chỉnh (Customization)
 
-Để thêm model mới vào danh sách, chỉnh sửa mảng `PIXEL_ART_MODELS` trong file `download_model_onnx.js`:
+### Tìm model pixel art ONNX (Finding pixel art ONNX models):
+
+1. Truy cập https://huggingface.co/models
+2. Tìm kiếm với từ khóa: "pixel art onnx", "stable diffusion onnx", "controlnet onnx"
+3. Mở trang model và tìm file .onnx trong tab "Files and versions"
+4. Click chuột phải vào file .onnx và copy URL
+5. Sử dụng URL đó với tùy chọn "Custom URL" trong script
+
+### Thêm model vào danh sách (Adding models to the list):
+
+Để thêm model mới vào danh sách mặc định, chỉnh sửa mảng `PIXEL_ART_MODELS` trong file `download_model_onnx.js`:
 
 ```javascript
 const PIXEL_ART_MODELS = [
   {
     name: 'Your Model Name',
-    url: 'https://huggingface.co/path/to/model.onnx',
+    url: 'https://huggingface.co/username/model-name/resolve/main/model.onnx',
     filename: 'output-filename.onnx',
     size: '~100MB',
     description: 'Model description'
@@ -128,7 +161,14 @@ const PIXEL_ART_MODELS = [
 ];
 ```
 
+**Lưu ý:** Chỉ thêm những model có URL công khai, không yêu cầu authentication.
+
 ## Troubleshooting
+
+### HTTP 401 hoặc 403 errors:
+- Model yêu cầu authentication hoặc không công khai
+- Tìm model khác có quyền truy cập công khai
+- Hoặc download model thủ công và copy vào thư mục `public/assets/models`
 
 ### Lỗi kết nối (Connection errors):
 - Kiểm tra kết nối Internet
