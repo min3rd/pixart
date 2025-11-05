@@ -105,7 +105,12 @@ export class FileService {
       );
     }
 
-    return this.openProjectFromInputFile();
+    return this.openProjectFromInputFile().pipe(
+      catchError((e) => {
+        console.warn('Open project from input file failed', e);
+        return of(null);
+      })
+    );
   }
 
   openProjectFromFile(file: File): Observable<Project | null> {

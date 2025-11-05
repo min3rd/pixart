@@ -5,6 +5,7 @@ import {
   signal,
   HostListener,
   ViewChild,
+  OnDestroy,
 } from '@angular/core';
 import {
   EditorDocumentService,
@@ -32,7 +33,7 @@ import { PixelGenerationEngineService } from '../../../services/pixel-generation
     class: 'block h-full',
   },
 })
-export class LayersPanel {
+export class LayersPanel implements OnDestroy {
   readonly document = inject(EditorDocumentService);
   readonly hotkeys = inject(HotkeysService);
   readonly pixelGenEngine = inject(PixelGenerationEngineService);
@@ -40,6 +41,7 @@ export class LayersPanel {
   pixelGenerationDialog!: PixelGenerationDialog;
   private dragIndex: number | null = null;
   private lastSelectedIndex: number | null = null;
+  private generationCheckInterval: number | null = null;
   readonly contextMenuVisible = signal(false);
   readonly contextMenuPosition = signal<{ x: number; y: number }>({
     x: 0,
@@ -458,13 +460,19 @@ export class LayersPanel {
         )
         .subscribe({
           next: (jobId) => {
-            const checkInterval = setInterval(() => {
+            if (this.generationCheckInterval !== null) {
+              clearInterval(this.generationCheckInterval);
+            }
+            this.generationCheckInterval = setInterval(() => {
               const job = this.pixelGenEngine.getJob(jobId);
               if (!job || job.response.status === 'processing') {
                 return;
               }
 
-              clearInterval(checkInterval);
+              if (this.generationCheckInterval !== null) {
+                clearInterval(this.generationCheckInterval);
+                this.generationCheckInterval = null;
+              }
 
               if (
                 job.response.status === 'completed' &&
@@ -502,7 +510,7 @@ export class LayersPanel {
                 console.error('Generation failed:', job.response.error);
                 this.pixelGenerationDialog?.hide();
               }
-            }, 500);
+            }, 500) as unknown as number;
           },
           error: (error) => {
             console.error('Generation failed:', error);
@@ -515,5 +523,12 @@ export class LayersPanel {
       this.pixelGenerationDialog?.hide();
     };
     img.src = request.sketchDataUrl;
+  }
+
+  ngOnDestroy(): void {
+    if (this.generationCheckInterval !== null) {
+      clearInterval(this.generationCheckInterval);
+      this.generationCheckInterval = null;
+    }
   }
 }
