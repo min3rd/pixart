@@ -111,6 +111,7 @@ export class PixelGenerationOnnxService {
   ): Observable<PixelGenerationResponse> {
     const requestId = `onnx-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const startTime = performance.now();
+    const promptEmbedding = this.encodePrompt(prompt);
 
     const loadModel$ = this.session
       ? of(undefined)
@@ -127,8 +128,6 @@ export class PixelGenerationOnnxService {
         }
 
         const preprocessed = this.preprocessImage(sketchData, width, height);
-
-        const promptEmbedding = this.encodePrompt(prompt);
 
         const inputTensor = new ort.Tensor('float32', preprocessed.data, [
           1,
@@ -161,8 +160,6 @@ export class PixelGenerationOnnxService {
         );
 
         const processingTime = performance.now() - startTime;
-
-        const promptEmbedding = this.encodePrompt(prompt);
 
         const metadata: PixelGenerationMetadata = {
           colorsUsed: this.countUniqueColors(resultImageData),

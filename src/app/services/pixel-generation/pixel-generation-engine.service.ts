@@ -152,7 +152,7 @@ export class PixelGenerationEngineService {
             newJobs.set(jobId, { ...job, response: errorResponse });
             return newJobs;
           });
-                },
+        },
       });
     }, 100);
 

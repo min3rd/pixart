@@ -1,5 +1,5 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { EditorToolsService } from './editor-tools.service';
 import {

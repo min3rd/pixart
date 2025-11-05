@@ -7,6 +7,7 @@ import {
   effect,
   EffectRef,
   EnvironmentInjector,
+  OnDestroy,
 } from '@angular/core';
 import {
   EditorDocumentService,
@@ -74,7 +75,7 @@ interface ContextMenuAction {
     '(wheel)': 'onWheel($event)',
   },
 })
-export class EditorCanvas {
+export class EditorCanvas implements OnDestroy {
   @ViewChild('canvasEl', { static: true })
   canvasEl!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasContainer', { static: true })
@@ -117,6 +118,7 @@ export class EditorCanvas {
   private selectionDragging = false;
   private selectionMoving = false;
   private selectionMoveStart: { x: number; y: number } | null = null;
+  private generationCheckInterval: number | null = null;
   private vKeyPressed = false;
   private selectionContentMoving = false;
   private selectionContentMoveStart: { x: number; y: number } | null = null;
@@ -1312,6 +1314,10 @@ export class EditorCanvas {
         );
       } catch {}
       this.keyListener = null;
+    }
+    if (this.generationCheckInterval !== null) {
+      clearInterval(this.generationCheckInterval);
+      this.generationCheckInterval = null;
     }
   }
 
@@ -2599,13 +2605,19 @@ export class EditorCanvas {
         )
         .subscribe({
           next: (jobId) => {
-            const checkInterval = setInterval(() => {
+            if (this.generationCheckInterval !== null) {
+              clearInterval(this.generationCheckInterval);
+            }
+            this.generationCheckInterval = setInterval(() => {
               const job = this.pixelGenEngine.getJob(jobId);
               if (!job || job.response.status === 'processing') {
                 return;
               }
 
-              clearInterval(checkInterval);
+              if (this.generationCheckInterval !== null) {
+                clearInterval(this.generationCheckInterval);
+                this.generationCheckInterval = null;
+              }
 
               if (job.response.status === 'completed' && job.response.resultImageData) {
                 const newLayer = this.document.addLayer('Generated');
@@ -2640,7 +2652,7 @@ export class EditorCanvas {
                 console.error('Generation failed:', job.response.error);
                 this.pixelGenerationDialog?.hide();
               }
-            }, 500);
+            }, 500) as unknown as number;
           },
           error: (error) => {
             console.error('Generation failed:', error);
