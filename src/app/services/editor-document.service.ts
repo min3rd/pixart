@@ -1,5 +1,5 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { EditorToolsService } from './editor-tools.service';
 import {
@@ -581,8 +581,8 @@ export class EditorDocumentService {
       }),
       catchError((error) => {
         console.error('Failed to insert image as layer:', error);
-        return from([null]);
-      }),
+        return of(null);
+      })
     );
   }
 
