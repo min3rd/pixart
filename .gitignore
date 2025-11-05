@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# ONNX Models (large files - download via script)
+/public/assets/models/*.onnx
