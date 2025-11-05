@@ -1,5 +1,6 @@
 import { Injectable, Signal, inject, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { EditorToolsService } from './editor-tools.service';
 import {
   EditorAnimationService,
@@ -513,88 +514,93 @@ export class EditorDocumentService {
     return true;
   }
 
-  async insertImageAsLayer(
+  insertImageAsLayer(
     imageFile: File,
     targetWidth?: number,
     targetHeight?: number,
-  ): Promise<{
+  ): Observable<{
     layerId: string;
     bounds: { x: number; y: number; width: number; height: number };
   } | null> {
-    try {
-      const img = await this.loadImage(imageFile);
-      const finalWidth =
-        targetWidth && targetWidth > 0 ? targetWidth : img.width;
-      const finalHeight =
-        targetHeight && targetHeight > 0 ? targetHeight : img.height;
-      const canvas = document.createElement('canvas');
-      canvas.width = finalWidth;
-      canvas.height = finalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-      const imageData = ctx.getImageData(0, 0, finalWidth, finalHeight);
-      const layerName =
-        imageFile.name.replace(/\.[^.]+$/, '') ||
-        `Inserted Image ${this.layerService.layers().length + 1}`;
-      const newLayer = this.addLayer(layerName);
-      const canvasWidth = this.canvasState.canvasWidth();
-      const canvasHeight = this.canvasState.canvasHeight();
-      const startX = 0;
-      const startY = 0;
-      const buf = this.canvasState.getLayerBuffer(newLayer.id);
-      if (!buf || buf.length === 0) return null;
-      for (let y = 0; y < finalHeight; y++) {
-        for (let x = 0; x < finalWidth; x++) {
-          const px = startX + x;
-          const py = startY + y;
-          if (px < 0 || px >= canvasWidth || py < 0 || py >= canvasHeight)
-            continue;
-          const srcIdx = (y * finalWidth + x) * 4;
-          const r = imageData.data[srcIdx];
-          const g = imageData.data[srcIdx + 1];
-          const b = imageData.data[srcIdx + 2];
-          const a = imageData.data[srcIdx + 3] / 255;
-          if (a <= 0) continue;
-          const color =
-            a >= 1
-              ? `rgb(${r},${g},${b})`
-              : `rgba(${r},${g},${b},${a.toFixed(3)})`;
-          const idx = py * canvasWidth + px;
-          buf[idx] = color;
+    return this.loadImage(imageFile).pipe(
+      map((img) => {
+        const finalWidth =
+          targetWidth && targetWidth > 0 ? targetWidth : img.width;
+        const finalHeight =
+          targetHeight && targetHeight > 0 ? targetHeight : img.height;
+        const canvas = document.createElement('canvas');
+        canvas.width = finalWidth;
+        canvas.height = finalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+        const imageData = ctx.getImageData(0, 0, finalWidth, finalHeight);
+        const layerName =
+          imageFile.name.replace(/\.[^.]+$/, '') ||
+          `Inserted Image ${this.layerService.layers().length + 1}`;
+        const newLayer = this.addLayer(layerName);
+        const canvasWidth = this.canvasState.canvasWidth();
+        const canvasHeight = this.canvasState.canvasHeight();
+        const startX = 0;
+        const startY = 0;
+        const buf = this.canvasState.getLayerBuffer(newLayer.id);
+        if (!buf || buf.length === 0) return null;
+        for (let y = 0; y < finalHeight; y++) {
+          for (let x = 0; x < finalWidth; x++) {
+            const px = startX + x;
+            const py = startY + y;
+            if (px < 0 || px >= canvasWidth || py < 0 || py >= canvasHeight)
+              continue;
+            const srcIdx = (y * finalWidth + x) * 4;
+            const r = imageData.data[srcIdx];
+            const g = imageData.data[srcIdx + 1];
+            const b = imageData.data[srcIdx + 2];
+            const a = imageData.data[srcIdx + 3] / 255;
+            if (a <= 0) continue;
+            const color =
+              a >= 1
+                ? `rgb(${r},${g},${b})`
+                : `rgba(${r},${g},${b},${a.toFixed(3)})`;
+            const idx = py * canvasWidth + px;
+            buf[idx] = color;
+          }
         }
-      }
-      this.canvasState.incrementPixelsVersion();
-      this.canvasState.setCanvasSaved(false);
-      const bounds = {
-        x: startX,
-        y: startY,
-        width: Math.min(finalWidth, canvasWidth - startX),
-        height: Math.min(finalHeight, canvasHeight - startY),
-      };
-      this.selectionService.selectionRect.set(bounds);
-      this.selectionService.selectionShape.set('rect');
-      this.selectionService.selectionPolygon.set(null);
-      return { layerId: newLayer.id, bounds };
-    } catch (error) {
-      console.error('Failed to insert image as layer:', error);
-      return null;
-    }
+        this.canvasState.incrementPixelsVersion();
+        this.canvasState.setCanvasSaved(false);
+        const bounds = {
+          x: startX,
+          y: startY,
+          width: Math.min(finalWidth, canvasWidth - startX),
+          height: Math.min(finalHeight, canvasHeight - startY),
+        };
+        this.selectionService.selectionRect.set(bounds);
+        this.selectionService.selectionShape.set('rect');
+        this.selectionService.selectionPolygon.set(null);
+        return { layerId: newLayer.id, bounds };
+      }),
+      catchError((error) => {
+        console.error('Failed to insert image as layer:', error);
+        return from([null]);
+      }),
+    );
   }
 
-  private loadImage(file: File): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
+  private loadImage(file: File): Observable<HTMLImageElement> {
+    return new Observable<HTMLImageElement>((observer) => {
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onload = () => {
+        observer.next(img);
+        observer.complete();
+      };
+      img.onerror = (err) => observer.error(err);
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
           img.src = e.target.result as string;
         }
       };
-      reader.onerror = reject;
+      reader.onerror = (err) => observer.error(err);
       reader.readAsDataURL(file);
     });
   }
@@ -1051,16 +1057,16 @@ export class EditorDocumentService {
     return this.boneHierarchyService.getChildBones(parentId);
   }
 
-  async exportAnimationAsSpriteSheet(
+  exportAnimationAsSpriteSheet(
     animation: AnimationItem,
     options?: { padding: number; columns: number; backgroundColor?: string },
-  ): Promise<Blob | null> {
+  ): Observable<Blob | null> {
     return this.exportService.exportAnimationAsSpriteSheet(animation, options);
   }
 
-  async exportAnimationAsPackage(
+  exportAnimationAsPackage(
     animation: AnimationItem,
-  ): Promise<{ files: Map<string, Blob>; metadata: string } | null> {
+  ): Observable<{ files: Map<string, Blob>; metadata: string } | null> {
     return this.exportService.exportAnimationAsPackage(animation);
   }
 }

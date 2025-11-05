@@ -109,8 +109,10 @@ export class PixelArtGenerationDialog implements OnDestroy {
     this.completed.set(false);
     this.visible.set(true);
     
-    this.pixelEngine.initializeAI().catch(err => {
-      console.warn('AI initialization failed, will use traditional processing:', err);
+    this.pixelEngine.initializeAI().subscribe({
+      error: (err) => {
+        console.warn('AI initialization failed, will use traditional processing:', err);
+      },
     });
   }
 
@@ -127,7 +129,7 @@ export class PixelArtGenerationDialog implements OnDestroy {
     this.clearPollingInterval();
   }
 
-  async generate() {
+  generate() {
     if (!this.canGenerate()) return;
 
     this.processing.set(true);
@@ -136,32 +138,33 @@ export class PixelArtGenerationDialog implements OnDestroy {
 
     this.pixelEngine.setAIEnabled(this.useAI());
 
-    try {
-      const selectedLayer = this.editorDoc.selectedLayer();
-      const canvasWidth = this.editorDoc.canvasWidth();
-      const canvasHeight = this.editorDoc.canvasHeight();
+    const selectedLayer = this.editorDoc.selectedLayer();
+    const canvasWidth = this.editorDoc.canvasWidth();
+    const canvasHeight = this.editorDoc.canvasHeight();
 
-      if (this.useCurrentLayer() && selectedLayer && !isGroup(selectedLayer)) {
-        const layerBuffer = this.editorDoc.getLayerBuffer(selectedLayer.id);
-        const jobId = await this.pixelEngine.generateFromLayerBuffer(
-          layerBuffer,
-          canvasWidth,
-          canvasHeight,
-          this.prompt(),
-          this.targetWidth(),
-          this.targetHeight(),
-          this.selectedStyle(),
-        );
-
-        this.currentJobId.set(jobId);
-        
-        this.checkJobCompletion(jobId);
-      } else {
-        const errorKey = 'pixelGeneration.noLayerSelected';
-        throw new Error(errorKey);
-      }
-    } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Unknown error');
+    if (this.useCurrentLayer() && selectedLayer && !isGroup(selectedLayer)) {
+      const layerBuffer = this.editorDoc.getLayerBuffer(selectedLayer.id);
+      this.pixelEngine.generateFromLayerBuffer(
+        layerBuffer,
+        canvasWidth,
+        canvasHeight,
+        this.prompt(),
+        this.targetWidth(),
+        this.targetHeight(),
+        this.selectedStyle(),
+      ).subscribe({
+        next: (jobId) => {
+          this.currentJobId.set(jobId);
+          this.checkJobCompletion(jobId);
+        },
+        error: (err) => {
+          this.error.set(err instanceof Error ? err.message : 'Unknown error');
+          this.processing.set(false);
+        },
+      });
+    } else {
+      const errorKey = 'pixelGeneration.noLayerSelected';
+      this.error.set(errorKey);
       this.processing.set(false);
     }
   }
