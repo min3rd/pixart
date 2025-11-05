@@ -129,7 +129,18 @@ export class PixelGenerationEngineService {
         }),
       );
     } else {
-      console.log('[PixelEngine] Using local processing (AI disabled or not in auto/onnx mode)');
+      console.log('[PixelEngine] ========================================');
+      console.log('[PixelEngine] Using LOCAL PROCESSING (not AI)');
+      console.log('[PixelEngine] Reason:');
+      console.log(`[PixelEngine]   - AI enabled: ${this.useAI()}`);
+      console.log(`[PixelEngine]   - Generation mode: ${mode}`);
+      console.log(`[PixelEngine]   - Model ready: ${this.onnxService.isModelReady()}`);
+      console.log(`[PixelEngine]   - Should use AI: ${shouldUseAI}`);
+      if (!this.onnxService.isModelReady() && shouldUseAI) {
+        console.error('[PixelEngine] ⚠️  ONNX model is NOT ready!');
+        console.error('[PixelEngine] ⚠️  Check console logs above for model loading errors');
+      }
+      console.log('[PixelEngine] ========================================');
       generationObservable = this.localService.processLocally(
         sketchImageData,
         prompt,
