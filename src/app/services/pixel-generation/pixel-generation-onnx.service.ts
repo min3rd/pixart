@@ -37,12 +37,18 @@ export class PixelGenerationOnnxService {
 
   private initializeOnnxRuntime(): void {
     try {
+      console.log('[ONNX] Initializing ONNX Runtime...');
       if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
         ort.env.wasm.numThreads = 4;
         ort.env.wasm.simd = true;
+        console.log('[ONNX] WebGPU support detected, configured WASM with 4 threads and SIMD enabled');
+      } else {
+        console.log('[ONNX] WebGPU not available, using WASM backend only');
       }
+      console.log('[ONNX] ONNX Runtime initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize ONNX Runtime:', error);
+      console.error('[ONNX] Failed to initialize ONNX Runtime:', error);
+      console.error('[ONNX] Generation will still attempt to work but may have reduced performance');
     }
   }
 
@@ -80,26 +86,95 @@ export class PixelGenerationOnnxService {
     }
     executionProviders.push('wasm');
 
-    return from(
-      ort.InferenceSession.create(url, {
-        executionProviders,
+    console.log(`[ONNX] Attempting to load model from: ${url}`);
+    console.log(`[ONNX] Execution providers: ${executionProviders.join(', ')}`);
+
+    return from(this.checkModelFileExists(url)).pipe(
+      switchMap((exists) => {
+        if (!exists) {
+          const errorMsg = `Model file not found at path: ${url}. Please ensure the ONNX model is downloaded to the correct location. See public/assets/models/README.md for instructions.`;
+          console.error(`[ONNX] ${errorMsg}`);
+          throw new Error(errorMsg);
+        }
+
+        console.log(`[ONNX] Model file exists, creating inference session...`);
+        return from(
+          ort.InferenceSession.create(url, {
+            executionProviders,
+          }),
+        );
       }),
-    ).pipe(
       map((session) => {
         this.session = session;
         this.modelLoaded.set(true);
         this.modelLoading.set(false);
-        console.log('ONNX model loaded successfully');
+        console.log(`[ONNX] Model loaded successfully from: ${url}`);
+        console.log(`[ONNX] Model inputs:`, session.inputNames);
+        console.log(`[ONNX] Model outputs:`, session.outputNames);
       }),
       catchError((error) => {
-        const errorMsg =
-          error instanceof Error ? error.message : 'Failed to load model';
-        this.loadError.set(errorMsg);
+        const errorDetails = this.buildDetailedErrorMessage(error, url);
+        this.loadError.set(errorDetails);
         this.modelLoading.set(false);
-        console.error('Failed to load ONNX model:', error);
-        throw new Error(errorMsg);
+        console.error(`[ONNX] Failed to load model from ${url}:`, error);
+        console.error(`[ONNX] Error details:`, errorDetails);
+        throw new Error(errorDetails);
       }),
     );
+  }
+
+  private async checkModelFileExists(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.warn(`[ONNX] Failed to check if model file exists at ${url}:`, error);
+      return false;
+    }
+  }
+
+  private buildDetailedErrorMessage(error: unknown, modelUrl: string): string {
+    let message = `Failed to load ONNX model from: ${modelUrl}\n\n`;
+
+    if (error instanceof Error) {
+      message += `Error: ${error.message}\n\n`;
+
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        message += `Reason: Model file not found at the specified path.\n\n`;
+        message += `Solutions:\n`;
+        message += `1. Download the model using: cd public/assets/models && node download_model_onnx.js\n`;
+        message += `2. Or manually place your ONNX model file at: ${modelUrl}\n`;
+        message += `3. Check public/assets/models/README.md for detailed instructions\n`;
+      } else if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
+        message += `Reason: CORS (Cross-Origin Resource Sharing) error.\n\n`;
+        message += `Solutions:\n`;
+        message += `1. Ensure the model file is served from the same origin\n`;
+        message += `2. Check server CORS configuration if using a separate CDN\n`;
+      } else if (error.message.includes('format') || error.message.includes('invalid')) {
+        message += `Reason: Invalid or corrupted ONNX model file.\n\n`;
+        message += `Solutions:\n`;
+        message += `1. Re-download the model file\n`;
+        message += `2. Verify the model file is a valid ONNX format\n`;
+        message += `3. Check model file size is not 0 bytes\n`;
+      } else if (error.message.includes('memory') || error.message.includes('allocation')) {
+        message += `Reason: Insufficient memory to load the model.\n\n`;
+        message += `Solutions:\n`;
+        message += `1. Try using a smaller/quantized model\n`;
+        message += `2. Close other browser tabs to free memory\n`;
+        message += `3. Use a device with more RAM\n`;
+      } else {
+        message += `Reason: Unknown error during model loading.\n\n`;
+        message += `Solutions:\n`;
+        message += `1. Check browser console for detailed error messages\n`;
+        message += `2. Ensure ONNX Runtime Web is compatible with your browser\n`;
+        message += `3. Try a different browser or update your current browser\n`;
+      }
+    } else {
+      message += `Error: ${String(error)}\n\n`;
+      message += `Please check the browser console for more details.\n`;
+    }
+
+    return message;
   }
 
   generateWithOnnx(
@@ -111,22 +186,31 @@ export class PixelGenerationOnnxService {
   ): Observable<PixelGenerationResponse> {
     const requestId = `onnx-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const startTime = performance.now();
+    
+    console.log(`[ONNX] Starting generation request: ${requestId}`);
+    console.log(`[ONNX] Parameters - Width: ${width}, Height: ${height}, Style: ${style}, Prompt: "${prompt}"`);
+
     const promptEmbedding = this.encodePrompt(prompt);
 
     const loadModel$ = this.session
       ? of(undefined)
       : this.loadModel().pipe(
           catchError((error) => {
-            throw new Error('Model not loaded');
+            const errorMsg = error instanceof Error ? error.message : 'Failed to load ONNX model. Check console for details.';
+            console.error(`[ONNX] Model loading failed for request ${requestId}:`, errorMsg);
+            throw new Error(errorMsg);
           }),
         );
 
     return loadModel$.pipe(
       switchMap(() => {
         if (!this.session) {
-          throw new Error('Model not loaded');
+          const errorMsg = 'ONNX model session is not initialized. Model may have failed to load.';
+          console.error(`[ONNX] ${errorMsg}`);
+          throw new Error(errorMsg);
         }
 
+        console.log(`[ONNX] Preprocessing image for request ${requestId}...`);
         const preprocessed = this.preprocessImage(sketchData, width, height);
 
         const inputTensor = new ort.Tensor('float32', preprocessed.data, [
@@ -146,10 +230,18 @@ export class PixelGenerationOnnxService {
           prompt: promptTensor,
         };
 
+        console.log(`[ONNX] Running inference for request ${requestId}...`);
         return from(this.session.run(feeds));
       }),
       map((results) => {
+        console.log(`[ONNX] Inference completed for request ${requestId}`);
+        
         const outputTensor = results['output'];
+        if (!outputTensor) {
+          console.error(`[ONNX] No output tensor found in results. Available outputs:`, Object.keys(results));
+          throw new Error('Model did not produce expected output tensor');
+        }
+
         const outputData = outputTensor.data as Float32Array;
 
         const resultImageData = this.postprocessImage(
@@ -160,6 +252,7 @@ export class PixelGenerationOnnxService {
         );
 
         const processingTime = performance.now() - startTime;
+        console.log(`[ONNX] Request ${requestId} completed in ${processingTime.toFixed(2)}ms`);
 
         const metadata: PixelGenerationMetadata = {
           colorsUsed: this.countUniqueColors(resultImageData),
@@ -180,6 +273,8 @@ export class PixelGenerationOnnxService {
       catchError((error) => {
         const errorMsg =
           error instanceof Error ? error.message : 'ONNX processing failed';
+        console.error(`[ONNX] Request ${requestId} failed:`, errorMsg);
+        console.error(`[ONNX] Full error:`, error);
         return of({
           id: requestId,
           status: 'failed',

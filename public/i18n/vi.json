@@ -417,6 +417,7 @@
     "emptyLayer": "Layer đã chọn trống. Vui lòng vẽ gì đó trước.",
     "apiNotConfigured": "API chưa được cấu hình. Sẽ xử lý cục bộ.",
     "errorMessage": "Lỗi: {{message}}",
+    "errorOccurred": "Đã xảy ra lỗi",
     "styles": {
       "retro-8bit": "8-bit cổ điển (8 màu)",
       "retro-16bit": "16-bit cổ điển (16 màu)",

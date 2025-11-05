@@ -118,9 +118,12 @@
       <div *ngIf="error()" class="mb-4 p-2 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-sm" id="pixel-art-generation-dialog-error">
         <div class="flex items-start gap-2" id="pixel-art-generation-dialog-error-content">
           <ng-icon name="heroExclamationCircle" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <p class="text-sm text-red-800 dark:text-red-200" id="pixel-art-generation-dialog-error-message">
-            {{ 'pixelGeneration.errorMessage' | transloco: { message: error() } }}
-          </p>
+          <div class="flex-1" id="pixel-art-generation-dialog-error-details">
+            <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-1" id="pixel-art-generation-dialog-error-title">
+              {{ 'pixelGeneration.errorOccurred' | transloco }}
+            </p>
+            <pre class="text-xs text-red-700 dark:text-red-300 whitespace-pre-wrap font-mono" id="pixel-art-generation-dialog-error-message">{{ error() }}</pre>
+          </div>
         </div>
       </div>
 
