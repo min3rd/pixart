@@ -60,6 +60,16 @@ torch.onnx.export(
 ### Option 3: Use Hugging Face
 Many pixel art models are available on Hugging Face that can be converted to ONNX format.
 
+### Option 4: Use the Download Script (Recommended)
+We provide a Node.js script to automatically download ONNX models from Hugging Face:
+
+```bash
+cd public/assets/models
+node download_model_onnx.js
+```
+
+See [DOWNLOAD_SCRIPT_README.md](./DOWNLOAD_SCRIPT_README.md) for detailed instructions.
+
 ## Model Not Found Behavior
 
 If no model is found at the expected path, the engine will:
