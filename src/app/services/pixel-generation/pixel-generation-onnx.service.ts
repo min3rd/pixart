@@ -136,10 +136,12 @@ export class PixelGenerationOnnxService {
   }
 
   private async findAvailableModel(preferredUrl: string): Promise<string | null> {
+    console.log(`[ONNX] ========================================`);
     console.log(`[ONNX] Searching for available ONNX models...`);
+    console.log(`[ONNX] ========================================`);
     
     if (await this.checkModelFileExists(preferredUrl)) {
-      console.log(`[ONNX] Found preferred model: ${preferredUrl}`);
+      console.log(`[ONNX] ✓ Found preferred model: ${preferredUrl}`);
       return preferredUrl;
     }
 
@@ -149,28 +151,49 @@ export class PixelGenerationOnnxService {
     for (const modelName of this.COMMON_MODEL_NAMES) {
       const modelUrl = `/assets/models/${modelName}`;
       if (await this.checkModelFileExists(modelUrl)) {
-        console.log(`[ONNX] Found alternative model: ${modelUrl}`);
+        console.log(`[ONNX] ✓✓✓ Found alternative model: ${modelUrl} ✓✓✓`);
         return modelUrl;
       }
     }
 
-    console.error(`[ONNX] No ONNX models found in /assets/models/`);
+    console.error(`[ONNX] ========================================`);
+    console.error(`[ONNX] ✗✗✗ NO ONNX MODELS FOUND ✗✗✗`);
+    console.error(`[ONNX] Checked all common model names:`);
+    this.COMMON_MODEL_NAMES.forEach(name => {
+      console.error(`[ONNX]   - /assets/models/${name}`);
+    });
+    console.error(`[ONNX] ========================================`);
+    console.error(`[ONNX] SOLUTION: Place an ONNX model file in public/assets/models/`);
+    console.error(`[ONNX] Supported filenames: ${this.COMMON_MODEL_NAMES.join(', ')}`);
+    console.error(`[ONNX] See public/assets/models/README.md for instructions`);
+    console.error(`[ONNX] ========================================`);
     return null;
   }
 
   private async checkModelFileExists(url: string): Promise<boolean> {
     try {
       const response = await fetch(url, { method: 'HEAD' });
-      return response.ok;
+      if (response.ok) {
+        console.log(`[ONNX] ✓ File exists: ${url}`);
+        return true;
+      }
+      console.log(`[ONNX] ✗ File not found (HEAD ${response.status}): ${url}`);
+      return false;
     } catch (error) {
+      console.log(`[ONNX] HEAD request failed for ${url}, trying GET with Range...`);
       try {
         const response = await fetch(url, { 
           method: 'GET', 
           headers: { 'Range': 'bytes=0-0' } 
         });
-        return response.ok || response.status === 206;
+        if (response.ok || response.status === 206) {
+          console.log(`[ONNX] ✓ File exists (GET Range): ${url}`);
+          return true;
+        }
+        console.log(`[ONNX] ✗ File not found (GET ${response.status}): ${url}`);
+        return false;
       } catch (fallbackError) {
-        console.warn(`[ONNX] Failed to check if model file exists at ${url}:`, fallbackError);
+        console.error(`[ONNX] ✗ Cannot access file at ${url}:`, fallbackError);
         return false;
       }
     }
