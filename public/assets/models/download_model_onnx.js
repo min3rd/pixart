@@ -14,25 +14,32 @@ const MODELS_DIR = __dirname;
 
 const PIXEL_ART_MODELS = [
   {
-    name: 'Example: ONNX Community ResNet-50',
-    url: 'https://huggingface.co/onnx-community/resnet-50/resolve/main/model.onnx',
-    filename: 'resnet-50.onnx',
-    size: '~100MB',
-    description: 'Example model - ResNet-50 for image classification (not pixel art specific, but publicly accessible for testing)'
+    name: 'SqueezeNet 1.0 (ONNX Model Zoo)',
+    url: 'https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.0-12.onnx',
+    filename: 'squeezenet1.0-12.onnx',
+    size: '~5MB',
+    description: 'Lightweight image classification model - good for testing the download script'
   },
   {
-    name: 'Example: ONNX Community MobileNet v3 Small',
-    url: 'https://huggingface.co/onnx-community/mobilenet-v3-small/resolve/main/model.onnx',
-    filename: 'mobilenet-v3-small.onnx',
-    size: '~10MB',
-    description: 'Example lightweight model for testing (publicly accessible, not pixel art specific)'
+    name: 'MobileNet v2 (ONNX Model Zoo)',
+    url: 'https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx',
+    filename: 'mobilenetv2-12.onnx',
+    size: '~14MB',
+    description: 'Mobile-optimized image classification model'
+  },
+  {
+    name: 'ResNet-50 (ONNX Model Zoo)',
+    url: 'https://github.com/onnx/models/raw/main/validated/vision/classification/resnet/model/resnet50-v1-7.onnx',
+    filename: 'resnet50-v1-7.onnx',
+    size: '~98MB',
+    description: 'Deep residual network for image classification'
   },
   {
     name: 'Custom URL - For Your Pixel Art Model',
     url: null,
     filename: null,
     size: 'Unknown',
-    description: 'Enter your own Hugging Face model URL or direct download link to an ONNX model'
+    description: 'Enter your own URL (Hugging Face, ONNX Model Zoo, or direct download link)'
   }
 ];
 
@@ -212,16 +219,13 @@ async function main() {
   console.log('========================================');
   console.log('  ONNX Model Downloader for Pixel Art  ');
   console.log('========================================\n');
-  console.log('This script downloads ONNX models from Hugging Face');
-  console.log('for pixel art generation.\n');
+  console.log('This script downloads ONNX models for testing and development.\n');
   console.log(`Target directory: ${MODELS_DIR}\n`);
-  console.log('📝 NOTE: The pre-configured models are examples.');
-  console.log('   For pixel art models, search Hugging Face for:');
-  console.log('   - "pixel art onnx"');
-  console.log('   - "stable diffusion onnx pixel"');
-  console.log('   - "controlnet onnx"');
-  console.log('   Then use the "Custom URL" option to download your chosen model.\n');
-  console.log('💡 TIP: Make sure the model URL ends with .onnx and is publicly accessible.\n');
+  console.log('✅ Pre-configured models are from ONNX Model Zoo and ready to download.');
+  console.log('💡 For pixel art specific models, use the "Custom URL" option with:');
+  console.log('   - Hugging Face models (search: "pixel art onnx")');
+  console.log('   - Your own trained models');
+  console.log('   - Direct download links to .onnx files\n');
   
   try {
     await downloadMultipleModels();
