@@ -128,8 +128,16 @@ export class PixelGenerationOnnxService {
       const response = await fetch(url, { method: 'HEAD' });
       return response.ok;
     } catch (error) {
-      console.warn(`[ONNX] Failed to check if model file exists at ${url}:`, error);
-      return false;
+      try {
+        const response = await fetch(url, { 
+          method: 'GET', 
+          headers: { 'Range': 'bytes=0-0' } 
+        });
+        return response.ok || response.status === 206;
+      } catch (fallbackError) {
+        console.warn(`[ONNX] Failed to check if model file exists at ${url}:`, fallbackError);
+        return false;
+      }
     }
   }
 
@@ -142,7 +150,7 @@ export class PixelGenerationOnnxService {
       if (error.message.includes('404') || error.message.includes('not found')) {
         message += `Reason: Model file not found at the specified path.\n\n`;
         message += `Solutions:\n`;
-        message += `1. Download the model using: cd public/assets/models && node download_model_onnx.js\n`;
+        message += `1. Download the model using the download script in public/assets/models/\n`;
         message += `2. Or manually place your ONNX model file at: ${modelUrl}\n`;
         message += `3. Check public/assets/models/README.md for detailed instructions\n`;
       } else if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
@@ -188,7 +196,7 @@ export class PixelGenerationOnnxService {
     const startTime = performance.now();
     
     console.log(`[ONNX] Starting generation request: ${requestId}`);
-    console.log(`[ONNX] Parameters - Width: ${width}, Height: ${height}, Style: ${style}, Prompt: "${prompt}"`);
+    console.log(`[ONNX] Parameters - Width: ${width}, Height: ${height}, Style: ${style}`);
 
     const promptEmbedding = this.encodePrompt(prompt);
 
