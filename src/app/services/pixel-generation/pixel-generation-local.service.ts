@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
 import {
   PixelGenerationResponse,
   PixelArtStyle,
@@ -12,14 +13,14 @@ export class PixelGenerationLocalService {
   private readonly PALETTE_DIVISIONS = 4;
   private readonly DIVISION_FACTOR = 3;
 
-  async processLocally(
+  processLocally(
     sketchData: ImageData,
     prompt: string,
     width: number,
     height: number,
     style: PixelArtStyle,
     colorPalette?: string[],
-  ): Promise<PixelGenerationResponse> {
+  ): Observable<PixelGenerationResponse> {
     const requestId = `local-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const startTime = performance.now();
 
@@ -28,7 +29,8 @@ export class PixelGenerationLocalService {
 
       let processedData = this.scaleImage(sketchData, width, height);
 
-      const palette = colorPalette || this.generateDefaultPalette(styleConfig.maxColors);
+      const palette =
+        colorPalette || this.generateDefaultPalette(styleConfig.maxColors);
 
       processedData = this.quantizeColors(processedData, palette);
 
@@ -37,7 +39,10 @@ export class PixelGenerationLocalService {
       }
 
       if (styleConfig.contrastBoost !== 1.0) {
-        processedData = this.adjustContrast(processedData, styleConfig.contrastBoost);
+        processedData = this.adjustContrast(
+          processedData,
+          styleConfig.contrastBoost,
+        );
       }
 
       processedData = this.edgeEnhancement(processedData);
@@ -50,21 +55,21 @@ export class PixelGenerationLocalService {
         algorithm: `local-${style}`,
       };
 
-      return {
+      return of({
         id: requestId,
         status: 'completed',
         progress: 100,
         resultImageData: processedData,
         processingTime,
         metadata,
-      };
+      });
     } catch (error) {
-      return {
+      return of({
         id: requestId,
         status: 'failed',
         progress: 0,
         error: error instanceof Error ? error.message : 'Processing failed',
-      };
+      });
     }
   }
 

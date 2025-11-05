@@ -1,4 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { Observable, from, of } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
 import * as ort from 'onnxruntime-web';
 import {
   PixelGenerationResponse,
@@ -33,7 +35,7 @@ export class PixelGenerationOnnxService {
     this.initializeOnnxRuntime();
   }
 
-  private async initializeOnnxRuntime(): Promise<void> {
+  private initializeOnnxRuntime(): void {
     try {
       if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
         ort.env.wasm.numThreads = 4;
@@ -44,122 +46,149 @@ export class PixelGenerationOnnxService {
     }
   }
 
-  async loadModel(modelUrl?: string): Promise<void> {
+  loadModel(modelUrl?: string): Observable<void> {
     if (this.modelLoaded()) {
-      return;
+      return of(undefined);
     }
 
     if (this.modelLoading()) {
-      while (this.modelLoading()) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      return;
+      return new Observable<void>((observer) => {
+        const checkInterval = setInterval(() => {
+          if (!this.modelLoading()) {
+            clearInterval(checkInterval);
+            if (this.modelLoaded()) {
+              observer.next();
+              observer.complete();
+            } else if (this.loadError()) {
+              observer.error(new Error(this.loadError()!));
+            }
+          }
+        }, 100);
+      });
     }
 
     this.modelLoading.set(true);
     this.loadError.set(null);
 
-    try {
-      const url = modelUrl || this.MODEL_CONFIG.modelUrl;
-      
-      const executionProviders: ort.InferenceSession.ExecutionProviderConfig[] = [];
-      
-      if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
-        executionProviders.push('webgpu');
-      }
-      executionProviders.push('wasm');
+    const url = modelUrl || this.MODEL_CONFIG.modelUrl;
 
-      this.session = await ort.InferenceSession.create(url, {
-        executionProviders,
-      });
+    const executionProviders: ort.InferenceSession.ExecutionProviderConfig[] =
+      [];
 
-      this.modelLoaded.set(true);
-      console.log('ONNX model loaded successfully');
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to load model';
-      this.loadError.set(errorMsg);
-      console.error('Failed to load ONNX model:', error);
-      throw new Error(errorMsg);
-    } finally {
-      this.modelLoading.set(false);
+    if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+      executionProviders.push('webgpu');
     }
+    executionProviders.push('wasm');
+
+    return from(
+      ort.InferenceSession.create(url, {
+        executionProviders,
+      }),
+    ).pipe(
+      map((session) => {
+        this.session = session;
+        this.modelLoaded.set(true);
+        this.modelLoading.set(false);
+        console.log('ONNX model loaded successfully');
+      }),
+      catchError((error) => {
+        const errorMsg =
+          error instanceof Error ? error.message : 'Failed to load model';
+        this.loadError.set(errorMsg);
+        this.modelLoading.set(false);
+        console.error('Failed to load ONNX model:', error);
+        throw new Error(errorMsg);
+      }),
+    );
   }
 
-  async generateWithOnnx(
+  generateWithOnnx(
     sketchData: ImageData,
     prompt: string,
     width: number,
     height: number,
     style: PixelArtStyle,
-  ): Promise<PixelGenerationResponse> {
+  ): Observable<PixelGenerationResponse> {
     const requestId = `onnx-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const startTime = performance.now();
 
-    try {
-      if (!this.session) {
-        await this.loadModel();
-      }
+    const loadModel$ = this.session
+      ? of(undefined)
+      : this.loadModel().pipe(
+          catchError((error) => {
+            throw new Error('Model not loaded');
+          }),
+        );
 
-      if (!this.session) {
-        throw new Error('Model not loaded');
-      }
+    return loadModel$.pipe(
+      switchMap(() => {
+        if (!this.session) {
+          throw new Error('Model not loaded');
+        }
 
-      const preprocessed = this.preprocessImage(sketchData, width, height);
-      
-      const promptEmbedding = this.encodePrompt(prompt);
+        const preprocessed = this.preprocessImage(sketchData, width, height);
 
-      const inputTensor = new ort.Tensor('float32', preprocessed.data, [
-        1,
-        3,
-        preprocessed.height,
-        preprocessed.width,
-      ]);
+        const promptEmbedding = this.encodePrompt(prompt);
 
-      const promptTensor = new ort.Tensor('float32', promptEmbedding, [1, promptEmbedding.length]);
+        const inputTensor = new ort.Tensor('float32', preprocessed.data, [
+          1,
+          3,
+          preprocessed.height,
+          preprocessed.width,
+        ]);
 
-      const feeds: Record<string, ort.Tensor> = {
-        sketch: inputTensor,
-        prompt: promptTensor,
-      };
+        const promptTensor = new ort.Tensor('float32', promptEmbedding, [
+          1,
+          promptEmbedding.length,
+        ]);
 
-      const results = await this.session.run(feeds);
+        const feeds: Record<string, ort.Tensor> = {
+          sketch: inputTensor,
+          prompt: promptTensor,
+        };
 
-      const outputTensor = results['output'];
-      const outputData = outputTensor.data as Float32Array;
+        return from(this.session.run(feeds));
+      }),
+      map((results) => {
+        const outputTensor = results['output'];
+        const outputData = outputTensor.data as Float32Array;
 
-      const resultImageData = this.postprocessImage(
-        outputData,
-        width,
-        height,
-        style,
-      );
+        const resultImageData = this.postprocessImage(
+          outputData,
+          width,
+          height,
+          style,
+        );
 
-      const processingTime = performance.now() - startTime;
+        const processingTime = performance.now() - startTime;
 
-      const metadata: PixelGenerationMetadata = {
-        colorsUsed: this.countUniqueColors(resultImageData),
-        pixelCount: width * height,
-        algorithm: `onnx-webgpu-${style}`,
-        promptTokens: promptEmbedding.length,
-      };
+        const metadata: PixelGenerationMetadata = {
+          colorsUsed: this.countUniqueColors(resultImageData),
+          pixelCount: width * height,
+          algorithm: `onnx-webgpu-${style}`,
+          promptTokens: this.encodePrompt(prompt).length,
+        };
 
-      return {
-        id: requestId,
-        status: 'completed',
-        progress: 100,
-        resultImageData,
-        processingTime,
-        metadata,
-      };
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'ONNX processing failed';
-      return {
-        id: requestId,
-        status: 'failed',
-        progress: 0,
-        error: errorMsg,
-      };
-    }
+        return {
+          id: requestId,
+          status: 'completed',
+          progress: 100,
+          resultImageData,
+          processingTime,
+          metadata,
+        } as PixelGenerationResponse;
+      }),
+      catchError((error) => {
+        const errorMsg =
+          error instanceof Error ? error.message : 'ONNX processing failed';
+        return of({
+          id: requestId,
+          status: 'failed',
+          progress: 0,
+          error: errorMsg,
+        } as PixelGenerationResponse);
+      }),
+    );
   }
 
   private preprocessImage(imageData: ImageData, targetWidth: number, targetHeight: number): {
@@ -298,11 +327,22 @@ export class PixelGenerationOnnxService {
     return colors.size;
   }
 
-  async unloadModel(): Promise<void> {
-    if (this.session) {
-      await this.session.release();
-      this.session = null;
-      this.modelLoaded.set(false);
-    }
+  unloadModel(): Observable<void> {
+    return new Observable<void>((observer) => {
+      if (this.session) {
+        this.session
+          .release()
+          .then(() => {
+            this.session = null;
+            this.modelLoaded.set(false);
+            observer.next();
+            observer.complete();
+          })
+          .catch((error) => observer.error(error));
+      } else {
+        observer.next();
+        observer.complete();
+      }
+    });
   }
 }

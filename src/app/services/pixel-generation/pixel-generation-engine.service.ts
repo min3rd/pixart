@@ -1,4 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
+import { Observable, from } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
 import {
   PixelGenerationResponse,
   PixelArtStyle,
@@ -42,26 +44,26 @@ export class PixelGenerationEngineService {
     this.useAI.set(enabled);
   }
 
-  async initializeAI(): Promise<boolean> {
-    try {
-      await this.onnxService.loadModel();
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize AI model:', error);
-      return false;
-    }
+  initializeAI(): Observable<boolean> {
+    return this.onnxService.loadModel().pipe(
+      map(() => true),
+      catchError((error) => {
+        console.error('Failed to initialize AI model:', error);
+        return from([false]);
+      }),
+    );
   }
 
-  async generatePixelArt(
+  generatePixelArt(
     sketchImageData: ImageData,
     prompt: string,
     targetWidth: number,
     targetHeight: number,
     style: PixelArtStyle = 'pixel-modern',
     customColorPalette?: string[],
-  ): Promise<string> {
+  ): Observable<string> {
     const jobId = this.generateJobId();
-    
+
     const job: ProcessingJob = {
       id: jobId,
       response: {
@@ -78,44 +80,36 @@ export class PixelGenerationEngineService {
       return newJobs;
     });
 
-    setTimeout(async () => {
-      try {
-        let result: PixelGenerationResponse;
+    const mode = this.generationMode();
+    const shouldUseAI = this.useAI() && (mode === 'auto' || mode === 'onnx');
 
-        const mode = this.generationMode();
-        const shouldUseAI = this.useAI() && (mode === 'auto' || mode === 'onnx');
+    let generationObservable: Observable<PixelGenerationResponse>;
 
-        if (shouldUseAI && this.onnxService.isModelReady()) {
-          result = await this.onnxService.generateWithOnnx(
+    if (shouldUseAI && this.onnxService.isModelReady()) {
+      generationObservable = this.onnxService.generateWithOnnx(
+        sketchImageData,
+        prompt,
+        targetWidth,
+        targetHeight,
+        style,
+      );
+    } else if (shouldUseAI && mode === 'onnx') {
+      generationObservable = this.onnxService.loadModel().pipe(
+        switchMap(() =>
+          this.onnxService.generateWithOnnx(
             sketchImageData,
             prompt,
             targetWidth,
             targetHeight,
             style,
+          ),
+        ),
+        catchError((error) => {
+          console.warn(
+            'ONNX generation failed, falling back to local processing:',
+            error,
           );
-        } else if (shouldUseAI && mode === 'onnx') {
-          try {
-            await this.onnxService.loadModel();
-            result = await this.onnxService.generateWithOnnx(
-              sketchImageData,
-              prompt,
-              targetWidth,
-              targetHeight,
-              style,
-            );
-          } catch (error) {
-            console.warn('ONNX generation failed, falling back to local processing:', error);
-            result = await this.localService.processLocally(
-              sketchImageData,
-              prompt,
-              targetWidth,
-              targetHeight,
-              style,
-              customColorPalette,
-            );
-          }
-        } else {
-          result = await this.localService.processLocally(
+          return this.localService.processLocally(
             sketchImageData,
             prompt,
             targetWidth,
@@ -123,49 +117,71 @@ export class PixelGenerationEngineService {
             style,
             customColorPalette,
           );
-        }
+        }),
+      );
+    } else {
+      generationObservable = this.localService.processLocally(
+        sketchImageData,
+        prompt,
+        targetWidth,
+        targetHeight,
+        style,
+        customColorPalette,
+      );
+    }
 
-        this.jobs.update((jobs) => {
-          const newJobs = new Map(jobs);
-          newJobs.set(jobId, { ...job, response: result });
-          return newJobs;
-        });
-      } catch (error) {
-        const errorResponse: PixelGenerationResponse = {
-          id: jobId,
-          status: 'failed',
-          progress: 0,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        };
-        
-        this.jobs.update((jobs) => {
-          const newJobs = new Map(jobs);
-          newJobs.set(jobId, { ...job, response: errorResponse });
-          return newJobs;
-        });
-      }
+    setTimeout(() => {
+      generationObservable.subscribe({
+        next: (result) => {
+          this.jobs.update((jobs) => {
+            const newJobs = new Map(jobs);
+            newJobs.set(jobId, { ...job, response: result });
+            return newJobs;
+          });
+        },
+        error: (error) => {
+          const errorResponse: PixelGenerationResponse = {
+            id: jobId,
+            status: 'failed',
+            progress: 0,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+
+          this.jobs.update((jobs) => {
+            const newJobs = new Map(jobs);
+            newJobs.set(jobId, { ...job, response: errorResponse });
+            return newJobs;
+          });
+                },
+      });
     }, 100);
 
-    return jobId;
+    return from([jobId]);
   }
 
-  async generateFromCanvas(
+  generateFromCanvas(
     canvas: HTMLCanvasElement,
     prompt: string,
     targetWidth: number,
     targetHeight: number,
     style: PixelArtStyle = 'pixel-modern',
-  ): Promise<string> {
+  ): Observable<string> {
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Cannot get canvas context');
     }
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    return this.generatePixelArt(imageData, prompt, targetWidth, targetHeight, style);
+    return this.generatePixelArt(
+      imageData,
+      prompt,
+      targetWidth,
+      targetHeight,
+      style,
+    );
   }
 
-  async generateFromLayerBuffer(
+  generateFromLayerBuffer(
     layerBuffer: string[],
     canvasWidth: number,
     canvasHeight: number,
@@ -173,13 +189,19 @@ export class PixelGenerationEngineService {
     targetWidth: number,
     targetHeight: number,
     style: PixelArtStyle = 'pixel-modern',
-  ): Promise<string> {
+  ): Observable<string> {
     const imageData = this.layerBufferToImageData(
       layerBuffer,
       canvasWidth,
       canvasHeight,
     );
-    return this.generatePixelArt(imageData, prompt, targetWidth, targetHeight, style);
+    return this.generatePixelArt(
+      imageData,
+      prompt,
+      targetWidth,
+      targetHeight,
+      style,
+    );
   }
 
   getJob(jobId: string): ProcessingJob | undefined {
@@ -194,25 +216,27 @@ export class PixelGenerationEngineService {
     });
   }
 
-  async getResultAsImageData(jobId: string): Promise<ImageData | null> {
+  getResultAsImageData(jobId: string): Observable<ImageData | null> {
     const job = this.jobs().get(jobId);
-    if (!job) return null;
+    if (!job) return from([null]);
 
     const { response } = job;
-    if (response.status !== 'completed') return null;
+    if (response.status !== 'completed') return from([null]);
 
-    return response.resultImageData || null;
+    return from([response.resultImageData || null]);
   }
 
-  async getResultAsLayerBuffer(
+  getResultAsLayerBuffer(
     jobId: string,
     canvasWidth: number,
     canvasHeight: number,
-  ): Promise<string[] | null> {
-    const imageData = await this.getResultAsImageData(jobId);
-    if (!imageData) return null;
-
-    return this.imageDataToLayerBuffer(imageData, canvasWidth, canvasHeight);
+  ): Observable<string[] | null> {
+    return this.getResultAsImageData(jobId).pipe(
+      map((imageData) => {
+        if (!imageData) return null;
+        return this.imageDataToLayerBuffer(imageData, canvasWidth, canvasHeight);
+      }),
+    );
   }
 
   private generateJobId(): string {

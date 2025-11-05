@@ -323,20 +323,26 @@ export class EditorHeader {
     input.click();
   }
 
-  async handleInsertImageConfirm(result: InsertImageResult) {
-    const insertResult = await this.document.insertImageAsLayer(
+  handleInsertImageConfirm(result: InsertImageResult) {
+    this.document.insertImageAsLayer(
       result.file,
       result.width > 0 ? result.width : undefined,
       result.height > 0 ? result.height : undefined,
-    );
-    if (insertResult) {
-      console.info(
-        `Image inserted as layer: ${insertResult.layerId}`,
-        insertResult.bounds,
-      );
-    } else {
-      console.error('Failed to insert image');
-    }
+    ).subscribe({
+      next: (insertResult) => {
+        if (insertResult) {
+          console.info(
+            `Image inserted as layer: ${insertResult.layerId}`,
+            insertResult.bounds,
+          );
+        } else {
+          console.error('Failed to insert image');
+        }
+      },
+      error: (error) => {
+        console.error('Failed to insert image', error);
+      },
+    });
   }
 
   handleInsertImageCancel() {
