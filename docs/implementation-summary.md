@@ -1,19 +1,19 @@
-# Implementation Summary: Observable-based Undo/Redo System
+# Implementation Summary: Signal-based Undo/Redo System
 
 ## Overview
-Successfully migrated the undo/redo mechanism from manual snapshot management to an Observable-based reactive architecture using RxJS.
+Successfully migrated the undo/redo mechanism from manual snapshot management to a signal-based reactive architecture using Angular signals.
 
 ## Changes Made
 
 ### New Files Created
-1. **`src/app/services/editor/editor-project-state.service.ts`** (58 lines)
-   - Core service managing project state through Observable streams
-   - Implements OnDestroy for proper memory management
-   - Automatic snapshot creation via RxJS pipeline
+1. **`src/app/services/editor/editor-project-state.service.ts`** (~17 lines)
+   - Core service managing project state through Angular signals
+   - Automatic snapshot creation in `setState()` method
+   - No memory management needed (signals are garbage collected automatically)
 
-2. **`src/app/services/editor/editor-project-state.service.spec.ts`** (88 lines)
+2. **`src/app/services/editor/editor-project-state.service.spec.ts`** (75 lines)
    - Comprehensive unit tests for the state service
-   - Tests for Observable emissions, automatic snapshots, and state retrieval
+   - Tests for signal updates, automatic snapshots, and state retrieval
 
 3. **`src/app/services/editor-document.service.spec.ts`** (125 lines)
    - Integration tests for undo/redo functionality
@@ -30,7 +30,7 @@ Successfully migrated the undo/redo mechanism from manual snapshot management to
 1. **`src/app/services/editor-document.service.ts`**
    - Added import for `EditorProjectStateService`
    - Injected the new service
-   - Updated `saveSnapshot()` to use `projectStateService.emitStateChange()`
+   - Updated `saveSnapshot()` to use `projectStateService.setState()`
 
 2. **`src/app/services/editor/index.ts`**
    - Added export for `EditorProjectStateService`
@@ -45,16 +45,9 @@ EditorDocumentService
     ↓
 captureProjectSnapshot()
     ↓
-projectStateService.emitStateChange()
+projectStateService.setState()
     ↓
-BehaviorSubject<ProjectStateChange>
-    ↓
-Observable Stream (projectState$)
-    ↓
-RxJS Pipe:
-  - skip(1)              // Ignore initial null
-  - distinctUntilChanged() // Prevent duplicates
-  - tap()                // Auto-create snapshot
+Signal Update + pushSnapshot()
     ↓
 historyService.pushSnapshot()
     ↓
@@ -65,19 +58,19 @@ Undo/Redo Stack
 
 #### EditorProjectStateService
 - **Purpose**: Central hub for all project state changes
-- **Implementation**: Uses RxJS BehaviorSubject for state management
+- **Implementation**: Uses Angular signals for state management
 - **Features**:
-  - Observable stream of state changes
-  - Automatic snapshot creation
-  - Memory leak prevention with OnDestroy
+  - Signal-based state updates
+  - Automatic snapshot creation via setState
+  - No memory leaks (automatic cleanup)
   - Current state retrieval
 
-#### Automatic Snapshot Pipeline
+#### Automatic Snapshot Mechanism
 ```typescript
-this.projectState$
-  .pipe(
-    skip(1),
-    distinctUntilChanged(),
+setState(snapshot: ProjectSnapshot, description?: string) {
+  this.projectState.set(snapshot);
+  this.historyService.pushSnapshot(snapshot, description);
+}
     tap((change) => {
       if (change && change.snapshot) {
         this.historyService.pushSnapshot(change.snapshot, change.description);

@@ -41,37 +41,26 @@ describe('EditorProjectStateService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should emit state changes through Observable stream', (done) => {
+  it('should update state via setState', () => {
     const mockSnapshot = createMockProjectSnapshot();
 
-    let emissionCount = 0;
-    service.projectState$.subscribe((snapshot) => {
-      if (snapshot) {
-        emissionCount++;
-        expect(snapshot).toEqual(mockSnapshot);
-        if (emissionCount === 1) {
-          done();
-        }
-      }
-    });
-
     service.setState(mockSnapshot, 'Test change');
+    const currentState = service.getCurrentState();
+
+    expect(currentState).toEqual(mockSnapshot);
   });
 
-  it('should automatically create snapshots via history service', (done) => {
+  it('should automatically create snapshots via history service', () => {
     const mockSnapshot = createMockProjectSnapshot();
 
     spyOn(historyService, 'pushSnapshot');
 
     service.setState(mockSnapshot, 'Test change');
 
-    setTimeout(() => {
-      expect(historyService.pushSnapshot).toHaveBeenCalledWith(
-        mockSnapshot,
-        'Test change'
-      );
-      done();
-    }, 100);
+    expect(historyService.pushSnapshot).toHaveBeenCalledWith(
+      mockSnapshot,
+      'Test change'
+    );
   });
 
   it('should get current state', () => {

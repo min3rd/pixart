@@ -1,30 +1,30 @@
-# Observable-based Undo/Redo System
+# Signal-based Undo/Redo System
 
 ## Tổng quan (Overview)
 
-Hệ thống undo/redo đã được chuyển sang kiến trúc dựa trên Observable streams (RxJS), đảm bảo tính nhất quán và tự động hóa việc tạo snapshot cho mọi thay đổi dữ liệu dự án.
+Hệ thống undo/redo đã được chuyển sang kiến trúc dựa trên Angular signals, đảm bảo tính nhất quán và tự động hóa việc tạo snapshot cho mọi thay đổi dữ liệu dự án.
 
-The undo/redo system has been migrated to an Observable streams-based architecture (RxJS), ensuring consistency and automating snapshot creation for all project data changes.
+The undo/redo system has been migrated to an Angular signals-based architecture, ensuring consistency and automating snapshot creation for all project data changes.
 
 ## Kiến trúc (Architecture)
 
 ### 1. EditorProjectStateService
 
-Service chính quản lý luồng trạng thái dự án thông qua Observable stream.
+Service chính quản lý trạng thái dự án thông qua Angular signals.
 
-Main service managing the project state flow through Observable stream.
+Main service managing the project state through Angular signals.
 
 **Đặc điểm chính (Key features):**
 
-- Sử dụng `BehaviorSubject` để quản lý trạng thái dự án hiện tại
-- Tự động tạo snapshot mỗi khi có thay đổi qua RxJS pipe
+- Sử dụng Angular `signal` để quản lý trạng thái dự án hiện tại
+- Tự động tạo snapshot mỗi khi gọi `setState()`
 - Tích hợp với `EditorHistoryService` để lưu lịch sử undo/redo
 
 **Core methods:**
 
 ```typescript
-emitStateChange(snapshot: ProjectSnapshot, description?: string): void
-getCurrentState(): ProjectStateChange | null
+setState(snapshot: ProjectSnapshot, description?: string): void
+getCurrentState(): ProjectSnapshot | null
 ```
 
 ### 2. Luồng dữ liệu (Data Flow)
@@ -36,42 +36,31 @@ EditorDocumentService (or other services)
     ↓
 captureProjectSnapshot()
     ↓
-EditorProjectStateService.emitStateChange()
+EditorProjectStateService.setState()
     ↓
-Observable Stream (projectState$)
-    ↓
-RxJS Pipe (distinctUntilChanged, tap)
+Signal Update + pushSnapshot()
     ↓
 EditorHistoryService.pushSnapshot()
     ↓
 Undo/Redo Stack
 ```
 
-### 3. Automatic Snapshot Pipeline
+### 3. Automatic Snapshot Mechanism
 
-Pipeline RxJS tự động xử lý snapshot:
+Snapshot tự động được tạo trong `setState()`:
 
 ```typescript
-this.projectState$
-  .pipe(
-    skip(1),
-    distinctUntilChanged((prev, curr) => {
-      if (!prev || !curr) return prev === curr;
-      return prev.timestamp === curr.timestamp;
-    }),
-    tap((change) => {
-      if (change && change.snapshot) {
-        this.historyService.pushSnapshot(change.snapshot, change.description);
-      }
-    })
-  )
-  .subscribe();
+setState(snapshot: ProjectSnapshot, description?: string) {
+  this.projectState.set(snapshot);
+  this.historyService.pushSnapshot(snapshot, description);
+}
 ```
 
-**Các bước xử lý (Processing steps):**
-1. `skip(1)`: Bỏ qua giá trị khởi tạo ban đầu
-2. `distinctUntilChanged`: Chỉ xử lý khi có thay đổi thực sự (dựa trên timestamp)
-3. `tap`: Tự động gọi `pushSnapshot` để lưu vào undo stack
+**Ưu điểm (Benefits):**
+1. Signal-based state management theo Angular best practices
+2. Snapshot tự động tạo mỗi khi state thay đổi
+3. Đơn giản, dễ test, không cần RxJS subscriptions
+4. Không có memory leaks (signals tự động cleanup)
 
 ## Sử dụng (Usage)
 
