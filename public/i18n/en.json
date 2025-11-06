@@ -329,7 +329,19 @@
     "noFrameSelected": "No frame selected",
     "noBonesFound": "No bones found. Draw some bones first using the Bone tool.",
     "pixelsBound": "{{count}} pixels bound to bones",
-    "bindingsCleared": "All pixel bindings cleared"
+    "bindingsCleared": "All pixel bindings cleared",
+    "animations": "Animations",
+    "currentAnimation": "Current Animation",
+    "addAnimation": "Add Animation",
+    "deleteAnimation": "Delete Animation",
+    "renameAnimation": "Rename Animation",
+    "animationName": "Animation Name",
+    "newAnimationName": "New animation name",
+    "confirmDeleteAnimation": "Are you sure you want to delete this animation?",
+    "cannotDeleteLastAnimation": "Cannot delete the last animation",
+    "frameCount": "{{count}} frames",
+    "keyframeCount": "{{count}} keyframes",
+    "editAnimation": "Edit Animation"
   },
   "hotkeys": {
     "title": "Keyboard Shortcuts",
