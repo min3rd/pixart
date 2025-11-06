@@ -55,7 +55,13 @@
                 [class.bg-blue-50]="
                   animationService.currentAnimationIndex() === idx
                 "
-                [class.dark\:bg-blue-900]="
+                [class.dark\:bg-blue-900/50]="
+                  animationService.currentAnimationIndex() === idx
+                "
+                [class.text-neutral-900]="
+                  animationService.currentAnimationIndex() === idx
+                "
+                [class.dark\:text-neutral-100]="
                   animationService.currentAnimationIndex() === idx
                 "
               >
@@ -200,19 +206,38 @@
       <canvas
         #timelineCanvas
         id="creator-timeline-canvas"
-        class="absolute inset-0 w-full h-full cursor-crosshair"
-        (click)="onTimelineClick($event)"
+        class="absolute inset-0 w-full h-full"
+        [class.cursor-crosshair]="!isDraggingPlayhead()"
+        [class.cursor-grabbing]="isDraggingPlayhead()"
+        (mousedown)="onTimelineMouseDown($event)"
         (mousemove)="onTimelineMouseMove($event)"
+        (mouseup)="onTimelineMouseUp($event)"
         (mouseleave)="onTimelineMouseLeave()"
         style="--timeline-bg-color: var(--color-neutral-100)"
       ></canvas>
 
-      @if (hoveredTime() !== null) {
+      @if (hoveredTime() !== null && !isDraggingPlayhead()) {
         <div
-          id="creator-timeline-tooltip"
-          class="absolute bottom-2 left-2 px-2 py-1 text-[10px] font-mono bg-black/80 text-white rounded-sm pointer-events-none"
+          id="creator-timeline-hover-indicator"
+          class="absolute top-0 bottom-0 w-px bg-neutral-400 dark:bg-neutral-500 pointer-events-none"
+          [style.left.px]="getTimelinePixelPosition(hoveredTime()!)"
         >
-          {{ formatTime(hoveredTime()!) }}
+          <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[9px] font-mono bg-neutral-700 dark:bg-neutral-300 text-white dark:text-neutral-900 rounded-sm whitespace-nowrap"
+          >
+            {{ formatTime(hoveredTime()!) }}
+          </div>
+        </div>
+      }
+
+      @if (isDraggingPlayhead()) {
+        <div
+          id="creator-timeline-drag-label"
+          class="absolute px-2 py-1 text-[10px] font-mono bg-red-600 text-white rounded-sm pointer-events-none shadow-lg"
+          [style.left.px]="getTimelinePixelPosition(currentTime()) + 10"
+          [style.top.px]="20"
+        >
+          {{ formatTime(currentTime()) }}
         </div>
       }
     </div>
