@@ -50,6 +50,7 @@ export interface AnimationItem {
   frames: FrameItem[];
   boneIds: string[];
   duration: number;
+  color?: string;
 }
 
 export interface ParsedColor {

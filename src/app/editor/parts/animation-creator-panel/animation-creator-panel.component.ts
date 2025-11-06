@@ -17,7 +17,6 @@ import {
   heroStop,
   heroPlus,
   heroTrash,
-  heroPencil,
   heroChevronDown,
 } from '@ng-icons/heroicons/outline';
 import { EditorKeyframeService } from '../../../services/editor/editor-keyframe.service';
@@ -40,7 +39,6 @@ import {
       heroStop,
       heroPlus,
       heroTrash,
-      heroPencil,
       heroChevronDown,
     }),
   ],
@@ -61,9 +59,6 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   @ViewChild('timelineRuler')
   timelineRuler?: ElementRef<HTMLDivElement>;
 
-  @ViewChild('animationDropdown')
-  animationDropdown?: ElementRef<HTMLDivElement>;
-
   readonly isPlaying = signal(false);
   readonly currentTime = signal(0);
   readonly duration = signal(3000);
@@ -77,6 +72,9 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   readonly editingAnimationId = signal<string | null>(null);
   readonly editingAnimationName = signal<string>('');
   readonly showAnimationDropdown = signal<boolean>(false);
+
+  @ViewChild('animationDropdown')
+  animationDropdown?: ElementRef<HTMLDivElement>;
 
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
@@ -104,9 +102,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     this.documentClickListener = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       const dropdown = this.animationDropdown?.nativeElement;
-      const dropdownBtn = document.getElementById(
-        'animation-selector-dropdown-btn',
-      );
+      const dropdownBtn = document.getElementById('animation-selector-btn');
 
       if (
         this.showAnimationDropdown() &&
@@ -471,6 +467,16 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     }
     this.animationService.removeAnimation(animationId);
     this.renderTimeline();
+  }
+
+  onColorChange(event: Event, animationId: string) {
+    const target = event.target as HTMLInputElement;
+    this.animationService.updateAnimationColor(animationId, target.value);
+  }
+
+  onNameInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.editingAnimationName.set(target.value);
   }
 
   getKeyframeCount(animationId: string): number {
