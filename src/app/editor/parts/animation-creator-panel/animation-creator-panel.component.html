@@ -16,9 +16,9 @@
       <ng-icon [name]="isPlaying() ? 'heroStop' : 'heroPlay'" size="12" />
     </button>
 
-    <div class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
+    <div id="toolbar-divider-1" class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
 
-    <div class="relative">
+    <div id="animation-selector-container" class="relative">
       <button
         id="animation-selector-btn"
         type="button"
@@ -27,13 +27,14 @@
       >
         @if (animationService.getCurrentAnimation(); as anim) {
           <div
+            id="current-animation-color"
             class="w-2 h-2 rounded-none shrink-0"
-            [style.background-color]="anim.color || '#3b82f6'"
+            [style.background-color]="anim.color || defaultAnimationColor"
           ></div>
-          <span class="font-medium truncate flex-1 text-left">{{
+          <span id="current-animation-name" class="font-medium truncate flex-1 text-left">{{
             anim.name
           }}</span>
-          <span class="text-[10px] text-neutral-500 dark:text-neutral-400"
+          <span id="current-animation-stats" class="text-[10px] text-neutral-500 dark:text-neutral-400"
             >{{ anim.frames.length }}f</span
           >
           <ng-icon name="heroChevronDown" size="10" />
@@ -48,27 +49,23 @@
         >
           @for (anim of animationService.animations(); track anim.id; let idx = $index) {
             <div
+              id="animation-dropdown-border-{{ anim.id }}"
               class="border-b border-neutral-200 dark:border-neutral-600 last:border-b-0"
             >
               <div
+                [id]="'animation-item-container-' + anim.id"
                 class="flex items-center gap-1 p-1 hover:bg-neutral-100 dark:hover:bg-neutral-600"
-                [class.bg-blue-50]="
-                  animationService.currentAnimationIndex() === idx
-                "
-                [class.dark\:bg-blue-900/50]="
-                  animationService.currentAnimationIndex() === idx
-                "
-                [class.text-neutral-900]="
-                  animationService.currentAnimationIndex() === idx
-                "
-                [class.dark\:text-neutral-100]="
-                  animationService.currentAnimationIndex() === idx
-                "
+                [ngClass]="{
+                  'bg-blue-50': animationService.currentAnimationIndex() === idx,
+                  'dark:bg-blue-900/50': animationService.currentAnimationIndex() === idx,
+                  'text-neutral-900': animationService.currentAnimationIndex() === idx,
+                  'dark:text-neutral-100': animationService.currentAnimationIndex() === idx
+                }"
               >
                 <input
                   [id]="'anim-color-' + anim.id"
                   type="color"
-                  [value]="anim.color || '#3b82f6'"
+                  [value]="anim.color || defaultAnimationColor"
                   (input)="onColorChange($event, anim.id)"
                   (click)="$event.stopPropagation()"
                   class="w-5 h-5 rounded-none border-0 cursor-pointer"
@@ -99,6 +96,7 @@
                   </button>
                 }
                 <span
+                  [id]="'anim-stats-' + anim.id"
                   class="text-[10px] text-neutral-500 dark:text-neutral-400 tabular-nums"
                   >{{ anim.frames.length }}f • {{ getKeyframeCount(anim.id) }}k</span
                 >
@@ -136,7 +134,7 @@
       {{ formatTime(currentTime()) }}
     </div>
 
-    <div class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
+    <div id="toolbar-divider-2" class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
 
     <button
       id="creator-add-keyframe-btn"
@@ -160,7 +158,7 @@
       </button>
     }
 
-    <div class="ml-auto flex items-center gap-1">
+    <div id="zoom-controls" class="ml-auto flex items-center gap-1">
       <button
         id="creator-zoom-out-btn"
         type="button"
@@ -169,7 +167,7 @@
       >
         −
       </button>
-      <span class="text-[10px] font-mono w-10 text-center"
+      <span id="zoom-display" class="text-[10px] font-mono w-10 text-center"
         >{{ (zoomLevel() * 100).toFixed(0) }}%</span
       >
       <button
@@ -223,6 +221,7 @@
           [style.left.px]="getTimelinePixelPosition(hoveredTime()!)"
         >
           <div
+            id="hover-time-label"
             class="absolute top-0 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[9px] font-mono bg-neutral-700 dark:bg-neutral-300 text-white dark:text-neutral-900 rounded-sm whitespace-nowrap"
           >
             {{ formatTime(hoveredTime()!) }}

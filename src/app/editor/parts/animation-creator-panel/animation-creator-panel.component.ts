@@ -47,11 +47,19 @@ import {
   },
 })
 export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
+  private static readonly DEFAULT_ANIMATION_COLOR = '#3b82f6';
+  private static readonly PLAYHEAD_CLICK_THRESHOLD_PX = 10;
+  private static readonly KEYFRAME_CLICK_THRESHOLD_PX = 10;
+
   readonly keyframeService = inject(EditorKeyframeService);
   readonly animationService = inject(EditorAnimationCollectionService);
   readonly boneService = inject(EditorBoneService);
   readonly documentService = inject(EditorDocumentService);
   readonly translocoService = inject(TranslocoService);
+
+  get defaultAnimationColor(): string {
+    return AnimationCreatorPanel.DEFAULT_ANIMATION_COLOR;
+  }
 
   @ViewChild('timelineCanvas')
   timelineCanvas?: ElementRef<HTMLCanvasElement>;
@@ -240,22 +248,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     const clickedTime = x / pixelsPerMs;
 
     this.setCurrentTime(Math.max(0, Math.min(clickedTime, duration)));
-
-    const currentAnimation = this.animationService.getCurrentAnimation();
-    if (!currentAnimation) return;
-
-    const keyframes = this.keyframeService.getKeyframes(currentAnimation.id);
-    const threshold = 10 / pixelsPerMs;
-
-    const clickedKeyframe = keyframes.find(
-      (kf) => Math.abs(kf.time - clickedTime) < threshold,
-    );
-
-    if (clickedKeyframe) {
-      this.selectedKeyframeId.set(clickedKeyframe.id);
-    } else {
-      this.selectedKeyframeId.set(null);
-    }
+    this.selectKeyframeAtTime(clickedTime, pixelsPerMs);
   }
 
   onTimelineMouseMove(event: MouseEvent) {
@@ -288,28 +281,36 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     const clickedTime = x / pixelsPerMs;
 
     const playheadX = this.currentTime() * pixelsPerMs;
-    const threshold = 10;
+    const threshold = AnimationCreatorPanel.PLAYHEAD_CLICK_THRESHOLD_PX;
 
     if (Math.abs(x - playheadX) < threshold) {
       this.isDraggingPlayhead.set(true);
       event.preventDefault();
     } else {
       this.setCurrentTime(Math.max(0, Math.min(clickedTime, duration)));
-      const currentAnimation = this.animationService.getCurrentAnimation();
-      if (!currentAnimation) return;
+      this.selectKeyframeAtTime(clickedTime, pixelsPerMs);
+    }
+  }
 
-      const keyframes = this.keyframeService.getKeyframes(currentAnimation.id);
-      const kfThreshold = 10 / pixelsPerMs;
+  private selectKeyframeAtTime(clickedTime: number, pixelsPerMs: number): void {
+    const currentAnimation = this.animationService.getCurrentAnimation();
+    if (!currentAnimation) {
+      this.selectedKeyframeId.set(null);
+      return;
+    }
 
-      const clickedKeyframe = keyframes.find(
-        (kf) => Math.abs(kf.time - clickedTime) < kfThreshold,
-      );
+    const keyframes = this.keyframeService.getKeyframes(currentAnimation.id);
+    const kfThreshold =
+      AnimationCreatorPanel.KEYFRAME_CLICK_THRESHOLD_PX / pixelsPerMs;
 
-      if (clickedKeyframe) {
-        this.selectedKeyframeId.set(clickedKeyframe.id);
-      } else {
-        this.selectedKeyframeId.set(null);
-      }
+    const clickedKeyframe = keyframes.find(
+      (kf) => Math.abs(kf.time - clickedTime) < kfThreshold,
+    );
+
+    if (clickedKeyframe) {
+      this.selectedKeyframeId.set(clickedKeyframe.id);
+    } else {
+      this.selectedKeyframeId.set(null);
     }
   }
 
