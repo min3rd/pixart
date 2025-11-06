@@ -16,110 +16,84 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
     historyService.clearHistory();
   });
 
-  it('should create snapshots through Observable stream when adding layers', (done) => {
+  it('should create snapshots through signal updates when adding layers', () => {
     spyOn(projectStateService, 'setState').and.callThrough();
 
     service.addLayer('Test Layer');
 
-    setTimeout(() => {
-      expect(projectStateService.setState).toHaveBeenCalledWith(
-        jasmine.any(Object),
-        'Add layer'
-      );
-      expect(historyService.canUndo()).toBe(true);
-      done();
-    }, 100);
+    expect(projectStateService.setState).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      'Add layer'
+    );
+    expect(historyService.canUndo()).toBe(true);
   });
 
-  it('should support undo after layer operations', (done) => {
+  it('should support undo after layer operations', () => {
     const initialLayers = service.layers().length;
 
     service.addLayer('Test Layer 1');
 
-    setTimeout(() => {
-      expect(service.layers().length).toBe(initialLayers + 1);
-      expect(historyService.canUndo()).toBe(true);
+    expect(service.layers().length).toBe(initialLayers + 1);
+    expect(historyService.canUndo()).toBe(true);
 
-      service.undo();
+    service.undo();
 
-      setTimeout(() => {
-        expect(service.layers().length).toBe(initialLayers);
-        done();
-      }, 50);
-    }, 100);
+    expect(service.layers().length).toBe(initialLayers);
   });
 
-  it('should support redo after undo', (done) => {
+  it('should support redo after undo', () => {
     const initialLayers = service.layers().length;
 
     service.addLayer('Test Layer 1');
 
-    setTimeout(() => {
-      expect(service.layers().length).toBe(initialLayers + 1);
+    expect(service.layers().length).toBe(initialLayers + 1);
 
-      service.undo();
+    service.undo();
 
-      setTimeout(() => {
-        expect(service.layers().length).toBe(initialLayers);
-        expect(historyService.canRedo()).toBe(true);
+    expect(service.layers().length).toBe(initialLayers);
+    expect(historyService.canRedo()).toBe(true);
 
-        service.redo();
+    service.redo();
 
-        setTimeout(() => {
-          expect(service.layers().length).toBe(initialLayers + 1);
-          done();
-        }, 50);
-      }, 50);
-    }, 100);
+    expect(service.layers().length).toBe(initialLayers + 1);
   });
 
-  it('should create snapshots for canvas resize operations', (done) => {
+  it('should create snapshots for canvas resize operations', () => {
     spyOn(projectStateService, 'setState').and.callThrough();
 
     service.setCanvasSize(128, 128);
 
-    setTimeout(() => {
-      expect(projectStateService.setState).toHaveBeenCalledWith(
-        jasmine.any(Object),
-        'Resize canvas'
-      );
-      expect(historyService.canUndo()).toBe(true);
-      done();
-    }, 100);
+    expect(projectStateService.setState).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      'Resize canvas'
+    );
+    expect(historyService.canUndo()).toBe(true);
   });
 
-  it('should create snapshots for layer visibility toggle', (done) => {
+  it('should create snapshots for layer visibility toggle', () => {
     service.addLayer('Test Layer');
 
-    setTimeout(() => {
-      const layerId = service.layers()[0].id;
-      spyOn(projectStateService, 'setState').and.callThrough();
+    const layerId = service.layers()[0].id;
+    spyOn(projectStateService, 'setState').and.callThrough();
 
-      service.toggleLayerVisibility(layerId);
+    service.toggleLayerVisibility(layerId);
 
-      setTimeout(() => {
-        expect(projectStateService.setState).toHaveBeenCalledWith(
-          jasmine.any(Object),
-          'Toggle layer visibility'
-        );
-        done();
-      }, 100);
-    }, 100);
+    expect(projectStateService.setState).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      'Toggle layer visibility'
+    );
   });
 
-  it('should create snapshots for selection operations', (done) => {
+  it('should create snapshots for selection operations', () => {
     spyOn(projectStateService, 'setState').and.callThrough();
 
     service.beginSelection(0, 0, 'rect');
     service.updateSelection(10, 10);
     service.endSelection();
 
-    setTimeout(() => {
-      expect(projectStateService.setState).toHaveBeenCalledWith(
-        jasmine.any(Object),
-        'Create selection'
-      );
-      done();
-    }, 100);
+    expect(projectStateService.setState).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      'Create selection'
+    );
   });
 });
