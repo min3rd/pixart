@@ -26,10 +26,7 @@ export class EditorProjectStateService implements OnDestroy {
     this.subscription = this.projectState$
       .pipe(
         skip(1),
-        distinctUntilChanged((prev, curr) => {
-          if (!prev || !curr) return prev === curr;
-          return prev.timestamp === curr.timestamp;
-        }),
+        distinctUntilChanged(),
         tap((change) => {
           if (change && change.snapshot) {
             this.historyService.pushSnapshot(change.snapshot, change.description);
