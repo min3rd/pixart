@@ -13,10 +13,11 @@ export interface ProjectStateChange {
 @Injectable({ providedIn: 'root' })
 export class EditorProjectStateService implements OnDestroy {
   private readonly historyService = inject(EditorHistoryService);
-  private readonly projectStateSubject = new BehaviorSubject<ProjectStateChange | null>(null);
+  private readonly projectStateSubject = new BehaviorSubject<ProjectSnapshot | null>(null);
   private subscription?: Subscription;
+  private lastDescription?: string;
   
-  readonly projectState$: Observable<ProjectStateChange | null> = this.projectStateSubject.asObservable();
+  readonly projectState$: Observable<ProjectSnapshot | null> = this.projectStateSubject.asObservable();
 
   constructor() {
     this.setupAutomaticSnapshot();
@@ -27,25 +28,22 @@ export class EditorProjectStateService implements OnDestroy {
       .pipe(
         skip(1),
         distinctUntilChanged(),
-        tap((change) => {
-          if (change && change.snapshot) {
-            this.historyService.pushSnapshot(change.snapshot, change.description);
+        tap((snapshot) => {
+          if (snapshot) {
+            this.historyService.pushSnapshot(snapshot, this.lastDescription);
+            this.lastDescription = undefined;
           }
         })
       )
       .subscribe();
   }
 
-  emitStateChange(snapshot: ProjectSnapshot, description?: string) {
-    const change: ProjectStateChange = {
-      snapshot,
-      description,
-      timestamp: Date.now(),
-    };
-    this.projectStateSubject.next(change);
+  setState(snapshot: ProjectSnapshot, description?: string) {
+    this.lastDescription = description;
+    this.projectStateSubject.next(snapshot);
   }
 
-  getCurrentState(): ProjectStateChange | null {
+  getCurrentState(): ProjectSnapshot | null {
     return this.projectStateSubject.value;
   }
 
