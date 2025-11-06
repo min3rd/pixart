@@ -17,12 +17,12 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
   });
 
   it('should create snapshots through Observable stream when adding layers', (done) => {
-    spyOn(projectStateService, 'emitStateChange').and.callThrough();
+    spyOn(projectStateService, 'setState').and.callThrough();
 
     service.addLayer('Test Layer');
 
     setTimeout(() => {
-      expect(projectStateService.emitStateChange).toHaveBeenCalledWith(
+      expect(projectStateService.setState).toHaveBeenCalledWith(
         jasmine.any(Object),
         'Add layer'
       );
@@ -74,12 +74,12 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
   });
 
   it('should create snapshots for canvas resize operations', (done) => {
-    spyOn(projectStateService, 'emitStateChange').and.callThrough();
+    spyOn(projectStateService, 'setState').and.callThrough();
 
     service.setCanvasSize(128, 128);
 
     setTimeout(() => {
-      expect(projectStateService.emitStateChange).toHaveBeenCalledWith(
+      expect(projectStateService.setState).toHaveBeenCalledWith(
         jasmine.any(Object),
         'Resize canvas'
       );
@@ -93,12 +93,12 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
 
     setTimeout(() => {
       const layerId = service.layers()[0].id;
-      spyOn(projectStateService, 'emitStateChange').and.callThrough();
+      spyOn(projectStateService, 'setState').and.callThrough();
 
       service.toggleLayerVisibility(layerId);
 
       setTimeout(() => {
-        expect(projectStateService.emitStateChange).toHaveBeenCalledWith(
+        expect(projectStateService.setState).toHaveBeenCalledWith(
           jasmine.any(Object),
           'Toggle layer visibility'
         );
@@ -108,14 +108,14 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
   });
 
   it('should create snapshots for selection operations', (done) => {
-    spyOn(projectStateService, 'emitStateChange').and.callThrough();
+    spyOn(projectStateService, 'setState').and.callThrough();
 
     service.beginSelection(0, 0, 'rect');
     service.updateSelection(10, 10);
     service.endSelection();
 
     setTimeout(() => {
-      expect(projectStateService.emitStateChange).toHaveBeenCalledWith(
+      expect(projectStateService.setState).toHaveBeenCalledWith(
         jasmine.any(Object),
         'Create selection'
       );

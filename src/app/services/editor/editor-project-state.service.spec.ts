@@ -45,18 +45,17 @@ describe('EditorProjectStateService', () => {
     const mockSnapshot = createMockProjectSnapshot();
 
     let emissionCount = 0;
-    service.projectState$.subscribe((change) => {
-      if (change) {
+    service.projectState$.subscribe((snapshot) => {
+      if (snapshot) {
         emissionCount++;
-        expect(change.snapshot).toEqual(mockSnapshot);
-        expect(change.description).toBe('Test change');
+        expect(snapshot).toEqual(mockSnapshot);
         if (emissionCount === 1) {
           done();
         }
       }
     });
 
-    service.emitStateChange(mockSnapshot, 'Test change');
+    service.setState(mockSnapshot, 'Test change');
   });
 
   it('should automatically create snapshots via history service', (done) => {
@@ -64,7 +63,7 @@ describe('EditorProjectStateService', () => {
 
     spyOn(historyService, 'pushSnapshot');
 
-    service.emitStateChange(mockSnapshot, 'Test change');
+    service.setState(mockSnapshot, 'Test change');
 
     setTimeout(() => {
       expect(historyService.pushSnapshot).toHaveBeenCalledWith(
@@ -78,11 +77,10 @@ describe('EditorProjectStateService', () => {
   it('should get current state', () => {
     const mockSnapshot = createMockProjectSnapshot();
 
-    service.emitStateChange(mockSnapshot, 'Test');
+    service.setState(mockSnapshot, 'Test');
     const currentState = service.getCurrentState();
 
     expect(currentState).toBeTruthy();
-    expect(currentState?.snapshot).toEqual(mockSnapshot);
-    expect(currentState?.description).toBe('Test');
+    expect(currentState).toEqual(mockSnapshot);
   });
 });

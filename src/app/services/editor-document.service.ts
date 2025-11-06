@@ -245,7 +245,7 @@ export class EditorDocumentService {
 
   saveSnapshot(description?: string) {
     const snapshot = this.captureProjectSnapshot();
-    this.projectStateService.emitStateChange(snapshot, description);
+    this.projectStateService.setState(snapshot, description);
   }
 
   private saveSnapshotForUndo(description?: string) {
