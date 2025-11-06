@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, inject, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, skip, tap } from 'rxjs/operators';
 import { EditorHistoryService } from './editor-history.service';
 import { ProjectSnapshot } from './history.types';
@@ -11,9 +11,10 @@ export interface ProjectStateChange {
 }
 
 @Injectable({ providedIn: 'root' })
-export class EditorProjectStateService {
+export class EditorProjectStateService implements OnDestroy {
   private readonly historyService = inject(EditorHistoryService);
   private readonly projectStateSubject = new BehaviorSubject<ProjectStateChange | null>(null);
+  private subscription?: Subscription;
   
   readonly projectState$: Observable<ProjectStateChange | null> = this.projectStateSubject.asObservable();
 
@@ -22,7 +23,7 @@ export class EditorProjectStateService {
   }
 
   private setupAutomaticSnapshot() {
-    this.projectState$
+    this.subscription = this.projectState$
       .pipe(
         skip(1),
         distinctUntilChanged((prev, curr) => {
@@ -49,5 +50,12 @@ export class EditorProjectStateService {
 
   getCurrentState(): ProjectStateChange | null {
     return this.projectStateSubject.value;
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    this.projectStateSubject.complete();
   }
 }

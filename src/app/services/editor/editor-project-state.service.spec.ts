@@ -3,6 +3,30 @@ import { EditorProjectStateService } from './editor-project-state.service';
 import { EditorHistoryService } from './editor-history.service';
 import { ProjectSnapshot } from './history.types';
 
+function createMockProjectSnapshot(): ProjectSnapshot {
+  return {
+    canvas: { width: 64, height: 64 },
+    layers: [],
+    layerBuffers: {},
+    selectedLayerId: '',
+    selectedLayerIds: [],
+    selection: null,
+    frames: [],
+    currentFrameIndex: 0,
+    animations: [],
+    currentAnimationIndex: 0,
+    boneHierarchy: [],
+    selectedBoneId: '',
+    bones: {},
+    keyframes: null,
+    pixelBindings: null,
+    animationCurrentTime: 0,
+    animationDuration: 1000,
+    timelineMode: 'frame',
+    toolSnapshot: null,
+  };
+}
+
 describe('EditorProjectStateService', () => {
   let service: EditorProjectStateService;
   let historyService: EditorHistoryService;
@@ -18,27 +42,7 @@ describe('EditorProjectStateService', () => {
   });
 
   it('should emit state changes through Observable stream', (done) => {
-    const mockSnapshot: ProjectSnapshot = {
-      canvas: { width: 64, height: 64 },
-      layers: [],
-      layerBuffers: {},
-      selectedLayerId: '',
-      selectedLayerIds: [],
-      selection: null,
-      frames: [],
-      currentFrameIndex: 0,
-      animations: [],
-      currentAnimationIndex: 0,
-      boneHierarchy: [],
-      selectedBoneId: '',
-      bones: {},
-      keyframes: null,
-      pixelBindings: null,
-      animationCurrentTime: 0,
-      animationDuration: 1000,
-      timelineMode: 'frame',
-      toolSnapshot: null,
-    };
+    const mockSnapshot = createMockProjectSnapshot();
 
     let emissionCount = 0;
     service.projectState$.subscribe((change) => {
@@ -56,27 +60,7 @@ describe('EditorProjectStateService', () => {
   });
 
   it('should automatically create snapshots via history service', (done) => {
-    const mockSnapshot: ProjectSnapshot = {
-      canvas: { width: 64, height: 64 },
-      layers: [],
-      layerBuffers: {},
-      selectedLayerId: '',
-      selectedLayerIds: [],
-      selection: null,
-      frames: [],
-      currentFrameIndex: 0,
-      animations: [],
-      currentAnimationIndex: 0,
-      boneHierarchy: [],
-      selectedBoneId: '',
-      bones: {},
-      keyframes: null,
-      pixelBindings: null,
-      animationCurrentTime: 0,
-      animationDuration: 1000,
-      timelineMode: 'frame',
-      toolSnapshot: null,
-    };
+    const mockSnapshot = createMockProjectSnapshot();
 
     spyOn(historyService, 'pushSnapshot');
 
@@ -92,27 +76,7 @@ describe('EditorProjectStateService', () => {
   });
 
   it('should get current state', () => {
-    const mockSnapshot: ProjectSnapshot = {
-      canvas: { width: 64, height: 64 },
-      layers: [],
-      layerBuffers: {},
-      selectedLayerId: '',
-      selectedLayerIds: [],
-      selection: null,
-      frames: [],
-      currentFrameIndex: 0,
-      animations: [],
-      currentAnimationIndex: 0,
-      boneHierarchy: [],
-      selectedBoneId: '',
-      bones: {},
-      keyframes: null,
-      pixelBindings: null,
-      animationCurrentTime: 0,
-      animationDuration: 1000,
-      timelineMode: 'frame',
-      toolSnapshot: null,
-    };
+    const mockSnapshot = createMockProjectSnapshot();
 
     service.emitStateChange(mockSnapshot, 'Test');
     const currentState = service.getCurrentState();
