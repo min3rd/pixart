@@ -27,7 +27,7 @@ export class PixelGenerationDialog {
   readonly height = signal(64);
   readonly sourceType = signal<'layer' | 'visible' | 'selection'>('layer');
   readonly generating = signal(false);
-  
+
   readonly onGenerate = output<GeneratePixelArtRequest>();
   readonly onCancel = output<void>();
 
@@ -35,7 +35,7 @@ export class PixelGenerationDialog {
     sketchDataUrl: string,
     width: number,
     height: number,
-    sourceType: 'layer' | 'visible' | 'selection'
+    sourceType: 'layer' | 'visible' | 'selection',
   ) {
     this.sketchPreviewUrl.set(sketchDataUrl);
     this.width.set(width);
@@ -58,7 +58,7 @@ export class PixelGenerationDialog {
     if (!sketchDataUrl || !this.prompt().trim() || this.generating()) {
       return;
     }
-    
+
     this.generating.set(true);
     this.onGenerate.emit({
       sketchDataUrl,

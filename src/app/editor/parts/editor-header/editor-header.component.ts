@@ -324,25 +324,27 @@ export class EditorHeader {
   }
 
   handleInsertImageConfirm(result: InsertImageResult) {
-    this.document.insertImageAsLayer(
-      result.file,
-      result.width > 0 ? result.width : undefined,
-      result.height > 0 ? result.height : undefined,
-    ).subscribe({
-      next: (insertResult) => {
-        if (insertResult) {
-          console.info(
-            `Image inserted as layer: ${insertResult.layerId}`,
-            insertResult.bounds,
-          );
-        } else {
-          console.error('Failed to insert image');
-        }
-      },
-      error: (error) => {
-        console.error('Failed to insert image', error);
-      },
-    });
+    this.document
+      .insertImageAsLayer(
+        result.file,
+        result.width > 0 ? result.width : undefined,
+        result.height > 0 ? result.height : undefined,
+      )
+      .subscribe({
+        next: (insertResult) => {
+          if (insertResult) {
+            console.info(
+              `Image inserted as layer: ${insertResult.layerId}`,
+              insertResult.bounds,
+            );
+          } else {
+            console.error('Failed to insert image');
+          }
+        },
+        error: (error) => {
+          console.error('Failed to insert image', error);
+        },
+      });
   }
 
   handleInsertImageCancel() {

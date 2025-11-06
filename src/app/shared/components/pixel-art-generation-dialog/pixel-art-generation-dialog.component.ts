@@ -23,7 +23,10 @@ import {
   PixelGenerationResponse,
 } from '../../../services/pixel-generation/pixel-generation-models';
 import { PixelGenerationEngineService } from '../../../services/pixel-generation/pixel-generation-engine.service';
-import { EditorDocumentService, isGroup } from '../../../services/editor-document.service';
+import {
+  EditorDocumentService,
+  isGroup,
+} from '../../../services/editor-document.service';
 
 export interface PixelArtGenerationResult {
   jobId: string;
@@ -108,10 +111,13 @@ export class PixelArtGenerationDialog implements OnDestroy {
     this.error.set(null);
     this.completed.set(false);
     this.visible.set(true);
-    
+
     this.pixelEngine.initializeAI().subscribe({
       error: (err) => {
-        console.warn('AI initialization failed, will use traditional processing:', err);
+        console.warn(
+          'AI initialization failed, will use traditional processing:',
+          err,
+        );
       },
     });
   }
@@ -144,24 +150,28 @@ export class PixelArtGenerationDialog implements OnDestroy {
 
     if (this.useCurrentLayer() && selectedLayer && !isGroup(selectedLayer)) {
       const layerBuffer = this.editorDoc.getLayerBuffer(selectedLayer.id);
-      this.pixelEngine.generateFromLayerBuffer(
-        layerBuffer,
-        canvasWidth,
-        canvasHeight,
-        this.prompt(),
-        this.targetWidth(),
-        this.targetHeight(),
-        this.selectedStyle(),
-      ).subscribe({
-        next: (jobId) => {
-          this.currentJobId.set(jobId);
-          this.checkJobCompletion(jobId);
-        },
-        error: (err) => {
-          this.error.set(err instanceof Error ? err.message : 'Unknown error');
-          this.processing.set(false);
-        },
-      });
+      this.pixelEngine
+        .generateFromLayerBuffer(
+          layerBuffer,
+          canvasWidth,
+          canvasHeight,
+          this.prompt(),
+          this.targetWidth(),
+          this.targetHeight(),
+          this.selectedStyle(),
+        )
+        .subscribe({
+          next: (jobId) => {
+            this.currentJobId.set(jobId);
+            this.checkJobCompletion(jobId);
+          },
+          error: (err) => {
+            this.error.set(
+              err instanceof Error ? err.message : 'Unknown error',
+            );
+            this.processing.set(false);
+          },
+        });
     } else {
       const errorKey = 'pixelGeneration.noLayerSelected';
       this.error.set(errorKey);
@@ -205,10 +215,10 @@ export class PixelArtGenerationDialog implements OnDestroy {
 
   private checkJobCompletion(jobId: string) {
     this.clearPollingInterval();
-    
+
     this.pollingIntervalId = window.setInterval(() => {
       const job = this.pixelEngine.getJob(jobId);
-      
+
       if (!job) {
         this.clearPollingInterval();
         this.processing.set(false);

@@ -49,14 +49,18 @@ export class PixelGenerationOnnxService {
       if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
         ort.env.wasm.numThreads = 4;
         ort.env.wasm.simd = true;
-        console.log('[ONNX] WebGPU support detected, configured WASM with 4 threads and SIMD enabled');
+        console.log(
+          '[ONNX] WebGPU support detected, configured WASM with 4 threads and SIMD enabled',
+        );
       } else {
         console.log('[ONNX] WebGPU not available, using WASM backend only');
       }
       console.log('[ONNX] ONNX Runtime initialized successfully');
     } catch (error) {
       console.error('[ONNX] Failed to initialize ONNX Runtime:', error);
-      console.error('[ONNX] Generation will still attempt to work but may have reduced performance');
+      console.error(
+        '[ONNX] Generation will still attempt to work but may have reduced performance',
+      );
     }
   }
 
@@ -100,13 +104,15 @@ export class PixelGenerationOnnxService {
     return from(this.findAvailableModel(url)).pipe(
       switchMap((availableUrl) => {
         if (!availableUrl) {
-          const errorMsg = `No ONNX model found. Checked:\n- ${url}\n${this.COMMON_MODEL_NAMES.map(name => `- /assets/models/${name}`).join('\n')}\n\nPlease download an ONNX model to public/assets/models/. See public/assets/models/README.md for instructions.`;
+          const errorMsg = `No ONNX model found. Checked:\n- ${url}\n${this.COMMON_MODEL_NAMES.map((name) => `- /assets/models/${name}`).join('\n')}\n\nPlease download an ONNX model to public/assets/models/. See public/assets/models/README.md for instructions.`;
           console.error(`[ONNX] ${errorMsg}`);
           throw new Error(errorMsg);
         }
 
         if (availableUrl !== url) {
-          console.log(`[ONNX] Default model not found, using alternative: ${availableUrl}`);
+          console.log(
+            `[ONNX] Default model not found, using alternative: ${availableUrl}`,
+          );
         }
 
         console.log(`[ONNX] Model file exists, creating inference session...`);
@@ -135,11 +141,13 @@ export class PixelGenerationOnnxService {
     );
   }
 
-  private async findAvailableModel(preferredUrl: string): Promise<string | null> {
+  private async findAvailableModel(
+    preferredUrl: string,
+  ): Promise<string | null> {
     console.log(`[ONNX] ========================================`);
     console.log(`[ONNX] Searching for available ONNX models...`);
     console.log(`[ONNX] ========================================`);
-    
+
     if (await this.checkModelFileExists(preferredUrl)) {
       console.log(`[ONNX] ✓ Found preferred model: ${preferredUrl}`);
       return preferredUrl;
@@ -159,12 +167,16 @@ export class PixelGenerationOnnxService {
     console.error(`[ONNX] ========================================`);
     console.error(`[ONNX] ✗✗✗ NO ONNX MODELS FOUND ✗✗✗`);
     console.error(`[ONNX] Checked all common model names:`);
-    this.COMMON_MODEL_NAMES.forEach(name => {
+    this.COMMON_MODEL_NAMES.forEach((name) => {
       console.error(`[ONNX]   - /assets/models/${name}`);
     });
     console.error(`[ONNX] ========================================`);
-    console.error(`[ONNX] SOLUTION: Place an ONNX model file in public/assets/models/`);
-    console.error(`[ONNX] Supported filenames: ${this.COMMON_MODEL_NAMES.join(', ')}`);
+    console.error(
+      `[ONNX] SOLUTION: Place an ONNX model file in public/assets/models/`,
+    );
+    console.error(
+      `[ONNX] Supported filenames: ${this.COMMON_MODEL_NAMES.join(', ')}`,
+    );
     console.error(`[ONNX] See public/assets/models/README.md for instructions`);
     console.error(`[ONNX] ========================================`);
     return null;
@@ -180,11 +192,13 @@ export class PixelGenerationOnnxService {
       console.log(`[ONNX] ✗ File not found (HEAD ${response.status}): ${url}`);
       return false;
     } catch (error) {
-      console.log(`[ONNX] HEAD request failed for ${url}, trying GET with Range...`);
+      console.log(
+        `[ONNX] HEAD request failed for ${url}, trying GET with Range...`,
+      );
       try {
-        const response = await fetch(url, { 
-          method: 'GET', 
-          headers: { 'Range': 'bytes=0-0' } 
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { Range: 'bytes=0-0' },
         });
         if (response.ok || response.status === 206) {
           console.log(`[ONNX] ✓ File exists (GET Range): ${url}`);
@@ -205,24 +219,36 @@ export class PixelGenerationOnnxService {
     if (error instanceof Error) {
       message += `Error: ${error.message}\n\n`;
 
-      if (error.message.includes('404') || error.message.includes('not found')) {
+      if (
+        error.message.includes('404') ||
+        error.message.includes('not found')
+      ) {
         message += `Reason: Model file not found at the specified path.\n\n`;
         message += `Solutions:\n`;
         message += `1. Download the model using the download script in public/assets/models/\n`;
         message += `2. Or manually place your ONNX model file at: ${modelUrl}\n`;
         message += `3. Check public/assets/models/README.md for detailed instructions\n`;
-      } else if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
+      } else if (
+        error.message.includes('CORS') ||
+        error.message.includes('Access-Control')
+      ) {
         message += `Reason: CORS (Cross-Origin Resource Sharing) error.\n\n`;
         message += `Solutions:\n`;
         message += `1. Ensure the model file is served from the same origin\n`;
         message += `2. Check server CORS configuration if using a separate CDN\n`;
-      } else if (error.message.includes('format') || error.message.includes('invalid')) {
+      } else if (
+        error.message.includes('format') ||
+        error.message.includes('invalid')
+      ) {
         message += `Reason: Invalid or corrupted ONNX model file.\n\n`;
         message += `Solutions:\n`;
         message += `1. Re-download the model file\n`;
         message += `2. Verify the model file is a valid ONNX format\n`;
         message += `3. Check model file size is not 0 bytes\n`;
-      } else if (error.message.includes('memory') || error.message.includes('allocation')) {
+      } else if (
+        error.message.includes('memory') ||
+        error.message.includes('allocation')
+      ) {
         message += `Reason: Insufficient memory to load the model.\n\n`;
         message += `Solutions:\n`;
         message += `1. Try using a smaller/quantized model\n`;
@@ -252,9 +278,11 @@ export class PixelGenerationOnnxService {
   ): Observable<PixelGenerationResponse> {
     const requestId = `onnx-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     const startTime = performance.now();
-    
+
     console.log(`[ONNX] Starting generation request: ${requestId}`);
-    console.log(`[ONNX] Parameters - Width: ${width}, Height: ${height}, Style: ${style}`);
+    console.log(
+      `[ONNX] Parameters - Width: ${width}, Height: ${height}, Style: ${style}`,
+    );
 
     const promptEmbedding = this.encodePrompt(prompt);
 
@@ -262,8 +290,14 @@ export class PixelGenerationOnnxService {
       ? of(undefined)
       : this.loadModel().pipe(
           catchError((error) => {
-            const errorMsg = error instanceof Error ? error.message : 'Failed to load ONNX model. Check console for details.';
-            console.error(`[ONNX] Model loading failed for request ${requestId}:`, errorMsg);
+            const errorMsg =
+              error instanceof Error
+                ? error.message
+                : 'Failed to load ONNX model. Check console for details.';
+            console.error(
+              `[ONNX] Model loading failed for request ${requestId}:`,
+              errorMsg,
+            );
             throw new Error(errorMsg);
           }),
         );
@@ -271,7 +305,8 @@ export class PixelGenerationOnnxService {
     return loadModel$.pipe(
       switchMap(() => {
         if (!this.session) {
-          const errorMsg = 'ONNX model session is not initialized. Model may have failed to load.';
+          const errorMsg =
+            'ONNX model session is not initialized. Model may have failed to load.';
           console.error(`[ONNX] ${errorMsg}`);
           throw new Error(errorMsg);
         }
@@ -301,10 +336,13 @@ export class PixelGenerationOnnxService {
       }),
       map((results) => {
         console.log(`[ONNX] Inference completed for request ${requestId}`);
-        
+
         const outputTensor = results['output'];
         if (!outputTensor) {
-          console.error(`[ONNX] No output tensor found in results. Available outputs:`, Object.keys(results));
+          console.error(
+            `[ONNX] No output tensor found in results. Available outputs:`,
+            Object.keys(results),
+          );
           throw new Error('Model did not produce expected output tensor');
         }
 
@@ -318,7 +356,9 @@ export class PixelGenerationOnnxService {
         );
 
         const processingTime = performance.now() - startTime;
-        console.log(`[ONNX] Request ${requestId} completed in ${processingTime.toFixed(2)}ms`);
+        console.log(
+          `[ONNX] Request ${requestId} completed in ${processingTime.toFixed(2)}ms`,
+        );
 
         const metadata: PixelGenerationMetadata = {
           colorsUsed: this.countUniqueColors(resultImageData),
@@ -347,11 +387,15 @@ export class PixelGenerationOnnxService {
           progress: 0,
           error: errorMsg,
         } as PixelGenerationResponse);
-      })
+      }),
     );
   }
 
-  private preprocessImage(imageData: ImageData, targetWidth: number, targetHeight: number): {
+  private preprocessImage(
+    imageData: ImageData,
+    targetWidth: number,
+    targetHeight: number,
+  ): {
     data: Float32Array;
     width: number;
     height: number;
@@ -401,13 +445,22 @@ export class PixelGenerationOnnxService {
   private encodePrompt(prompt: string): Float32Array {
     const maxLength = 77;
     const embedding = new Float32Array(maxLength);
-    
+
     const words = prompt.toLowerCase().split(/\s+/);
-    
+
     const colorKeywords: Record<string, number> = {
-      'red': 0.9, 'blue': 0.8, 'green': 0.7, 'yellow': 0.6,
-      'orange': 0.5, 'purple': 0.4, 'pink': 0.3, 'brown': 0.2,
-      'black': 0.1, 'white': 1.0, 'gray': 0.15, 'grey': 0.15,
+      red: 0.9,
+      blue: 0.8,
+      green: 0.7,
+      yellow: 0.6,
+      orange: 0.5,
+      purple: 0.4,
+      pink: 0.3,
+      brown: 0.2,
+      black: 0.1,
+      white: 1.0,
+      gray: 0.15,
+      grey: 0.15,
     };
 
     words.forEach((word, index) => {
@@ -429,8 +482,14 @@ export class PixelGenerationOnnxService {
 
     for (let i = 0; i < width * height; i++) {
       const r = Math.max(0, Math.min(255, outputData[i] * 255));
-      const g = Math.max(0, Math.min(255, outputData[width * height + i] * 255));
-      const b = Math.max(0, Math.min(255, outputData[width * height * 2 + i] * 255));
+      const g = Math.max(
+        0,
+        Math.min(255, outputData[width * height + i] * 255),
+      );
+      const b = Math.max(
+        0,
+        Math.min(255, outputData[width * height * 2 + i] * 255),
+      );
 
       imageData.data[i * 4] = r;
       imageData.data[i * 4 + 1] = g;
@@ -441,7 +500,10 @@ export class PixelGenerationOnnxService {
     return this.applyPixelArtStyle(imageData, style);
   }
 
-  private applyPixelArtStyle(imageData: ImageData, style: PixelArtStyle): ImageData {
+  private applyPixelArtStyle(
+    imageData: ImageData,
+    style: PixelArtStyle,
+  ): ImageData {
     const paletteSizes: Record<PixelArtStyle, number> = {
       'retro-8bit': 8,
       'retro-16bit': 16,
@@ -451,16 +513,16 @@ export class PixelGenerationOnnxService {
     };
 
     const paletteSize = paletteSizes[style];
-    
+
     return this.quantizeColors(imageData, paletteSize);
   }
 
   private quantizeColors(imageData: ImageData, paletteSize: number): ImageData {
     const result = new ImageData(imageData.width, imageData.height);
-    
+
     const quantize = (value: number) => {
       const levels = paletteSize;
-      return Math.round(value / 255 * (levels - 1)) * (255 / (levels - 1));
+      return Math.round((value / 255) * (levels - 1)) * (255 / (levels - 1));
     };
 
     for (let i = 0; i < imageData.data.length; i += 4) {

@@ -1,4 +1,8 @@
-export type PixelGenerationStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type PixelGenerationStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed';
 
 export interface PixelGenerationRequest {
   id: string;
@@ -29,7 +33,7 @@ export interface PixelGenerationMetadata {
   promptTokens?: number;
 }
 
-export type PixelArtStyle = 
+export type PixelArtStyle =
   | 'retro-8bit'
   | 'retro-16bit'
   | 'pixel-modern'
@@ -50,7 +54,10 @@ export interface PromptAnalysis {
   estimatedProcessingTime: number;
 }
 
-export const PIXEL_ART_STYLE_CONFIGS: Record<PixelArtStyle, PixelArtStyleConfig> = {
+export const PIXEL_ART_STYLE_CONFIGS: Record<
+  PixelArtStyle,
+  PixelArtStyleConfig
+> = {
   'retro-8bit': {
     maxColors: 8,
     ditherEnabled: true,

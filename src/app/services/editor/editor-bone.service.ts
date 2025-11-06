@@ -218,7 +218,7 @@ export class EditorBoneService {
             bonePointId: pointId,
             offsetX: dx,
             offsetY: dy,
-            weight: Math.max(0, Math.min(1, weight)),
+            weight,
           };
 
           this.keyframeService.addPixelBinding(frameId, binding);

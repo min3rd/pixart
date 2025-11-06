@@ -314,7 +314,11 @@ export class EditorCanvas implements OnDestroy {
         const target = ev.target as HTMLElement | null;
         if (target) {
           const tag = target.tagName.toLowerCase();
-          if (tag === 'input' || tag === 'textarea' || target.isContentEditable) {
+          if (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            target.isContentEditable
+          ) {
             return;
           }
         }
@@ -1482,12 +1486,9 @@ export class EditorCanvas implements OnDestroy {
           const col = buf[sourceIdx];
           if (!col || !col.length) continue;
 
-          let dominantBinding = pixelBindings[0];
-          for (const binding of pixelBindings) {
-            if (binding.weight > dominantBinding.weight) {
-              dominantBinding = binding;
-            }
-          }
+          const dominantBinding = pixelBindings.reduce((prev, current) =>
+            current.weight > prev.weight ? current : prev,
+          );
 
           const cacheKey = `${dominantBinding.boneId}:${dominantBinding.bonePointId}`;
           let transform = transformCache.get(cacheKey);
@@ -1503,8 +1504,12 @@ export class EditorCanvas implements OnDestroy {
           }
 
           if (transform) {
-            const transformedX = Math.round(transform.x + dominantBinding.offsetX);
-            const transformedY = Math.round(transform.y + dominantBinding.offsetY);
+            const transformedX = Math.round(
+              transform.x + dominantBinding.offsetX,
+            );
+            const transformedY = Math.round(
+              transform.y + dominantBinding.offsetY,
+            );
 
             if (
               transformedX >= 0 &&
@@ -2528,9 +2533,7 @@ export class EditorCanvas implements OnDestroy {
     return null;
   }
 
-  private handleGenerateFromSelection(
-    sourceType: 'layer' | 'visible'
-  ): void {
+  private handleGenerateFromSelection(sourceType: 'layer' | 'visible'): void {
     const sel = this.document.selectionRect();
     if (!sel || sel.width <= 0 || sel.height <= 0) {
       return;
@@ -2545,11 +2548,13 @@ export class EditorCanvas implements OnDestroy {
       sketchDataUrl,
       sel.width,
       sel.height,
-      'selection'
+      'selection',
     );
   }
 
-  private extractSketchFromSelection(sourceType: 'layer' | 'visible'): string | null {
+  private extractSketchFromSelection(
+    sourceType: 'layer' | 'visible',
+  ): string | null {
     const sel = this.document.selectionRect();
     if (!sel) return null;
 
@@ -2649,7 +2654,10 @@ export class EditorCanvas implements OnDestroy {
                 this.generationCheckInterval = null;
               }
 
-              if (job.response.status === 'completed' && job.response.resultImageData) {
+              if (
+                job.response.status === 'completed' &&
+                job.response.resultImageData
+              ) {
                 const newLayer = this.document.addLayer('Generated');
                 const buf = this.document.getLayerBuffer(newLayer.id);
                 if (!buf) {

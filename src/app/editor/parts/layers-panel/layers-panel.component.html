@@ -200,17 +200,14 @@
             name="heroIconsSquare2StackMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span
-            id="layers-context-menu-select-pixel-label"
-            class="flex-1"
-            >{{
+          <span id="layers-context-menu-select-pixel-label" class="flex-1">{{
             "editor.layers.selectPixel" | transloco
           }}</span>
-          @if (getShortcut('edit.selectPixel')) {
+          @if (getShortcut("edit.selectPixel")) {
             <span
               id="layers-context-menu-select-pixel-shortcut"
               class="ml-auto text-xs opacity-60"
-              >{{ getShortcut('edit.selectPixel') }}</span
+              >{{ getShortcut("edit.selectPixel") }}</span
             >
           }
         </button>
@@ -226,17 +223,14 @@
             name="heroIconsDocumentDuplicateMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span
-            id="layers-context-menu-duplicate-label"
-            class="flex-1"
-            >{{
+          <span id="layers-context-menu-duplicate-label" class="flex-1">{{
             "editor.layers.duplicate" | transloco
           }}</span>
-          @if (getShortcut('edit.duplicateLayer')) {
+          @if (getShortcut("edit.duplicateLayer")) {
             <span
               id="layers-context-menu-duplicate-shortcut"
               class="ml-auto text-xs opacity-60"
-              >{{ getShortcut('edit.duplicateLayer') }}</span
+              >{{ getShortcut("edit.duplicateLayer") }}</span
             >
           }
         </button>
@@ -256,20 +250,17 @@
             "
             class="w-4 h-4"
           ></ng-icon>
-          <span
-            id="layers-context-menu-lock-label"
-            class="flex-1"
-            >{{
+          <span id="layers-context-menu-lock-label" class="flex-1">{{
             (isContextMenuItemLocked
               ? "editor.layers.unlock"
               : "editor.layers.lock"
             ) | transloco
           }}</span>
-          @if (getShortcut('edit.lockLayer')) {
+          @if (getShortcut("edit.lockLayer")) {
             <span
               id="layers-context-menu-lock-shortcut"
               class="ml-auto text-xs opacity-60"
-              >{{ getShortcut('edit.lockLayer') }}</span
+              >{{ getShortcut("edit.lockLayer") }}</span
             >
           }
         </button>
@@ -286,17 +277,14 @@
               name="heroIconsRectangleStackMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span
-              id="layers-context-menu-merge-label"
-              class="flex-1"
-              >{{
+            <span id="layers-context-menu-merge-label" class="flex-1">{{
               "editor.layers.merge" | transloco
             }}</span>
-            @if (getShortcut('edit.mergeLayer')) {
+            @if (getShortcut("edit.mergeLayer")) {
               <span
                 id="layers-context-menu-merge-shortcut"
                 class="ml-auto text-xs opacity-60"
-                >{{ getShortcut('edit.mergeLayer') }}</span
+                >{{ getShortcut("edit.mergeLayer") }}</span
               >
             }
           </button>
@@ -312,17 +300,14 @@
               name="heroIconsFolderMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span
-              id="layers-context-menu-group-label"
-              class="flex-1"
-              >{{
+            <span id="layers-context-menu-group-label" class="flex-1">{{
               "editor.layers.group" | transloco
             }}</span>
-            @if (getShortcut('edit.groupLayers')) {
+            @if (getShortcut("edit.groupLayers")) {
               <span
                 id="layers-context-menu-group-shortcut"
                 class="ml-auto text-xs opacity-60"
-                >{{ getShortcut('edit.groupLayers') }}</span
+                >{{ getShortcut("edit.groupLayers") }}</span
               >
             }
           </button>
@@ -340,17 +325,14 @@
               name="heroIconsFolderOpenMini"
               class="w-4 h-4"
             ></ng-icon>
-            <span
-              id="layers-context-menu-ungroup-label"
-              class="flex-1"
-              >{{
+            <span id="layers-context-menu-ungroup-label" class="flex-1">{{
               "editor.layers.ungroup" | transloco
             }}</span>
-            @if (getShortcut('edit.ungroupLayers')) {
+            @if (getShortcut("edit.ungroupLayers")) {
               <span
                 id="layers-context-menu-ungroup-shortcut"
                 class="ml-auto text-xs opacity-60"
-                >{{ getShortcut('edit.ungroupLayers') }}</span
+                >{{ getShortcut("edit.ungroupLayers") }}</span
               >
             }
           </button>
@@ -367,17 +349,14 @@
             name="heroIconsTrashMini"
             class="w-4 h-4"
           ></ng-icon>
-          <span
-            id="layers-context-menu-delete-label"
-            class="flex-1"
-            >{{
+          <span id="layers-context-menu-delete-label" class="flex-1">{{
             "editor.layers.delete" | transloco
           }}</span>
-          @if (getShortcut('edit.deleteLayer')) {
+          @if (getShortcut("edit.deleteLayer")) {
             <span
               id="layers-context-menu-delete-shortcut"
               class="ml-auto text-xs opacity-60"
-              >{{ getShortcut('edit.deleteLayer') }}</span
+              >{{ getShortcut("edit.deleteLayer") }}</span
             >
           }
         </button>

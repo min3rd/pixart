@@ -26,7 +26,9 @@ export class PixelGenerationEngineService {
 
   readonly activeJobs = computed(() => Array.from(this.jobs().values()));
   readonly processingCount = computed(
-    () => this.activeJobs().filter((job) => job.response.status === 'processing').length,
+    () =>
+      this.activeJobs().filter((job) => job.response.status === 'processing')
+        .length,
   );
   readonly isOnnxAvailable = computed(() => this.onnxService.isModelReady());
   readonly aiEnabled = this.useAI;
@@ -52,9 +54,14 @@ export class PixelGenerationEngineService {
         return true;
       }),
       catchError((error) => {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error during AI initialization';
+        const errorMsg =
+          error instanceof Error
+            ? error.message
+            : 'Unknown error during AI initialization';
         console.error('[PixelEngine] Failed to initialize AI model:', errorMsg);
-        console.error('[PixelEngine] The app will continue using traditional processing methods');
+        console.error(
+          '[PixelEngine] The app will continue using traditional processing methods',
+        );
         return from([false]);
       }),
     );
@@ -92,7 +99,9 @@ export class PixelGenerationEngineService {
     let generationObservable: Observable<PixelGenerationResponse>;
 
     if (shouldUseAI && this.onnxService.isModelReady()) {
-      console.log('[PixelEngine] Using ONNX model for generation (model already loaded)');
+      console.log(
+        '[PixelEngine] Using ONNX model for generation (model already loaded)',
+      );
       generationObservable = this.onnxService.generateWithOnnx(
         sketchImageData,
         prompt,
@@ -113,7 +122,8 @@ export class PixelGenerationEngineService {
           ),
         ),
         catchError((error) => {
-          const errorMsg = error instanceof Error ? error.message : 'ONNX generation failed';
+          const errorMsg =
+            error instanceof Error ? error.message : 'ONNX generation failed';
           console.warn(
             '[PixelEngine] ONNX generation failed, falling back to local processing:',
             errorMsg,
@@ -134,11 +144,15 @@ export class PixelGenerationEngineService {
       console.log('[PixelEngine] Reason:');
       console.log(`[PixelEngine]   - AI enabled: ${this.useAI()}`);
       console.log(`[PixelEngine]   - Generation mode: ${mode}`);
-      console.log(`[PixelEngine]   - Model ready: ${this.onnxService.isModelReady()}`);
+      console.log(
+        `[PixelEngine]   - Model ready: ${this.onnxService.isModelReady()}`,
+      );
       console.log(`[PixelEngine]   - Should use AI: ${shouldUseAI}`);
       if (!this.onnxService.isModelReady() && shouldUseAI) {
         console.error('[PixelEngine] ⚠️  ONNX model is NOT ready!');
-        console.error('[PixelEngine] ⚠️  Check console logs above for model loading errors');
+        console.error(
+          '[PixelEngine] ⚠️  Check console logs above for model loading errors',
+        );
       }
       console.log('[PixelEngine] ========================================');
       generationObservable = this.localService.processLocally(
@@ -255,8 +269,12 @@ export class PixelGenerationEngineService {
     return this.getResultAsImageData(jobId).pipe(
       map((imageData) => {
         if (!imageData) return null;
-        return this.imageDataToLayerBuffer(imageData, canvasWidth, canvasHeight);
-      })
+        return this.imageDataToLayerBuffer(
+          imageData,
+          canvasWidth,
+          canvasHeight,
+        );
+      }),
     );
   }
 
@@ -301,7 +319,11 @@ export class PixelGenerationEngineService {
     return imageData;
   }
 
-  private imageDataToLayerBuffer(imageData: ImageData, width: number, height: number): string[] {
+  private imageDataToLayerBuffer(
+    imageData: ImageData,
+    width: number,
+    height: number,
+  ): string[] {
     const buffer: string[] = new Array(width * height).fill('');
 
     for (let y = 0; y < Math.min(imageData.height, height); y++) {

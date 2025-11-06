@@ -109,7 +109,7 @@ export class FileService {
       catchError((e) => {
         console.warn('Open project from input file failed', e);
         return of(null);
-      })
+      }),
     );
   }
 

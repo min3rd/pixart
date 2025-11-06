@@ -16,7 +16,10 @@
       <ng-icon [name]="isPlaying() ? 'heroStop' : 'heroPlay'" size="12" />
     </button>
 
-    <div id="toolbar-divider-1" class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
+    <div
+      id="toolbar-divider-1"
+      class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"
+    ></div>
 
     <div id="animation-selector-container" class="relative">
       <button
@@ -31,10 +34,14 @@
             class="w-2 h-2 rounded-none shrink-0"
             [style.background-color]="anim.color || defaultAnimationColor"
           ></div>
-          <span id="current-animation-name" class="font-medium truncate flex-1 text-left">{{
-            anim.name
-          }}</span>
-          <span id="current-animation-stats" class="text-[10px] text-neutral-500 dark:text-neutral-400"
+          <span
+            id="current-animation-name"
+            class="font-medium truncate flex-1 text-left"
+            >{{ anim.name }}</span
+          >
+          <span
+            id="current-animation-stats"
+            class="text-[10px] text-neutral-500 dark:text-neutral-400"
             >{{ anim.frames.length }}f</span
           >
           <ng-icon name="heroChevronDown" size="10" />
@@ -47,7 +54,11 @@
           id="animation-dropdown"
           class="absolute top-full left-0 mt-1 z-50 w-64 max-h-80 overflow-y-auto bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-sm shadow-lg"
         >
-          @for (anim of animationService.animations(); track anim.id; let idx = $index) {
+          @for (
+            anim of animationService.animations();
+            track anim.id;
+            let idx = $index
+          ) {
             <div
               id="animation-dropdown-border-{{ anim.id }}"
               class="border-b border-neutral-200 dark:border-neutral-600 last:border-b-0"
@@ -56,10 +67,14 @@
                 [id]="'animation-item-container-' + anim.id"
                 class="flex items-center gap-1 p-1 hover:bg-neutral-100 dark:hover:bg-neutral-600"
                 [ngClass]="{
-                  'bg-blue-50': animationService.currentAnimationIndex() === idx,
-                  'dark:bg-blue-900/50': animationService.currentAnimationIndex() === idx,
-                  'text-neutral-900': animationService.currentAnimationIndex() === idx,
-                  'dark:text-neutral-100': animationService.currentAnimationIndex() === idx
+                  'bg-blue-50':
+                    animationService.currentAnimationIndex() === idx,
+                  'dark:bg-blue-900/50':
+                    animationService.currentAnimationIndex() === idx,
+                  'text-neutral-900':
+                    animationService.currentAnimationIndex() === idx,
+                  'dark:text-neutral-100':
+                    animationService.currentAnimationIndex() === idx,
                 }"
               >
                 <input
@@ -98,7 +113,8 @@
                 <span
                   [id]="'anim-stats-' + anim.id"
                   class="text-[10px] text-neutral-500 dark:text-neutral-400 tabular-nums"
-                  >{{ anim.frames.length }}f • {{ getKeyframeCount(anim.id) }}k</span
+                  >{{ anim.frames.length }}f •
+                  {{ getKeyframeCount(anim.id) }}k</span
                 >
                 @if (animationService.animations().length > 1) {
                   <button
@@ -134,7 +150,10 @@
       {{ formatTime(currentTime()) }}
     </div>
 
-    <div id="toolbar-divider-2" class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"></div>
+    <div
+      id="toolbar-divider-2"
+      class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"
+    ></div>
 
     <button
       id="creator-add-keyframe-btn"
