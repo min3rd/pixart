@@ -13,6 +13,7 @@ import {
   EditorHistoryService,
   EditorLayerService,
   EditorProjectService,
+  EditorProjectStateService,
   EditorSelectionService,
   EditorBoneService,
   EditorExportService,
@@ -61,6 +62,7 @@ export class EditorDocumentService {
     EditorAnimationCollectionService,
   );
   private readonly historyService = inject(EditorHistoryService);
+  private readonly projectStateService = inject(EditorProjectStateService);
   private readonly selectionService = inject(EditorSelectionService);
   private readonly drawingService = inject(EditorDrawingService);
   private readonly colorService = inject(EditorColorService);
@@ -243,7 +245,7 @@ export class EditorDocumentService {
 
   saveSnapshot(description?: string) {
     const snapshot = this.captureProjectSnapshot();
-    this.historyService.pushSnapshot(snapshot, description);
+    this.projectStateService.emitStateChange(snapshot, description);
   }
 
   private saveSnapshotForUndo(description?: string) {
