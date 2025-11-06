@@ -341,7 +341,9 @@
     "cannotDeleteLastAnimation": "Cannot delete the last animation",
     "frameCount": "{{count}} frames",
     "keyframeCount": "{{count}} keyframes",
-    "editAnimation": "Edit Animation"
+    "editAnimation": "Edit Animation",
+    "animationColor": "Animation Color",
+    "changeColor": "Change Color"
   },
   "hotkeys": {
     "title": "Keyboard Shortcuts",

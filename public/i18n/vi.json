@@ -344,7 +344,9 @@
     "cannotDeleteLastAnimation": "Không thể xóa animation cuối cùng",
     "frameCount": "{{count}} khung hình",
     "keyframeCount": "{{count}} keyframes",
-    "editAnimation": "Chỉnh sửa Animation"
+    "editAnimation": "Chỉnh sửa Animation",
+    "animationColor": "Màu Animation",
+    "changeColor": "Đổi màu"
   },
   "hotkeys": {
     "title": "Phím tắt",

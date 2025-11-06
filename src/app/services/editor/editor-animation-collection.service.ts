@@ -3,6 +3,17 @@ import { AnimationItem, FrameItem } from './editor.types';
 
 @Injectable({ providedIn: 'root' })
 export class EditorAnimationCollectionService {
+  private readonly defaultColors = [
+    '#3b82f6',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#ec4899',
+    '#06b6d4',
+    '#84cc16',
+  ];
+
   readonly animations = signal<AnimationItem[]>([
     {
       id: 'anim_default',
@@ -14,6 +25,7 @@ export class EditorAnimationCollectionService {
       ],
       boneIds: [],
       duration: 300,
+      color: '#3b82f6',
     },
   ]);
   readonly currentAnimationIndex = signal<number>(0);
@@ -34,12 +46,14 @@ export class EditorAnimationCollectionService {
       name || `Animation ${this.animations().length + 1}`,
     );
     const id = `anim_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const colorIndex = this.animations().length % this.defaultColors.length;
     const animation: AnimationItem = {
       id,
       name: sanitizedName,
       frames: [{ id: `f${Date.now()}`, name: 'Frame 1', duration: 100 }],
       boneIds: [],
       duration: 100,
+      color: this.defaultColors[colorIndex],
     };
     this.animations.update((arr) => [...arr, animation]);
     return animation;
@@ -169,5 +183,19 @@ export class EditorAnimationCollectionService {
   validateAnimationName(name: string): boolean {
     const sanitized = this.sanitizeAnimationName(name);
     return sanitized.length > 0 && sanitized === name;
+  }
+
+  updateAnimationColor(animationId: string, color: string): boolean {
+    let updated = false;
+    this.animations.update((arr) =>
+      arr.map((a) => {
+        if (a.id === animationId) {
+          updated = true;
+          return { ...a, color };
+        }
+        return a;
+      }),
+    );
+    return updated;
   }
 }
