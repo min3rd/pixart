@@ -332,7 +332,19 @@
     "bindingsCleared": "Đã xóa tất cả liên kết pixel",
     "keyframeSaved": "Đã lưu keyframe với {{count}} vị trí điểm bone",
     "invalidTime": "Thời gian không hợp lệ. Thời gian phải nằm trong khoảng từ 0 đến thời lượng animation.",
-    "editKeyframeTime": "Sửa thời gian"
+    "editKeyframeTime": "Sửa thời gian",
+    "animations": "Danh sách Animation",
+    "currentAnimation": "Animation hiện tại",
+    "addAnimation": "Thêm Animation",
+    "deleteAnimation": "Xóa Animation",
+    "renameAnimation": "Đổi tên Animation",
+    "animationName": "Tên Animation",
+    "newAnimationName": "Tên animation mới",
+    "confirmDeleteAnimation": "Bạn có chắc chắn muốn xóa animation này?",
+    "cannotDeleteLastAnimation": "Không thể xóa animation cuối cùng",
+    "frameCount": "{{count}} khung hình",
+    "keyframeCount": "{{count}} keyframes",
+    "editAnimation": "Chỉnh sửa Animation"
   },
   "hotkeys": {
     "title": "Phím tắt",

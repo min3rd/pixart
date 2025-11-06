@@ -17,6 +17,8 @@ import {
   heroStop,
   heroPlus,
   heroTrash,
+  heroPencil,
+  heroChevronDown,
 } from '@ng-icons/heroicons/outline';
 import { EditorKeyframeService } from '../../../services/editor/editor-keyframe.service';
 import { EditorAnimationCollectionService } from '../../../services/editor/editor-animation-collection.service';
@@ -38,6 +40,8 @@ import {
       heroStop,
       heroPlus,
       heroTrash,
+      heroPencil,
+      heroChevronDown,
     }),
   ],
   host: {
@@ -67,6 +71,9 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   readonly editingKeyframeId = signal<string | null>(null);
   readonly editingKeyframeTime = signal<number>(0);
   readonly newKeyframeId = signal<string | null>(null);
+  readonly editingAnimationId = signal<string | null>(null);
+  readonly editingAnimationName = signal<string>('');
+  readonly showAnimationDropdown = signal<boolean>(false);
 
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
@@ -390,5 +397,56 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   getSortedKeyframes(animationId: string) {
     const keyframes = this.keyframeService.getKeyframes(animationId);
     return [...keyframes].sort((a, b) => a.time - b.time);
+  }
+
+  toggleAnimationDropdown() {
+    this.showAnimationDropdown.update((v) => !v);
+  }
+
+  selectAnimation(index: number) {
+    this.animationService.setCurrentAnimation(index);
+    this.showAnimationDropdown.set(false);
+    this.renderTimeline();
+  }
+
+  createNewAnimation() {
+    const newAnim = this.animationService.addAnimation();
+    const animations = this.animationService.animations();
+    const newIndex = animations.findIndex((a) => a.id === newAnim.id);
+    if (newIndex !== -1) {
+      this.animationService.setCurrentAnimation(newIndex);
+    }
+    this.showAnimationDropdown.set(false);
+    this.renderTimeline();
+  }
+
+  startEditingAnimationName(animationId: string, currentName: string) {
+    this.editingAnimationId.set(animationId);
+    this.editingAnimationName.set(currentName);
+  }
+
+  saveAnimationNameEdit(animationId: string) {
+    const newName = this.editingAnimationName().trim();
+    if (newName && this.animationService.validateAnimationName(newName)) {
+      this.animationService.renameAnimation(animationId, newName);
+    }
+    this.editingAnimationId.set(null);
+  }
+
+  cancelAnimationNameEdit() {
+    this.editingAnimationId.set(null);
+  }
+
+  deleteAnimation(animationId: string) {
+    const animations = this.animationService.animations();
+    if (animations.length <= 1) {
+      return;
+    }
+    this.animationService.removeAnimation(animationId);
+    this.renderTimeline();
+  }
+
+  getKeyframeCount(animationId: string): number {
+    return this.keyframeService.getKeyframes(animationId).length;
   }
 }
