@@ -190,9 +190,9 @@ export class EditorKeyframeService {
 
   getPixelBindings(frameId: string): PixelBinding[] {
     const bindings = this.pixelBindings().get(frameId) || [];
-    return bindings.map(binding => ({
+    return bindings.map((binding) => ({
       ...binding,
-      weight: binding.weight ?? 1.0
+      weight: binding.weight ?? 1.0,
     }));
   }
 

@@ -7,14 +7,26 @@
     class="bg-white dark:bg-gray-800 rounded-sm shadow-lg w-full max-w-lg mx-4 p-4"
     id="pixel-art-generation-dialog-content"
   >
-    <div class="flex items-center justify-between mb-4" id="pixel-art-generation-dialog-header">
-      <div class="flex items-center gap-2" id="pixel-art-generation-dialog-title-container">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="pixel-art-generation-dialog-title">
+    <div
+      class="flex items-center justify-between mb-4"
+      id="pixel-art-generation-dialog-header"
+    >
+      <div
+        class="flex items-center gap-2"
+        id="pixel-art-generation-dialog-title-container"
+      >
+        <h2
+          class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+          id="pixel-art-generation-dialog-title"
+        >
           <ng-icon name="heroSparkles" class="inline-block w-5 h-5 mr-2" />
-          {{ 'pixelGeneration.title' | transloco }}
+          {{ "pixelGeneration.title" | transloco }}
         </h2>
-        <span class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700" id="pixel-art-generation-dialog-dev-badge">
-          {{ 'pixelGeneration.inDevelopment' | transloco }}
+        <span
+          class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+          id="pixel-art-generation-dialog-dev-badge"
+        >
+          {{ "pixelGeneration.inDevelopment" | transloco }}
         </span>
       </div>
       <button
@@ -28,22 +40,37 @@
       </button>
     </div>
 
-    <div class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm" id="pixel-art-generation-dialog-dev-notice">
-      <p class="text-xs text-amber-900 dark:text-amber-200" id="pixel-art-generation-dialog-dev-notice-text">
-        {{ 'pixelGeneration.devNotice' | transloco }}
+    <div
+      class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm"
+      id="pixel-art-generation-dialog-dev-notice"
+    >
+      <p
+        class="text-xs text-amber-900 dark:text-amber-200"
+        id="pixel-art-generation-dialog-dev-notice-text"
+      >
+        {{ "pixelGeneration.devNotice" | transloco }}
       </p>
     </div>
 
     <div class="mb-4" id="pixel-art-generation-dialog-description">
-      <p class="text-sm text-gray-600 dark:text-gray-400" id="pixel-art-generation-dialog-description-text">
-        {{ 'pixelGeneration.description' | transloco }}
+      <p
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="pixel-art-generation-dialog-description-text"
+      >
+        {{ "pixelGeneration.description" | transloco }}
       </p>
     </div>
 
-    <div *ngIf="!processing() && !completed()" id="pixel-art-generation-dialog-form">
+    <div
+      *ngIf="!processing() && !completed()"
+      id="pixel-art-generation-dialog-form"
+    >
       <div class="mb-4" id="pixel-art-generation-dialog-prompt-group">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="pixel-art-generation-dialog-prompt-label">
-          {{ 'pixelGeneration.prompt' | transloco }}
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          id="pixel-art-generation-dialog-prompt-label"
+        >
+          {{ "pixelGeneration.prompt" | transloco }}
         </label>
         <textarea
           [(ngModel)]="prompt"
@@ -54,10 +81,16 @@
         ></textarea>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 mb-4" id="pixel-art-generation-dialog-dimensions">
+      <div
+        class="grid grid-cols-2 gap-4 mb-4"
+        id="pixel-art-generation-dialog-dimensions"
+      >
         <div id="pixel-art-generation-dialog-width-group">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="pixel-art-generation-dialog-width-label">
-            {{ 'pixelGeneration.width' | transloco }}
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            id="pixel-art-generation-dialog-width-label"
+          >
+            {{ "pixelGeneration.width" | transloco }}
           </label>
           <input
             type="number"
@@ -70,8 +103,11 @@
         </div>
 
         <div id="pixel-art-generation-dialog-height-group">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="pixel-art-generation-dialog-height-label">
-            {{ 'pixelGeneration.height' | transloco }}
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            id="pixel-art-generation-dialog-height-label"
+          >
+            {{ "pixelGeneration.height" | transloco }}
           </label>
           <input
             type="number"
@@ -85,67 +121,104 @@
       </div>
 
       <div class="mb-4" id="pixel-art-generation-dialog-style-group">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" id="pixel-art-generation-dialog-style-label">
-          {{ 'pixelGeneration.style' | transloco }}
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          id="pixel-art-generation-dialog-style-label"
+        >
+          {{ "pixelGeneration.style" | transloco }}
         </label>
         <select
           [(ngModel)]="selectedStyle"
           class="w-full px-2 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           id="pixel-art-generation-dialog-style-select"
         >
-          <option *ngFor="let style of availableStyles" [value]="style" [id]="'pixel-art-generation-dialog-style-option-' + style">
-            {{ 'pixelGeneration.styles.' + style | transloco }}
+          <option
+            *ngFor="let style of availableStyles"
+            [value]="style"
+            [id]="'pixel-art-generation-dialog-style-option-' + style"
+          >
+            {{ "pixelGeneration.styles." + style | transloco }}
           </option>
         </select>
       </div>
 
       <div class="mb-4" id="pixel-art-generation-dialog-source-group">
-        <label class="flex items-center text-sm text-gray-700 dark:text-gray-300" id="pixel-art-generation-dialog-source-label">
+        <label
+          class="flex items-center text-sm text-gray-700 dark:text-gray-300"
+          id="pixel-art-generation-dialog-source-label"
+        >
           <input
             type="checkbox"
             [(ngModel)]="useCurrentLayer"
             class="mr-2"
             id="pixel-art-generation-dialog-use-current-layer-checkbox"
           />
-          {{ 'pixelGeneration.selectCurrentLayer' | transloco }}
+          {{ "pixelGeneration.selectCurrentLayer" | transloco }}
         </label>
       </div>
 
       <div class="mb-4" id="pixel-art-generation-dialog-ai-group">
-        <label class="flex items-center text-sm text-gray-700 dark:text-gray-300" id="pixel-art-generation-dialog-ai-label">
+        <label
+          class="flex items-center text-sm text-gray-700 dark:text-gray-300"
+          id="pixel-art-generation-dialog-ai-label"
+        >
           <input
             type="checkbox"
             [(ngModel)]="useAI"
             class="mr-2"
             id="pixel-art-generation-dialog-use-ai-checkbox"
           />
-          {{ 'pixelGeneration.useAI' | transloco }}
+          {{ "pixelGeneration.useAI" | transloco }}
         </label>
-        <p *ngIf="!isOnnxAvailable()" class="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-6" id="pixel-art-generation-dialog-ai-note">
-          {{ 'pixelGeneration.aiNotAvailable' | transloco }}
+        <p
+          *ngIf="!isOnnxAvailable()"
+          class="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-6"
+          id="pixel-art-generation-dialog-ai-note"
+        >
+          {{ "pixelGeneration.aiNotAvailable" | transloco }}
         </p>
       </div>
 
-      <div *ngIf="error()" class="mb-4 p-2 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-sm" id="pixel-art-generation-dialog-error">
-        <div class="flex items-start gap-2" id="pixel-art-generation-dialog-error-content">
-          <ng-icon name="heroExclamationCircle" class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+      <div
+        *ngIf="error()"
+        class="mb-4 p-2 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-sm"
+        id="pixel-art-generation-dialog-error"
+      >
+        <div
+          class="flex items-start gap-2"
+          id="pixel-art-generation-dialog-error-content"
+        >
+          <ng-icon
+            name="heroExclamationCircle"
+            class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5"
+          />
           <div class="flex-1" id="pixel-art-generation-dialog-error-details">
-            <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-1" id="pixel-art-generation-dialog-error-title">
-              {{ 'pixelGeneration.errorOccurred' | transloco }}
+            <p
+              class="text-sm font-medium text-red-800 dark:text-red-200 mb-1"
+              id="pixel-art-generation-dialog-error-title"
+            >
+              {{ "pixelGeneration.errorOccurred" | transloco }}
             </p>
-            <pre class="text-xs text-red-700 dark:text-red-300 whitespace-pre-wrap font-mono" id="pixel-art-generation-dialog-error-message">{{ error() }}</pre>
+            <pre
+              class="text-xs text-red-700 dark:text-red-300 whitespace-pre-wrap font-mono"
+              id="pixel-art-generation-dialog-error-message"
+              >{{ error() }}</pre
+            >
           </div>
         </div>
       </div>
 
-      <div class="flex justify-end gap-2" id="pixel-art-generation-dialog-actions">
+      <div
+        class="flex justify-end gap-2"
+        id="pixel-art-generation-dialog-actions"
+      >
         <button
           type="button"
           (click)="cancel()"
           class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-600"
           id="pixel-art-generation-dialog-cancel-button"
         >
-          {{ 'pixelGeneration.cancel' | transloco }}
+          {{ "pixelGeneration.cancel" | transloco }}
         </button>
         <button
           type="button"
@@ -156,55 +229,101 @@
           class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-sm disabled:bg-gray-400"
           id="pixel-art-generation-dialog-generate-button"
         >
-          {{ 'pixelGeneration.generate' | transloco }}
+          {{ "pixelGeneration.generate" | transloco }}
         </button>
       </div>
     </div>
 
-    <div *ngIf="processing()" class="py-8" id="pixel-art-generation-dialog-processing">
-      <div class="flex flex-col items-center justify-center" id="pixel-art-generation-dialog-processing-content">
-        <ng-icon name="heroArrowPath" class="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mb-4" />
-        <p class="text-sm text-gray-700 dark:text-gray-300 mb-2" id="pixel-art-generation-dialog-processing-text">
-          {{ 'pixelGeneration.processing' | transloco }}
+    <div
+      *ngIf="processing()"
+      class="py-8"
+      id="pixel-art-generation-dialog-processing"
+    >
+      <div
+        class="flex flex-col items-center justify-center"
+        id="pixel-art-generation-dialog-processing-content"
+      >
+        <ng-icon
+          name="heroArrowPath"
+          class="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mb-4"
+        />
+        <p
+          class="text-sm text-gray-700 dark:text-gray-300 mb-2"
+          id="pixel-art-generation-dialog-processing-text"
+        >
+          {{ "pixelGeneration.processing" | transloco }}
         </p>
-        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-sm h-2 mb-2" id="pixel-art-generation-dialog-progress-bar">
+        <div
+          class="w-full bg-gray-200 dark:bg-gray-700 rounded-sm h-2 mb-2"
+          id="pixel-art-generation-dialog-progress-bar"
+        >
           <div
             class="bg-blue-600 dark:bg-blue-500 h-2 rounded-sm transition-all duration-300"
             [style.width.%]="progressPercent()"
             id="pixel-art-generation-dialog-progress-fill"
           ></div>
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400" id="pixel-art-generation-dialog-progress-text">
-          {{ 'pixelGeneration.progress' | transloco }}: {{ progressPercent() }}%
+        <p
+          class="text-xs text-gray-500 dark:text-gray-400"
+          id="pixel-art-generation-dialog-progress-text"
+        >
+          {{ "pixelGeneration.progress" | transloco }}: {{ progressPercent() }}%
         </p>
       </div>
     </div>
 
-    <div *ngIf="completed()" class="py-4" id="pixel-art-generation-dialog-completed">
-      <div class="flex items-center justify-center mb-4" id="pixel-art-generation-dialog-completed-icon">
-        <ng-icon name="heroCheckCircle" class="w-12 h-12 text-green-600 dark:text-green-500" />
+    <div
+      *ngIf="completed()"
+      class="py-4"
+      id="pixel-art-generation-dialog-completed"
+    >
+      <div
+        class="flex items-center justify-center mb-4"
+        id="pixel-art-generation-dialog-completed-icon"
+      >
+        <ng-icon
+          name="heroCheckCircle"
+          class="w-12 h-12 text-green-600 dark:text-green-500"
+        />
       </div>
-      <p class="text-center text-sm text-gray-700 dark:text-gray-300 mb-4" id="pixel-art-generation-dialog-completed-text">
-        {{ 'pixelGeneration.completed' | transloco }}
+      <p
+        class="text-center text-sm text-gray-700 dark:text-gray-300 mb-4"
+        id="pixel-art-generation-dialog-completed-text"
+      >
+        {{ "pixelGeneration.completed" | transloco }}
       </p>
 
-      <div *ngIf="currentJob() && currentJob()!.response.metadata" class="text-xs text-gray-600 dark:text-gray-400 mb-4 text-center" id="pixel-art-generation-dialog-metadata">
+      <div
+        *ngIf="currentJob() && currentJob()!.response.metadata"
+        class="text-xs text-gray-600 dark:text-gray-400 mb-4 text-center"
+        id="pixel-art-generation-dialog-metadata"
+      >
         <p id="pixel-art-generation-dialog-processing-time">
-          {{ 'pixelGeneration.processingTime' | transloco: { time: currentJob()!.response.processingTime || 0 } }}
+          {{
+            "pixelGeneration.processingTime"
+              | transloco: { time: currentJob()!.response.processingTime || 0 }
+          }}
         </p>
         <p id="pixel-art-generation-dialog-colors-used">
-          {{ 'pixelGeneration.colorsUsed' | transloco: { count: currentJob()!.response.metadata!.colorsUsed } }}
+          {{
+            "pixelGeneration.colorsUsed"
+              | transloco
+                : { count: currentJob()!.response.metadata!.colorsUsed }
+          }}
         </p>
       </div>
 
-      <div class="flex gap-2" id="pixel-art-generation-dialog-completed-actions">
+      <div
+        class="flex gap-2"
+        id="pixel-art-generation-dialog-completed-actions"
+      >
         <button
           type="button"
           (click)="addToNewLayer()"
           class="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-sm"
           id="pixel-art-generation-dialog-add-new-layer-button"
         >
-          {{ 'pixelGeneration.addToLayer' | transloco }}
+          {{ "pixelGeneration.addToLayer" | transloco }}
         </button>
         <button
           type="button"
@@ -212,7 +331,7 @@
           class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-sm hover:bg-gray-50 dark:hover:bg-gray-600"
           id="pixel-art-generation-dialog-replace-layer-button"
         >
-          {{ 'pixelGeneration.replaceLayer' | transloco }}
+          {{ "pixelGeneration.replaceLayer" | transloco }}
         </button>
       </div>
     </div>

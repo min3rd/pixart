@@ -584,7 +584,7 @@ export class EditorDocumentService {
       catchError((error) => {
         console.error('Failed to insert image as layer:', error);
         return of(null);
-      })
+      }),
     );
   }
 

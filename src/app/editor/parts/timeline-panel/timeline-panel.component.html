@@ -137,9 +137,9 @@
         [attr.aria-keyshortcuts]="getShortcut('edit.duplicateFrame')"
       >
         <span class="flex-1">{{ "timeline.duplicateFrame" | transloco }}</span>
-        @if (getShortcut('edit.duplicateFrame')) {
+        @if (getShortcut("edit.duplicateFrame")) {
           <span class="ml-2 text-xs opacity-60">{{
-            getShortcut('edit.duplicateFrame')
+            getShortcut("edit.duplicateFrame")
           }}</span>
         }
       </button>
@@ -152,9 +152,9 @@
         [attr.aria-keyshortcuts]="getShortcut('edit.deleteFrame')"
       >
         <span class="flex-1">{{ "timeline.deleteFrame" | transloco }}</span>
-        @if (getShortcut('edit.deleteFrame')) {
+        @if (getShortcut("edit.deleteFrame")) {
           <span class="ml-2 text-xs opacity-60">{{
-            getShortcut('edit.deleteFrame')
+            getShortcut("edit.deleteFrame")
           }}</span>
         }
       </button>

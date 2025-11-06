@@ -23,7 +23,7 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
 
     expect(projectStateService.setState).toHaveBeenCalledWith(
       jasmine.any(Object),
-      'Add layer'
+      'Add layer',
     );
     expect(historyService.canUndo()).toBe(true);
   });
@@ -65,7 +65,7 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
 
     expect(projectStateService.setState).toHaveBeenCalledWith(
       jasmine.any(Object),
-      'Resize canvas'
+      'Resize canvas',
     );
     expect(historyService.canUndo()).toBe(true);
   });
@@ -80,7 +80,7 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
 
     expect(projectStateService.setState).toHaveBeenCalledWith(
       jasmine.any(Object),
-      'Toggle layer visibility'
+      'Toggle layer visibility',
     );
   });
 
@@ -93,7 +93,7 @@ describe('EditorDocumentService - Undo/Redo Integration', () => {
 
     expect(projectStateService.setState).toHaveBeenCalledWith(
       jasmine.any(Object),
-      'Create selection'
+      'Create selection',
     );
   });
 });

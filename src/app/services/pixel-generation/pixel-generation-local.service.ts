@@ -73,7 +73,11 @@ export class PixelGenerationLocalService {
     }
   }
 
-  private scaleImage(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData {
+  private scaleImage(
+    imageData: ImageData,
+    targetWidth: number,
+    targetHeight: number,
+  ): ImageData {
     const canvas = document.createElement('canvas');
     canvas.width = targetWidth;
     canvas.height = targetHeight;
@@ -148,7 +152,10 @@ export class PixelGenerationLocalService {
 
         if (oldA === 0) continue;
 
-        const closest = this.findClosestColor({ r: oldR, g: oldG, b: oldB }, paletteRgb);
+        const closest = this.findClosestColor(
+          { r: oldR, g: oldG, b: oldB },
+          paletteRgb,
+        );
 
         result.data[idx] = closest.r;
         result.data[idx + 1] = closest.g;
@@ -158,10 +165,46 @@ export class PixelGenerationLocalService {
         const errG = oldG - closest.g;
         const errB = oldB - closest.b;
 
-        this.distributeError(result, x + 1, y, imageData.width, errR, errG, errB, 7 / 16);
-        this.distributeError(result, x - 1, y + 1, imageData.width, errR, errG, errB, 3 / 16);
-        this.distributeError(result, x, y + 1, imageData.width, errR, errG, errB, 5 / 16);
-        this.distributeError(result, x + 1, y + 1, imageData.width, errR, errG, errB, 1 / 16);
+        this.distributeError(
+          result,
+          x + 1,
+          y,
+          imageData.width,
+          errR,
+          errG,
+          errB,
+          7 / 16,
+        );
+        this.distributeError(
+          result,
+          x - 1,
+          y + 1,
+          imageData.width,
+          errR,
+          errG,
+          errB,
+          3 / 16,
+        );
+        this.distributeError(
+          result,
+          x,
+          y + 1,
+          imageData.width,
+          errR,
+          errG,
+          errB,
+          5 / 16,
+        );
+        this.distributeError(
+          result,
+          x + 1,
+          y + 1,
+          imageData.width,
+          errR,
+          errG,
+          errB,
+          1 / 16,
+        );
       }
     }
 
@@ -183,9 +226,18 @@ export class PixelGenerationLocalService {
     const idx = (y * width + x) * 4;
     if (imageData.data[idx + 3] === 0) return;
 
-    imageData.data[idx] = Math.max(0, Math.min(255, imageData.data[idx] + errR * factor));
-    imageData.data[idx + 1] = Math.max(0, Math.min(255, imageData.data[idx + 1] + errG * factor));
-    imageData.data[idx + 2] = Math.max(0, Math.min(255, imageData.data[idx + 2] + errB * factor));
+    imageData.data[idx] = Math.max(
+      0,
+      Math.min(255, imageData.data[idx] + errR * factor),
+    );
+    imageData.data[idx + 1] = Math.max(
+      0,
+      Math.min(255, imageData.data[idx + 1] + errG * factor),
+    );
+    imageData.data[idx + 2] = Math.max(
+      0,
+      Math.min(255, imageData.data[idx + 2] + errB * factor),
+    );
   }
 
   private adjustContrast(imageData: ImageData, factor: number): ImageData {
@@ -203,7 +255,7 @@ export class PixelGenerationLocalService {
 
       for (let c = 0; c < 3; c++) {
         const value = imageData.data[i + c];
-        const adjusted = ((value - 128) * factor + 128);
+        const adjusted = (value - 128) * factor + 128;
         result.data[i + c] = Math.max(0, Math.min(255, adjusted));
       }
       result.data[i + 3] = a;
@@ -278,7 +330,16 @@ export class PixelGenerationLocalService {
   private generateDefaultPalette(maxColors: number): string[] {
     const palettes: Record<number, string[]> = {
       4: ['#000000', '#555555', '#aaaaaa', '#ffffff'],
-      8: ['#000000', '#1d2b53', '#7e2553', '#008751', '#ab5236', '#5f574f', '#c2c3c7', '#fff1e8'],
+      8: [
+        '#000000',
+        '#1d2b53',
+        '#7e2553',
+        '#008751',
+        '#ab5236',
+        '#5f574f',
+        '#c2c3c7',
+        '#fff1e8',
+      ],
       16: [
         '#000000',
         '#1d2b53',

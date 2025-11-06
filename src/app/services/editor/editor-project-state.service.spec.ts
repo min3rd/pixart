@@ -59,7 +59,7 @@ describe('EditorProjectStateService', () => {
 
     expect(historyService.pushSnapshot).toHaveBeenCalledWith(
       mockSnapshot,
-      'Test change'
+      'Test change',
     );
   });
 
