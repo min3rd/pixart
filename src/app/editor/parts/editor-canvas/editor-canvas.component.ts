@@ -1469,28 +1469,42 @@ export class EditorCanvas implements OnDestroy {
           this.document.keyframeService.getPixelBindings(frameId);
 
         const transformCache = new Map<string, any>();
+        const pixelBindingsMap = new Map<number, typeof bindings>();
 
         for (const binding of bindings) {
           const sourceIdx = binding.pixelY * w + binding.pixelX;
+          const existingBindings = pixelBindingsMap.get(sourceIdx) || [];
+          existingBindings.push(binding);
+          pixelBindingsMap.set(sourceIdx, existingBindings);
+        }
+
+        for (const [sourceIdx, pixelBindings] of pixelBindingsMap.entries()) {
           const col = buf[sourceIdx];
           if (!col || !col.length) continue;
 
-          const cacheKey = `${binding.boneId}:${binding.bonePointId}`;
+          let dominantBinding = pixelBindings[0];
+          for (const binding of pixelBindings) {
+            if (binding.weight > dominantBinding.weight) {
+              dominantBinding = binding;
+            }
+          }
+
+          const cacheKey = `${dominantBinding.boneId}:${dominantBinding.bonePointId}`;
           let transform = transformCache.get(cacheKey);
 
           if (!transform) {
             transform = this.document.keyframeService.interpolateBoneTransform(
               animationId,
-              binding.boneId,
-              binding.bonePointId,
+              dominantBinding.boneId,
+              dominantBinding.bonePointId,
               currentTime,
             );
             transformCache.set(cacheKey, transform);
           }
 
           if (transform) {
-            const transformedX = Math.round(transform.x + binding.offsetX);
-            const transformedY = Math.round(transform.y + binding.offsetY);
+            const transformedX = Math.round(transform.x + dominantBinding.offsetX);
+            const transformedY = Math.round(transform.y + dominantBinding.offsetY);
 
             if (
               transformedX >= 0 &&
@@ -1500,8 +1514,8 @@ export class EditorCanvas implements OnDestroy {
             ) {
               const destIdx = transformedY * w + transformedX;
               const distSq =
-                binding.offsetX * binding.offsetX +
-                binding.offsetY * binding.offsetY;
+                dominantBinding.offsetX * dominantBinding.offsetX +
+                dominantBinding.offsetY * dominantBinding.offsetY;
               const priority = -distSq;
 
               const existing = destinationPixelMap.get(destIdx);
@@ -1511,7 +1525,9 @@ export class EditorCanvas implements OnDestroy {
               boundSourcePixels.add(sourceIdx);
             }
           } else {
-            const destIdx = binding.pixelY * w + binding.pixelX;
+            const pixelY = Math.floor(sourceIdx / w);
+            const pixelX = sourceIdx % w;
+            const destIdx = pixelY * w + pixelX;
             destinationPixelMap.set(destIdx, { color: col, priority: 0 });
             boundSourcePixels.add(sourceIdx);
           }
@@ -1775,7 +1791,17 @@ export class EditorCanvas implements OnDestroy {
           { r: number; g: number; b: number }
         >();
 
+        const pixelBindingCounts = new Map<string, number>();
         for (const binding of bindings) {
+          const key = `${binding.pixelX},${binding.pixelY}`;
+          pixelBindingCounts.set(key, (pixelBindingCounts.get(key) || 0) + 1);
+        }
+
+        for (const binding of bindings) {
+          const pixelKey = `${binding.pixelX},${binding.pixelY}`;
+          const bindingCount = pixelBindingCounts.get(pixelKey) || 1;
+          const isMultiBound = bindingCount > 1;
+
           let rgb = boneColorCache.get(binding.boneId);
 
           if (!rgb) {
@@ -1846,7 +1872,11 @@ export class EditorCanvas implements OnDestroy {
           }
 
           if (rgb) {
-            ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
+            if (isMultiBound) {
+              ctx.fillStyle = `rgba(255, 255, 0, 0.4)`;
+            } else {
+              ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
+            }
             ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
           }
         }

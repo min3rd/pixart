@@ -207,6 +207,9 @@ export class EditorBoneService {
         const distSq = dx * dx + dy * dy;
 
         if (distSq <= radiusSq) {
+          const dist = Math.sqrt(distSq);
+          const weight = radius > 0 ? 1 - dist / radius : 1;
+
           const binding = {
             pixelX: x,
             pixelY: y,
@@ -215,6 +218,7 @@ export class EditorBoneService {
             bonePointId: pointId,
             offsetX: dx,
             offsetY: dy,
+            weight: Math.max(0, Math.min(1, weight)),
           };
 
           this.keyframeService.addPixelBinding(frameId, binding);

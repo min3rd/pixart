@@ -24,6 +24,7 @@ export interface PixelBinding {
   bonePointId: string;
   offsetX: number;
   offsetY: number;
+  weight: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -188,7 +189,11 @@ export class EditorKeyframeService {
   }
 
   getPixelBindings(frameId: string): PixelBinding[] {
-    return this.pixelBindings().get(frameId) || [];
+    const bindings = this.pixelBindings().get(frameId) || [];
+    return bindings.map(binding => ({
+      ...binding,
+      weight: binding.weight ?? 1.0
+    }));
   }
 
   clearPixelBindings(frameId: string): void {
