@@ -396,6 +396,8 @@
   },
   "pixelGeneration": {
     "title": "Tạo Pixel Art",
+    "inDevelopment": "Đang Phát Triển",
+    "devNotice": "⚠️ Tính năng này đang trong quá trình phát triển. Hỗ trợ AI model đang được bổ sung. Hiện tại sử dụng xử lý ảnh truyền thống.",
     "description": "Tạo pixel art từ phác họa và mô tả văn bản",
     "prompt": "Mô tả những gì bạn muốn tạo",
     "promptPlaceholder": "Ví dụ: một cái cây nhỏ với lá xanh và thân màu nâu",

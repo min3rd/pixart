@@ -393,6 +393,8 @@
   },
   "pixelGeneration": {
     "title": "Generate Pixel Art",
+    "inDevelopment": "In Development",
+    "devNotice": "⚠️ This feature is currently under development. AI model support is being added. For now, it uses traditional image processing.",
     "description": "Create pixel art from your sketch and text prompt",
     "prompt": "Describe what you want to create",
     "promptPlaceholder": "E.g., a small tree with green leaves and brown trunk",

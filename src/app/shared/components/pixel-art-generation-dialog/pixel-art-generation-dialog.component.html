@@ -8,10 +8,15 @@
     id="pixel-art-generation-dialog-content"
   >
     <div class="flex items-center justify-between mb-4" id="pixel-art-generation-dialog-header">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="pixel-art-generation-dialog-title">
-        <ng-icon name="heroSparkles" class="inline-block w-5 h-5 mr-2" />
-        {{ 'pixelGeneration.title' | transloco }}
-      </h2>
+      <div class="flex items-center gap-2" id="pixel-art-generation-dialog-title-container">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="pixel-art-generation-dialog-title">
+          <ng-icon name="heroSparkles" class="inline-block w-5 h-5 mr-2" />
+          {{ 'pixelGeneration.title' | transloco }}
+        </h2>
+        <span class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700" id="pixel-art-generation-dialog-dev-badge">
+          {{ 'pixelGeneration.inDevelopment' | transloco }}
+        </span>
+      </div>
       <button
         type="button"
         (click)="cancel()"
@@ -21,6 +26,12 @@
       >
         <ng-icon name="heroXMark" class="w-5 h-5" />
       </button>
+    </div>
+
+    <div class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm" id="pixel-art-generation-dialog-dev-notice">
+      <p class="text-xs text-amber-900 dark:text-amber-200" id="pixel-art-generation-dialog-dev-notice-text">
+        {{ 'pixelGeneration.devNotice' | transloco }}
+      </p>
     </div>
 
     <div class="mb-4" id="pixel-art-generation-dialog-description">
