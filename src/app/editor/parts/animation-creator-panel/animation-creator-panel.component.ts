@@ -72,6 +72,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   readonly editingAnimationId = signal<string | null>(null);
   readonly editingAnimationName = signal<string>('');
   readonly showAnimationDropdown = signal<boolean>(false);
+  readonly isDraggingPlayhead = signal<boolean>(false);
 
   @ViewChild('animationDropdown')
   animationDropdown?: ElementRef<HTMLDivElement>;
@@ -268,11 +269,73 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     const pixelsPerMs = (rect.width / duration) * zoom;
     const hoveredTime = x / pixelsPerMs;
 
-    this.hoveredTime.set(hoveredTime);
+    this.hoveredTime.set(Math.max(0, Math.min(hoveredTime, duration)));
+
+    if (this.isDraggingPlayhead()) {
+      this.setCurrentTime(Math.max(0, Math.min(hoveredTime, duration)));
+    }
+  }
+
+  onTimelineMouseDown(event: MouseEvent) {
+    const canvas = this.timelineCanvas?.nativeElement;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const duration = this.duration();
+    const zoom = this.zoomLevel();
+    const pixelsPerMs = (rect.width / duration) * zoom;
+    const clickedTime = x / pixelsPerMs;
+
+    const playheadX = this.currentTime() * pixelsPerMs;
+    const threshold = 10;
+
+    if (Math.abs(x - playheadX) < threshold) {
+      this.isDraggingPlayhead.set(true);
+      event.preventDefault();
+    } else {
+      this.setCurrentTime(Math.max(0, Math.min(clickedTime, duration)));
+      const currentAnimation = this.animationService.getCurrentAnimation();
+      if (!currentAnimation) return;
+
+      const keyframes = this.keyframeService.getKeyframes(currentAnimation.id);
+      const kfThreshold = 10 / pixelsPerMs;
+
+      const clickedKeyframe = keyframes.find(
+        (kf) => Math.abs(kf.time - clickedTime) < kfThreshold,
+      );
+
+      if (clickedKeyframe) {
+        this.selectedKeyframeId.set(clickedKeyframe.id);
+      } else {
+        this.selectedKeyframeId.set(null);
+      }
+    }
+  }
+
+  onTimelineMouseUp(event: MouseEvent) {
+    if (this.isDraggingPlayhead()) {
+      this.isDraggingPlayhead.set(false);
+    }
   }
 
   onTimelineMouseLeave() {
     this.hoveredTime.set(null);
+    if (this.isDraggingPlayhead()) {
+      this.isDraggingPlayhead.set(false);
+    }
+  }
+
+  getTimelinePixelPosition(time: number): number {
+    const canvas = this.timelineCanvas?.nativeElement;
+    if (!canvas) return 0;
+
+    const rect = canvas.getBoundingClientRect();
+    const duration = this.duration();
+    const zoom = this.zoomLevel();
+    const pixelsPerMs = (rect.width / duration) * zoom;
+
+    return time * pixelsPerMs;
   }
 
   togglePlayback() {
