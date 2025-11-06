@@ -61,6 +61,9 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   @ViewChild('timelineRuler')
   timelineRuler?: ElementRef<HTMLDivElement>;
 
+  @ViewChild('animationDropdown')
+  animationDropdown?: ElementRef<HTMLDivElement>;
+
   readonly isPlaying = signal(false);
   readonly currentTime = signal(0);
   readonly duration = signal(3000);
@@ -78,6 +81,7 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   private animationFrameId: number | null = null;
   private lastUpdateTime: number = 0;
   private newKeyframeBadgeTimeoutId: number | null = null;
+  private documentClickListener: ((event: MouseEvent) => void) | null = null;
 
   constructor() {
     effect(() => {
@@ -96,6 +100,25 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     this.keyframeService.setTimelineMode('time');
     this.renderTimeline();
     this.updatePlayheadPosition();
+
+    this.documentClickListener = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const dropdown = this.animationDropdown?.nativeElement;
+      const dropdownBtn = document.getElementById(
+        'animation-selector-dropdown-btn',
+      );
+
+      if (
+        this.showAnimationDropdown() &&
+        dropdown &&
+        dropdownBtn &&
+        !dropdown.contains(target) &&
+        !dropdownBtn.contains(target)
+      ) {
+        this.showAnimationDropdown.set(false);
+      }
+    };
+    document.addEventListener('click', this.documentClickListener);
   }
 
   ngOnDestroy() {
@@ -103,6 +126,10 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
     if (this.newKeyframeBadgeTimeoutId !== null) {
       clearTimeout(this.newKeyframeBadgeTimeoutId);
       this.newKeyframeBadgeTimeoutId = null;
+    }
+    if (this.documentClickListener) {
+      document.removeEventListener('click', this.documentClickListener);
+      this.documentClickListener = null;
     }
   }
 
