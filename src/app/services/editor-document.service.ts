@@ -1129,7 +1129,143 @@ export class EditorDocumentService {
     return this.clipboardService.hasClipboard();
   }
 
+  private getSelectionBuffer(): {
+    buffer: string[];
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  } | null {
+    const sel = this.selectionService.selectionRect();
+    if (!sel) return null;
+
+    const shape = this.selectionService.selectionShape();
+    const poly = this.selectionService.selectionPolygon();
+    const layerId = this.selectedLayerId();
+    const sourceBuf = this.canvasState.getLayerBuffer(layerId);
+    if (!sourceBuf || sourceBuf.length === 0) return null;
+
+    const canvasWidth = this.canvasWidth();
+    const canvasHeight = this.canvasHeight();
+    const buffer = new Array<string>(sel.width * sel.height).fill('');
+
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX < 0 || srcX >= canvasWidth || srcY < 0 || srcY >= canvasHeight)
+          continue;
+
+        if (
+          this.selectionService.isPixelWithinSelection(
+            srcX,
+            srcY,
+            sel,
+            shape,
+            poly,
+          )
+        ) {
+          const srcIdx = srcY * canvasWidth + srcX;
+          const dstIdx = y * sel.width + x;
+          buffer[dstIdx] = sourceBuf[srcIdx] || '';
+        }
+      }
+    }
+
+    return {
+      buffer,
+      width: sel.width,
+      height: sel.height,
+      x: sel.x,
+      y: sel.y,
+    };
+  }
+
+  private applySelectionBuffer(
+    buffer: string[],
+    width: number,
+    height: number,
+    x: number,
+    y: number,
+    clearOriginal = true,
+  ): boolean {
+    const sel = this.selectionService.selectionRect();
+    if (!sel && !clearOriginal) return false;
+
+    const layerId = this.selectedLayerId();
+    const targetBuf = this.canvasState.getLayerBuffer(layerId);
+    if (!targetBuf || targetBuf.length === 0) return false;
+
+    const canvasWidth = this.canvasWidth();
+    const canvasHeight = this.canvasHeight();
+
+    if (clearOriginal && sel) {
+      const shape = this.selectionService.selectionShape();
+      const poly = this.selectionService.selectionPolygon();
+
+      for (let cy = 0; cy < sel.height; cy++) {
+        for (let cx = 0; cx < sel.width; cx++) {
+          const px = sel.x + cx;
+          const py = sel.y + cy;
+          if (px < 0 || px >= canvasWidth || py < 0 || py >= canvasHeight)
+            continue;
+
+          if (
+            this.selectionService.isPixelWithinSelection(px, py, sel, shape, poly)
+          ) {
+            const idx = py * canvasWidth + px;
+            targetBuf[idx] = '';
+          }
+        }
+      }
+    }
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const destX = x + Math.floor(x);
+        const destY = y + Math.floor(y);
+        if (destX < 0 || destX >= canvasWidth || destY < 0 || destY >= canvasHeight)
+          continue;
+
+        const srcIdx = y * width + x;
+        const destIdx = destY * canvasWidth + destX;
+        const pixel = buffer[srcIdx];
+        if (pixel) {
+          targetBuf[destIdx] = pixel;
+        }
+      }
+    }
+
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
   flipLayerHorizontal(layerId?: string): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Flip horizontal (selection)');
+
+      const flipped = this.transformService.applySimpleFlipHorizontal(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+      );
+
+      return this.applySelectionBuffer(
+        flipped,
+        selBuf.width,
+        selBuf.height,
+        selBuf.x,
+        selBuf.y,
+        true,
+      );
+    }
+
     const targetId = layerId || this.selectedLayerId();
     if (!targetId) return false;
 
@@ -1153,6 +1289,30 @@ export class EditorDocumentService {
   }
 
   flipLayerVertical(layerId?: string): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Flip vertical (selection)');
+
+      const flipped = this.transformService.applySimpleFlipVertical(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+      );
+
+      return this.applySelectionBuffer(
+        flipped,
+        selBuf.width,
+        selBuf.height,
+        selBuf.x,
+        selBuf.y,
+        true,
+      );
+    }
+
     const targetId = layerId || this.selectedLayerId();
     if (!targetId) return false;
 
@@ -1176,6 +1336,48 @@ export class EditorDocumentService {
   }
 
   rotateLayer90CW(layerId?: string): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Rotate 90° CW (selection)');
+
+      const result = this.transformService.applyRotate90CW(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+      );
+
+      const newX = Math.max(
+        0,
+        Math.min(this.canvasWidth() - result.width, selBuf.x),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(this.canvasHeight() - result.height, selBuf.y),
+      );
+
+      this.applySelectionBuffer(
+        result.buffer,
+        result.width,
+        result.height,
+        newX,
+        newY,
+        true,
+      );
+
+      this.selectionService.selectionRect.set({
+        x: newX,
+        y: newY,
+        width: result.width,
+        height: result.height,
+      });
+
+      return true;
+    }
+
     const targetId = layerId || this.selectedLayerId();
     if (!targetId) return false;
 
@@ -1203,6 +1405,48 @@ export class EditorDocumentService {
   }
 
   rotateLayer90CCW(layerId?: string): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Rotate 90° CCW (selection)');
+
+      const result = this.transformService.applyRotate90CCW(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+      );
+
+      const newX = Math.max(
+        0,
+        Math.min(this.canvasWidth() - result.width, selBuf.x),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(this.canvasHeight() - result.height, selBuf.y),
+      );
+
+      this.applySelectionBuffer(
+        result.buffer,
+        result.width,
+        result.height,
+        newX,
+        newY,
+        true,
+      );
+
+      this.selectionService.selectionRect.set({
+        x: newX,
+        y: newY,
+        width: result.width,
+        height: result.height,
+      });
+
+      return true;
+    }
+
     const targetId = layerId || this.selectedLayerId();
     if (!targetId) return false;
 
@@ -1230,6 +1474,30 @@ export class EditorDocumentService {
   }
 
   rotateLayer180(layerId?: string): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Rotate 180° (selection)');
+
+      const rotated = this.transformService.applyRotate180(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+      );
+
+      return this.applySelectionBuffer(
+        rotated,
+        selBuf.width,
+        selBuf.height,
+        selBuf.x,
+        selBuf.y,
+        true,
+      );
+    }
+
     const targetId = layerId || this.selectedLayerId();
     if (!targetId) return false;
 

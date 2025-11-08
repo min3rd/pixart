@@ -383,4 +383,31 @@ export class EditorTransformService {
     }
     return result;
   }
+
+  applyScale(
+    buffer: string[],
+    width: number,
+    height: number,
+    scaleX: number,
+    scaleY: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = Math.max(1, Math.round(width * scaleX));
+    const newHeight = Math.max(1, Math.round(height * scaleY));
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcX = Math.floor(x / scaleX);
+        const srcY = Math.floor(y / scaleY);
+
+        if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height) {
+          const srcIdx = srcY * width + srcX;
+          const destIdx = y * newWidth + x;
+          result[destIdx] = buffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
 }
