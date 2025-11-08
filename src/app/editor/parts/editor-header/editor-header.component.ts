@@ -19,6 +19,7 @@ import { EditorToolsService } from '../../../services/editor-tools.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dialog/hotkey-config-dialog.component';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
+import { EditorTransformService } from '../../../services/editor/editor-transform.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -44,11 +45,13 @@ export class EditorHeader {
   readonly settings = inject(UserSettingsService);
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
+  readonly transform = inject(EditorTransformService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
   readonly showToolMenu = signal(false);
   readonly showHelpMenu = signal(false);
+  readonly showTransformMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   private hoverOpenTimer?: number;
@@ -61,6 +64,8 @@ export class EditorHeader {
   private toolHoverCloseTimer?: number;
   private helpHoverOpenTimer?: number;
   private helpHoverCloseTimer?: number;
+  private transformHoverOpenTimer?: number;
+  private transformHoverCloseTimer?: number;
 
   async onNewProject() {
     // Reset to a minimal new project
@@ -462,6 +467,34 @@ export class EditorHeader {
       defaultKey: 'ctrl+i',
       handler: () => this.onInsertImage(),
     });
+
+    this.hotkeys.register({
+      id: 'transform.freeTransform',
+      category: 'edit',
+      defaultKey: 'ctrl+t',
+      handler: () => this.onFreeTransform(),
+    });
+
+    this.hotkeys.register({
+      id: 'transform.contentAwareScale',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+alt+c',
+      handler: () => this.onContentAwareScale(),
+    });
+
+    this.hotkeys.register({
+      id: 'transform.flipHorizontal',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+h',
+      handler: () => this.onFlipHorizontal(),
+    });
+
+    this.hotkeys.register({
+      id: 'transform.flipVertical',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+v',
+      handler: () => this.onFlipVertical(),
+    });
   }
 
   async onInsertImage() {
@@ -693,6 +726,14 @@ export class EditorHeader {
       clearTimeout(this.helpHoverCloseTimer);
       this.helpHoverCloseTimer = undefined;
     }
+    if (this.transformHoverOpenTimer) {
+      clearTimeout(this.transformHoverOpenTimer);
+      this.transformHoverOpenTimer = undefined;
+    }
+    if (this.transformHoverCloseTimer) {
+      clearTimeout(this.transformHoverCloseTimer);
+      this.transformHoverCloseTimer = undefined;
+    }
   }
 
   setLang(lang: 'en' | 'vi') {
@@ -702,5 +743,127 @@ export class EditorHeader {
   toggleTheme() {
     const next = this.settings.theme() === 'dark' ? 'light' : 'dark';
     this.settings.setTheme(next);
+  }
+
+  openTransformMenuHover() {
+    if (this.transformHoverCloseTimer) {
+      clearTimeout(this.transformHoverCloseTimer);
+      this.transformHoverCloseTimer = undefined;
+    }
+    if (!this.showTransformMenu()) {
+      this.transformHoverOpenTimer = window.setTimeout(() => {
+        this.showTransformMenu.set(true);
+        this.transformHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closeTransformMenuHover() {
+    if (this.transformHoverOpenTimer) {
+      clearTimeout(this.transformHoverOpenTimer);
+      this.transformHoverOpenTimer = undefined;
+    }
+    if (this.showTransformMenu()) {
+      this.transformHoverCloseTimer = window.setTimeout(() => {
+        this.showTransformMenu.set(false);
+        this.transformHoverCloseTimer = undefined;
+      }, 200);
+    }
+  }
+
+  onTransformMenuFocusIn() {
+    if (this.transformHoverCloseTimer) {
+      clearTimeout(this.transformHoverCloseTimer);
+      this.transformHoverCloseTimer = undefined;
+    }
+    this.showTransformMenu.set(true);
+  }
+
+  onTransformMenuFocusOut() {
+    if (this.transformHoverCloseTimer) clearTimeout(this.transformHoverCloseTimer);
+    this.transformHoverCloseTimer = window.setTimeout(() => {
+      this.showTransformMenu.set(false);
+      this.transformHoverCloseTimer = undefined;
+    }, 150);
+  }
+
+  onFreeTransform() {
+    console.info('Free transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onScale() {
+    console.info('Scale transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onRotate() {
+    console.info('Rotate transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onSkew() {
+    console.info('Skew transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onDistort() {
+    console.info('Distort transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onPerspective() {
+    console.info('Perspective transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onWarp() {
+    console.info('Warp transform activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onPuppetWarp() {
+    console.info('Puppet warp activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onContentAwareScale() {
+    console.info('Content-aware scale activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onAutoAlignLayers() {
+    console.info('Auto-align layers activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onAutoBlendLayers() {
+    console.info('Auto-blend layers activated');
+    this.showTransformMenu.set(false);
+  }
+
+  onFlipHorizontal() {
+    this.transform.flipHorizontal();
+    this.showTransformMenu.set(false);
+  }
+
+  onFlipVertical() {
+    this.transform.flipVertical();
+    this.showTransformMenu.set(false);
+  }
+
+  onRotate90CW() {
+    this.transform.rotate90CW();
+    this.showTransformMenu.set(false);
+  }
+
+  onRotate90CCW() {
+    this.transform.rotate90CCW();
+    this.showTransformMenu.set(false);
+  }
+
+  onRotate180() {
+    this.transform.rotate180();
+    this.showTransformMenu.set(false);
   }
 }

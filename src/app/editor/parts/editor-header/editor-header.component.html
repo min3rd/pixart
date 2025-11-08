@@ -316,6 +316,213 @@
         </div>
       }
     </div>
+    <div
+      id="menu-transform-wrapper"
+      class="relative"
+      (mouseenter)="openTransformMenuHover()"
+      (mouseleave)="closeTransformMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-transform-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showTransformMenu.set(!showTransformMenu())"
+        [attr.aria-expanded]="showTransformMenu()"
+        [paTooltip]="'tooltips.menu.transform' | transloco"
+      >
+        {{ "menu.transform" | transloco }}
+      </button>
+      @if (showTransformMenu()) {
+        <div
+          id="menu-transform-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-64"
+          tabindex="0"
+          (focusin)="onTransformMenuFocusIn()"
+          (focusout)="onTransformMenuFocusOut()"
+        >
+          <button
+            id="menu-transform-free-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onFreeTransform()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.freeTransform')"
+          >
+            <span id="menu-transform-free-label">{{ "menu.freeTransform" | transloco }}</span>
+            @if (hotkeys.getBinding("transform.freeTransform")) {
+              <span
+                id="menu-transform-free-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.freeTransform")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-transform-divider-1"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-scale-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onScale()"
+          >
+            <span id="menu-transform-scale-label">{{ "menu.scale" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onRotate()"
+          >
+            <span id="menu-transform-rotate-label">{{ "menu.rotate" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-skew-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onSkew()"
+          >
+            <span id="menu-transform-skew-label">{{ "menu.skew" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-distort-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onDistort()"
+          >
+            <span id="menu-transform-distort-label">{{ "menu.distort" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-perspective-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onPerspective()"
+          >
+            <span id="menu-transform-perspective-label">{{ "menu.perspective" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-warp-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onWarp()"
+          >
+            <span id="menu-transform-warp-label">{{ "menu.warp" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-puppet-warp-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onPuppetWarp()"
+          >
+            <span id="menu-transform-puppet-warp-label">{{ "menu.puppetWarp" | transloco }}</span>
+          </button>
+          <div
+            id="menu-transform-divider-2"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-content-aware-scale-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onContentAwareScale()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.contentAwareScale')"
+          >
+            <span id="menu-transform-content-aware-scale-label">{{ "menu.contentAwareScale" | transloco }}</span>
+            @if (hotkeys.getBinding("transform.contentAwareScale")) {
+              <span
+                id="menu-transform-content-aware-scale-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.contentAwareScale")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-transform-divider-3"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-auto-align-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onAutoAlignLayers()"
+          >
+            <span id="menu-transform-auto-align-label">{{ "menu.autoAlignLayers" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-auto-blend-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onAutoBlendLayers()"
+          >
+            <span id="menu-transform-auto-blend-label">{{ "menu.autoBlendLayers" | transloco }}</span>
+          </button>
+          <div
+            id="menu-transform-divider-4"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-flip-horizontal-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onFlipHorizontal()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.flipHorizontal')"
+          >
+            <span id="menu-transform-flip-horizontal-label">{{ "menu.flipHorizontal" | transloco }}</span>
+            @if (hotkeys.getBinding("transform.flipHorizontal")) {
+              <span
+                id="menu-transform-flip-horizontal-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.flipHorizontal")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-transform-flip-vertical-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onFlipVertical()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.flipVertical')"
+          >
+            <span id="menu-transform-flip-vertical-label">{{ "menu.flipVertical" | transloco }}</span>
+            @if (hotkeys.getBinding("transform.flipVertical")) {
+              <span
+                id="menu-transform-flip-vertical-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.flipVertical")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-transform-rotate-90cw-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onRotate90CW()"
+          >
+            <span id="menu-transform-rotate-90cw-label">{{ "menu.rotate90CW" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-90ccw-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onRotate90CCW()"
+          >
+            <span id="menu-transform-rotate-90ccw-label">{{ "menu.rotate90CCW" | transloco }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-180-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onRotate180()"
+          >
+            <span id="menu-transform-rotate-180-label">{{ "menu.rotate180" | transloco }}</span>
+          </button>
+        </div>
+      }
+    </div>
     <button
       type="button"
       id="menu-undo-button"
