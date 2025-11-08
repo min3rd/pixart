@@ -84,7 +84,10 @@
     "hide": "Ẩn",
     "show": "Hiện",
     "delete": "Xóa layer",
-    "add": "Thêm layer"
+    "add": "Thêm layer",
+    "pasted": "Đã dán",
+    "pastedInPlace": "Đã dán tại chỗ",
+    "pastedInto": "Đã dán vào vùng chọn"
   },
   "timeline": {
     "title": "Timeline",

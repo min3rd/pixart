@@ -84,7 +84,10 @@
     "hide": "Hide",
     "show": "Show",
     "delete": "Delete layer",
-    "add": "Add Layer"
+    "add": "Add Layer",
+    "pasted": "Pasted",
+    "pastedInPlace": "Pasted in place",
+    "pastedInto": "Pasted into"
   },
   "timeline": {
     "title": "Timeline",

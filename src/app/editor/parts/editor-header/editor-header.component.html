@@ -135,9 +135,10 @@
             (click)="onCut()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.cut')"
           >
-            <span>{{ "menu.cut" | transloco }}</span>
+            <span id="menu-edit-cut-label">{{ "menu.cut" | transloco }}</span>
             @if (hotkeys.getBinding("edit.cut")) {
               <span
+                id="menu-edit-cut-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{ hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.cut")!) }}
@@ -150,9 +151,10 @@
             (click)="onCopy()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copy')"
           >
-            <span>{{ "menu.copy" | transloco }}</span>
+            <span id="menu-edit-copy-label">{{ "menu.copy" | transloco }}</span>
             @if (hotkeys.getBinding("edit.copy")) {
               <span
+                id="menu-edit-copy-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
@@ -167,9 +169,10 @@
             (click)="onCopyMerged()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copyMerged')"
           >
-            <span>{{ "menu.copyMerged" | transloco }}</span>
+            <span id="menu-edit-copy-merged-label">{{ "menu.copyMerged" | transloco }}</span>
             @if (hotkeys.getBinding("edit.copyMerged")) {
               <span
+                id="menu-edit-copy-merged-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
@@ -190,9 +193,10 @@
             (click)="onPaste()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.paste')"
           >
-            <span>{{ "menu.paste" | transloco }}</span>
+            <span id="menu-edit-paste-label">{{ "menu.paste" | transloco }}</span>
             @if (hotkeys.getBinding("edit.paste")) {
               <span
+                id="menu-edit-paste-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
@@ -207,9 +211,10 @@
             (click)="onPasteInPlace()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInPlace')"
           >
-            <span>{{ "menu.pasteInPlace" | transloco }}</span>
+            <span id="menu-edit-paste-in-place-label">{{ "menu.pasteInPlace" | transloco }}</span>
             @if (hotkeys.getBinding("edit.pasteInPlace")) {
               <span
+                id="menu-edit-paste-in-place-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
@@ -226,9 +231,10 @@
             (click)="onPasteInto()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInto')"
           >
-            <span>{{ "menu.pasteInto" | transloco }}</span>
+            <span id="menu-edit-paste-into-label">{{ "menu.pasteInto" | transloco }}</span>
             @if (hotkeys.getBinding("edit.pasteInto")) {
               <span
+                id="menu-edit-paste-into-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
@@ -249,9 +255,10 @@
             (click)="onClear()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.clear')"
           >
-            <span>{{ "menu.clear" | transloco }}</span>
+            <span id="menu-edit-clear-label">{{ "menu.clear" | transloco }}</span>
             @if (hotkeys.getBinding("edit.clear")) {
               <span
+                id="menu-edit-clear-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
