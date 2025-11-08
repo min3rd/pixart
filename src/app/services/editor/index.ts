@@ -1,6 +1,7 @@
 export * from './editor.types';
 export * from './history.types';
 export * from './editor-canvas-state.service';
+export * from './editor-clipboard.service';
 export * from './editor-color.service';
 export * from './editor-drawing.service';
 export * from './editor-frame.service';

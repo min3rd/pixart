@@ -105,14 +105,164 @@
         </div>
       }
     </div>
-    <button
-      type="button"
-      id="menu-edit-button"
-      class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-      [paTooltip]="'tooltips.menu.edit' | transloco"
+    <div
+      id="menu-edit-wrapper"
+      class="relative"
+      (mouseenter)="openEditMenuHover()"
+      (mouseleave)="closeEditMenuHover()"
     >
-      {{ "menu.edit" | transloco }}
-    </button>
+      <button
+        type="button"
+        id="menu-edit-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showEditMenu.set(!showEditMenu())"
+        [attr.aria-expanded]="showEditMenu()"
+        [paTooltip]="'tooltips.menu.edit' | transloco"
+      >
+        {{ "menu.edit" | transloco }}
+      </button>
+      @if (showEditMenu()) {
+        <div
+          id="menu-edit-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onEditMenuFocusIn()"
+          (focusout)="onEditMenuFocusOut()"
+        >
+          <button
+            id="menu-edit-cut-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCut()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.cut')"
+          >
+            <span>{{ "menu.cut" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.cut")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{ hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.cut")!) }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-copy-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCopy()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copy')"
+          >
+            <span>{{ "menu.copy" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.copy")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.copy")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-copy-merged-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCopyMerged()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copyMerged')"
+          >
+            <span>{{ "menu.copyMerged" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.copyMerged")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.copyMerged")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-1"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-paste-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaste()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.paste')"
+          >
+            <span>{{ "menu.paste" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.paste")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.paste")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-paste-in-place-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPasteInPlace()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInPlace')"
+          >
+            <span>{{ "menu.pasteInPlace" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.pasteInPlace")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.pasteInPlace")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-paste-into-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPasteInto()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInto')"
+          >
+            <span>{{ "menu.pasteInto" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.pasteInto")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.pasteInto")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-2"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-clear-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onClear()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.clear')"
+          >
+            <span>{{ "menu.clear" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.clear")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.clear")!)
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
     <div
       id="menu-insert-wrapper"
       class="relative"

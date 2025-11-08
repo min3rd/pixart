@@ -7,6 +7,7 @@ import {
   EditorAnimationCollectionService,
   EditorBoneHierarchyService,
   EditorCanvasStateService,
+  EditorClipboardService,
   EditorColorService,
   EditorDrawingService,
   EditorFrameService,
@@ -64,6 +65,7 @@ export class EditorDocumentService {
   private readonly historyService = inject(EditorHistoryService);
   private readonly projectStateService = inject(EditorProjectStateService);
   private readonly selectionService = inject(EditorSelectionService);
+  private readonly clipboardService = inject(EditorClipboardService);
   private readonly drawingService = inject(EditorDrawingService);
   private readonly colorService = inject(EditorColorService);
   private readonly projectService = inject(EditorProjectService);
@@ -1070,5 +1072,58 @@ export class EditorDocumentService {
     animation: AnimationItem,
   ): Observable<{ files: Map<string, Blob>; metadata: string } | null> {
     return this.exportService.exportAnimationAsPackage(animation);
+  }
+
+  copySelection(): boolean {
+    return this.clipboardService.copy();
+  }
+
+  copyMerged(): boolean {
+    return this.clipboardService.copyMerged();
+  }
+
+  cutSelection(): boolean {
+    this.saveSnapshotForUndo('Cut');
+    return this.clipboardService.cut();
+  }
+
+  pasteClipboard(): LayerItem | null {
+    this.saveSnapshotForUndo('Paste');
+    const result = this.clipboardService.paste();
+    if (result) {
+      this.canvasState.setCanvasSaved(false);
+    }
+    return result;
+  }
+
+  pasteInPlace(): LayerItem | null {
+    this.saveSnapshotForUndo('Paste in place');
+    const result = this.clipboardService.pasteInPlace();
+    if (result) {
+      this.canvasState.setCanvasSaved(false);
+    }
+    return result;
+  }
+
+  pasteInto(): LayerItem | null {
+    this.saveSnapshotForUndo('Paste into');
+    const result = this.clipboardService.pasteInto();
+    if (result) {
+      this.canvasState.setCanvasSaved(false);
+    }
+    return result;
+  }
+
+  clearSelectionContent(): boolean {
+    this.saveSnapshotForUndo('Clear');
+    const result = this.clipboardService.clear();
+    if (result) {
+      this.canvasState.setCanvasSaved(false);
+    }
+    return result;
+  }
+
+  hasClipboard(): boolean {
+    return this.clipboardService.hasClipboard();
   }
 }
