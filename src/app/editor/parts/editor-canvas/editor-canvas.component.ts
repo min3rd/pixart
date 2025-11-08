@@ -1538,6 +1538,78 @@ export class EditorCanvas implements OnDestroy {
           }
         }
 
+        const bones = this.boneService.getBones(frameId);
+        for (const bone of bones) {
+          for (const point of bone.points) {
+            if (!point.parentId) continue;
+
+            const parent = bone.points.find((p) => p.id === point.parentId);
+            if (!parent) continue;
+
+            const pointTransform =
+              this.document.keyframeService.interpolateBoneTransform(
+                animationId,
+                bone.id,
+                point.id,
+                currentTime,
+              );
+            const parentTransform =
+              this.document.keyframeService.interpolateBoneTransform(
+                animationId,
+                bone.id,
+                parent.id,
+                currentTime,
+              );
+
+            const p1x = pointTransform ? pointTransform.x : point.x;
+            const p1y = pointTransform ? pointTransform.y : point.y;
+            const p2x = parentTransform ? parentTransform.x : parent.x;
+            const p2y = parentTransform ? parentTransform.y : parent.y;
+
+            const dx = p2x - p1x;
+            const dy = p2y - p1y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const steps = Math.ceil(dist);
+
+            for (let i = 0; i <= steps; i++) {
+              const t = steps > 0 ? i / steps : 0;
+              const interpX = Math.round(p1x + dx * t);
+              const interpY = Math.round(p1y + dy * t);
+
+              if (interpX >= 0 && interpX < w && interpY >= 0 && interpY < h) {
+                const interpIdx = interpY * w + interpX;
+                const sourcePixelX = Math.round(
+                  point.x + (parent.x - point.x) * t,
+                );
+                const sourcePixelY = Math.round(
+                  point.y + (parent.y - point.y) * t,
+                );
+
+                if (
+                  sourcePixelX >= 0 &&
+                  sourcePixelX < w &&
+                  sourcePixelY >= 0 &&
+                  sourcePixelY < h
+                ) {
+                  const sourceIdx = sourcePixelY * w + sourcePixelX;
+                  const sourceColor = buf[sourceIdx];
+
+                  if (
+                    sourceColor &&
+                    sourceColor.length &&
+                    !destinationPixelMap.has(interpIdx)
+                  ) {
+                    destinationPixelMap.set(interpIdx, {
+                      color: sourceColor,
+                      priority: -1000,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
         for (let yy = 0; yy < h; yy++) {
           for (let xx = 0; xx < w; xx++) {
             const idx = yy * w + xx;

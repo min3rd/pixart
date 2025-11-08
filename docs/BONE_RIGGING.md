@@ -40,13 +40,24 @@ When playing an animation or scrubbing the timeline:
 1. **Group bindings by pixel**: All bindings are grouped by their source pixel position
 2. **Select dominant binding**: For each pixel, the binding with the highest weight is selected
 3. **Apply transform**: Only the dominant bone's transform is applied to move the pixel
-4. **Conflict resolution**: If multiple transformed pixels try to occupy the same destination, priority is given based on distance (closer to bone point = higher priority)
+4. **Bone connection interpolation**: Pixels are interpolated along bone connections to maintain visual continuity between parent-child bone points
+5. **Conflict resolution**: If multiple transformed pixels try to occupy the same destination, priority is given based on distance (closer to bone point = higher priority)
+
+### Bone Connection Interpolation
+
+To prevent visual gaps when bones move, the system automatically fills pixels along bone connections:
+
+- When a bone point has a parent point, the system interpolates pixels along the line between them
+- Interpolation uses the original pixel colors from the source positions
+- This maintains visual continuity even when bones rotate or translate significantly
+- The interpolated pixels have lower priority than directly transformed pixels
 
 ### Key Benefits
 
 - **Stable transforms**: Pixels only move with their primary bone, avoiding jitter
 - **Predictable behavior**: Clear visual feedback shows which bone controls each pixel
 - **No pixel "stealing"**: Multi-bound pixels consistently follow their dominant bone
+- **Visual continuity**: Bone connections remain intact during animation without gaps
 
 ## Debug Visualization
 
