@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { EditorLayerService } from './editor-layer.service';
 import { EditorCanvasStateService } from './editor-canvas-state.service';
 import { EditorSelectionService } from './editor-selection.service';
@@ -15,6 +16,7 @@ interface ClipboardData {
 
 @Injectable({ providedIn: 'root' })
 export class EditorClipboardService {
+  private readonly transloco = inject(TranslocoService);
   private readonly layerService = inject(EditorLayerService);
   private readonly canvasState = inject(EditorCanvasStateService);
   private readonly selectionService = inject(EditorSelectionService);
@@ -140,7 +142,10 @@ export class EditorClipboardService {
 
   cut(): boolean {
     if (!this.copy()) return false;
+    return this.clearPixelsInSelection();
+  }
 
+  private clearPixelsInSelection(): boolean {
     const sel = this.selectionService.selectionRect();
     if (!sel) return false;
 
@@ -171,122 +176,28 @@ export class EditorClipboardService {
   }
 
   paste(): LayerItem | null {
-    if (!this.clipboard) return null;
-
-    const canvasWidth = this.canvasState.canvasWidth();
-    const canvasHeight = this.canvasState.canvasHeight();
-    const newLayerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const newLayer: LayerItem = {
-      id: newLayerId,
-      name: 'Pasted',
-      visible: true,
-      locked: false,
-      type: 'layer',
-    };
-
-    const newBuf = new Array<string>(canvasWidth * canvasHeight).fill('');
-
-    const startX = 0;
-    const startY = 0;
-
-    for (let y = 0; y < this.clipboard.height; y++) {
-      for (let x = 0; x < this.clipboard.width; x++) {
-        const destX = startX + x;
-        const destY = startY + y;
-        if (
-          destX < 0 ||
-          destX >= canvasWidth ||
-          destY < 0 ||
-          destY >= canvasHeight
-        )
-          continue;
-
-        const srcIdx = y * this.clipboard.width + x;
-        const pixel = this.clipboard.pixels[srcIdx];
-        if (pixel && pixel.length > 0) {
-          const destIdx = destY * canvasWidth + destX;
-          newBuf[destIdx] = pixel;
-        }
-      }
-    }
-
-    this.layerService.layers.update((arr) => [newLayer, ...arr]);
-    this.canvasState.setLayerBuffer(newLayerId, newBuf);
-    this.layerService.selectedLayerId.set(newLayerId);
-    this.layerService.selectedLayerIds.set(new Set([newLayerId]));
-    this.canvasState.incrementPixelsVersion();
-
-    const bounds = {
-      x: startX,
-      y: startY,
-      width: Math.min(this.clipboard.width, canvasWidth - startX),
-      height: Math.min(this.clipboard.height, canvasHeight - startY),
-    };
-    this.selectionService.selectionRect.set(bounds);
-    this.selectionService.selectionShape.set('rect');
-    this.selectionService.selectionPolygon.set(null);
-
-    return newLayer;
+    return this.createPastedLayer(
+      0,
+      0,
+      this.transloco.translate('layers.pasted'),
+      null,
+    );
   }
 
   pasteInPlace(): LayerItem | null {
-    if (!this.clipboard || !this.clipboard.sourceX || !this.clipboard.sourceY)
+    if (
+      !this.clipboard ||
+      this.clipboard.sourceX === undefined ||
+      this.clipboard.sourceY === undefined
+    )
       return null;
 
-    const canvasWidth = this.canvasState.canvasWidth();
-    const canvasHeight = this.canvasState.canvasHeight();
-    const newLayerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    const newLayer: LayerItem = {
-      id: newLayerId,
-      name: 'Pasted in place',
-      visible: true,
-      locked: false,
-      type: 'layer',
-    };
-
-    const newBuf = new Array<string>(canvasWidth * canvasHeight).fill('');
-
-    const startX = this.clipboard.sourceX;
-    const startY = this.clipboard.sourceY;
-
-    for (let y = 0; y < this.clipboard.height; y++) {
-      for (let x = 0; x < this.clipboard.width; x++) {
-        const destX = startX + x;
-        const destY = startY + y;
-        if (
-          destX < 0 ||
-          destX >= canvasWidth ||
-          destY < 0 ||
-          destY >= canvasHeight
-        )
-          continue;
-
-        const srcIdx = y * this.clipboard.width + x;
-        const pixel = this.clipboard.pixels[srcIdx];
-        if (pixel && pixel.length > 0) {
-          const destIdx = destY * canvasWidth + destX;
-          newBuf[destIdx] = pixel;
-        }
-      }
-    }
-
-    this.layerService.layers.update((arr) => [newLayer, ...arr]);
-    this.canvasState.setLayerBuffer(newLayerId, newBuf);
-    this.layerService.selectedLayerId.set(newLayerId);
-    this.layerService.selectedLayerIds.set(new Set([newLayerId]));
-    this.canvasState.incrementPixelsVersion();
-
-    const bounds = {
-      x: startX,
-      y: startY,
-      width: Math.min(this.clipboard.width, canvasWidth - startX),
-      height: Math.min(this.clipboard.height, canvasHeight - startY),
-    };
-    this.selectionService.selectionRect.set(bounds);
-    this.selectionService.selectionShape.set('rect');
-    this.selectionService.selectionPolygon.set(null);
-
-    return newLayer;
+    return this.createPastedLayer(
+      this.clipboard.sourceX,
+      this.clipboard.sourceY,
+      this.transloco.translate('layers.pastedInPlace'),
+      null,
+    );
   }
 
   pasteInto(): LayerItem | null {
@@ -297,21 +208,39 @@ export class EditorClipboardService {
 
     const shape = this.selectionService.selectionShape();
     const poly = this.selectionService.selectionPolygon();
+
+    return this.createPastedLayer(
+      sel.x,
+      sel.y,
+      this.transloco.translate('layers.pastedInto'),
+      { rect: sel, shape, poly },
+    );
+  }
+
+  private createPastedLayer(
+    startX: number,
+    startY: number,
+    layerName: string,
+    maskSelection: {
+      rect: { x: number; y: number; width: number; height: number };
+      shape: 'rect' | 'ellipse' | 'lasso';
+      poly: { x: number; y: number }[] | null;
+    } | null,
+  ): LayerItem | null {
+    if (!this.clipboard) return null;
+
     const canvasWidth = this.canvasState.canvasWidth();
     const canvasHeight = this.canvasState.canvasHeight();
     const newLayerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const newLayer: LayerItem = {
       id: newLayerId,
-      name: 'Pasted into',
+      name: layerName,
       visible: true,
       locked: false,
       type: 'layer',
     };
 
     const newBuf = new Array<string>(canvasWidth * canvasHeight).fill('');
-
-    const startX = sel.x;
-    const startY = sel.y;
 
     for (let y = 0; y < this.clipboard.height; y++) {
       for (let x = 0; x < this.clipboard.width; x++) {
@@ -326,12 +255,13 @@ export class EditorClipboardService {
           continue;
 
         if (
+          maskSelection &&
           !this.selectionService.isPixelWithinSelection(
             destX,
             destY,
-            sel,
-            shape,
-            poly,
+            maskSelection.rect,
+            maskSelection.shape,
+            maskSelection.poly,
           )
         )
           continue;
@@ -351,37 +281,21 @@ export class EditorClipboardService {
     this.layerService.selectedLayerIds.set(new Set([newLayerId]));
     this.canvasState.incrementPixelsVersion();
 
+    const bounds = {
+      x: startX,
+      y: startY,
+      width: Math.min(this.clipboard.width, canvasWidth - startX),
+      height: Math.min(this.clipboard.height, canvasHeight - startY),
+    };
+    this.selectionService.selectionRect.set(bounds);
+    this.selectionService.selectionShape.set('rect');
+    this.selectionService.selectionPolygon.set(null);
+
     return newLayer;
   }
 
   clear(): boolean {
-    const sel = this.selectionService.selectionRect();
-    if (!sel) return false;
-
-    const shape = this.selectionService.selectionShape();
-    const poly = this.selectionService.selectionPolygon();
-    const layerId = this.layerService.selectedLayerId();
-    const buf = this.canvasState.getLayerBuffer(layerId);
-    if (!buf || buf.length === 0) return false;
-
-    const canvasWidth = this.canvasState.canvasWidth();
-    const canvasHeight = this.canvasState.canvasHeight();
-
-    for (let y = sel.y; y < sel.y + sel.height; y++) {
-      for (let x = sel.x; x < sel.x + sel.width; x++) {
-        if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) continue;
-
-        if (
-          this.selectionService.isPixelWithinSelection(x, y, sel, shape, poly)
-        ) {
-          const idx = y * canvasWidth + x;
-          buf[idx] = '';
-        }
-      }
-    }
-
-    this.canvasState.incrementPixelsVersion();
-    return true;
+    return this.clearPixelsInSelection();
   }
 
   hasClipboard(): boolean {
