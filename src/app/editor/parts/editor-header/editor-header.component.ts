@@ -843,27 +843,27 @@ export class EditorHeader {
   }
 
   onFlipHorizontal() {
-    this.transform.flipHorizontal();
+    this.document.flipLayerHorizontal();
     this.showTransformMenu.set(false);
   }
 
   onFlipVertical() {
-    this.transform.flipVertical();
+    this.document.flipLayerVertical();
     this.showTransformMenu.set(false);
   }
 
   onRotate90CW() {
-    this.transform.rotate90CW();
+    this.document.rotateLayer90CW();
     this.showTransformMenu.set(false);
   }
 
   onRotate90CCW() {
-    this.transform.rotate90CCW();
+    this.document.rotateLayer90CCW();
     this.showTransformMenu.set(false);
   }
 
   onRotate180() {
-    this.transform.rotate180();
+    this.document.rotateLayer180();
     this.showTransformMenu.set(false);
   }
 }

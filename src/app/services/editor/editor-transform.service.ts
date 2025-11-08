@@ -226,4 +226,161 @@ export class EditorTransformService {
     ];
     return corners.map((corner) => this.applyTransformToPoint(corner.x, corner.y, matrix));
   }
+
+  applyTransformToBuffer(
+    sourceBuffer: string[],
+    sourceWidth: number,
+    sourceHeight: number,
+    transform: TransformState,
+  ): { buffer: string[]; width: number; height: number } {
+    const matrix = this.getTransformMatrix();
+    
+    const corners = this.calculateBoundingBox(sourceWidth, sourceHeight);
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    
+    for (const corner of corners) {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    }
+    
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const newBuffer = new Array<string>(newWidth * newHeight).fill('');
+    
+    const inverseMatrix = this.invertMatrix(matrix);
+    if (!inverseMatrix) return { buffer: sourceBuffer, width: sourceWidth, height: sourceHeight };
+    
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcPoint = this.applyTransformToPoint(
+          x + minX,
+          y + minY,
+          inverseMatrix,
+        );
+        
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+        
+        if (sx >= 0 && sx < sourceWidth && sy >= 0 && sy < sourceHeight) {
+          const srcIdx = sy * sourceWidth + sx;
+          const destIdx = y * newWidth + x;
+          newBuffer[destIdx] = sourceBuffer[srcIdx] || '';
+        }
+      }
+    }
+    
+    return { buffer: newBuffer, width: newWidth, height: newHeight };
+  }
+
+  private invertMatrix(m: TransformMatrix): TransformMatrix | null {
+    const det = m.a * m.d - m.b * m.c;
+    if (Math.abs(det) < 0.0001) return null;
+    
+    const invDet = 1 / det;
+    return {
+      a: m.d * invDet,
+      b: -m.b * invDet,
+      c: -m.c * invDet,
+      d: m.a * invDet,
+      e: (m.c * m.f - m.d * m.e) * invDet,
+      f: (m.b * m.e - m.a * m.f) * invDet,
+    };
+  }
+
+  applySimpleFlipHorizontal(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = y * width + (width - 1 - x);
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
+
+  applySimpleFlipVertical(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = (height - 1 - y) * width + x;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
+
+  applyRotate90CW(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = height;
+    const newHeight = width;
+    const result = new Array<string>(newWidth * newHeight).fill('');
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const newX = height - 1 - y;
+        const newY = x;
+        const destIdx = newY * newWidth + newX;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applyRotate90CCW(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = height;
+    const newHeight = width;
+    const result = new Array<string>(newWidth * newHeight).fill('');
+    
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const newX = y;
+        const newY = width - 1 - x;
+        const destIdx = newY * newWidth + newX;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applyRotate180(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = (height - 1 - y) * width + (width - 1 - x);
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
 }

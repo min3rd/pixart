@@ -19,6 +19,7 @@ import {
   EditorBoneService,
   EditorExportService,
   EditorKeyframeService,
+  EditorTransformService,
   FrameItem,
   GroupItem,
   LayerItem,
@@ -73,6 +74,7 @@ export class EditorDocumentService {
   private readonly boneHierarchyService = inject(EditorBoneHierarchyService);
   private readonly exportService = inject(EditorExportService);
   readonly keyframeService = inject(EditorKeyframeService);
+  private readonly transformService = inject(EditorTransformService);
 
   readonly layers = this.layerService.layers;
   readonly selectedLayerId = this.layerService.selectedLayerId;
@@ -1125,5 +1127,124 @@ export class EditorDocumentService {
 
   hasClipboard(): boolean {
     return this.clipboardService.hasClipboard();
+  }
+
+  flipLayerHorizontal(layerId?: string): boolean {
+    const targetId = layerId || this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Flip horizontal');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const flipped = this.transformService.applySimpleFlipHorizontal(
+      buffer,
+      width,
+      height,
+    );
+
+    this.canvasState.setLayerBuffer(targetId, flipped);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
+  flipLayerVertical(layerId?: string): boolean {
+    const targetId = layerId || this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Flip vertical');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const flipped = this.transformService.applySimpleFlipVertical(
+      buffer,
+      width,
+      height,
+    );
+
+    this.canvasState.setLayerBuffer(targetId, flipped);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
+  rotateLayer90CW(layerId?: string): boolean {
+    const targetId = layerId || this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Rotate 90° CW');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const result = this.transformService.applyRotate90CW(buffer, width, height);
+
+    this.canvasState.setCanvasSize(result.width, result.height);
+    this.canvasState.setLayerBuffer(targetId, result.buffer);
+    
+    for (const layer of this.layerService.getFlattenedLayers()) {
+      if (layer.id !== targetId) {
+        this.canvasState.ensureLayerBuffer(layer.id, result.width, result.height);
+      }
+    }
+
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
+  rotateLayer90CCW(layerId?: string): boolean {
+    const targetId = layerId || this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Rotate 90° CCW');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const result = this.transformService.applyRotate90CCW(buffer, width, height);
+
+    this.canvasState.setCanvasSize(result.width, result.height);
+    this.canvasState.setLayerBuffer(targetId, result.buffer);
+    
+    for (const layer of this.layerService.getFlattenedLayers()) {
+      if (layer.id !== targetId) {
+        this.canvasState.ensureLayerBuffer(layer.id, result.width, result.height);
+      }
+    }
+
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
+  rotateLayer180(layerId?: string): boolean {
+    const targetId = layerId || this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Rotate 180°');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const rotated = this.transformService.applyRotate180(buffer, width, height);
+
+    this.canvasState.setLayerBuffer(targetId, rotated);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
   }
 }
