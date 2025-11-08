@@ -6,7 +6,14 @@
     "tool": "Tool",
     "help": "Help",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "cut": "Cut",
+    "copy": "Copy",
+    "copyMerged": "Copy Merged",
+    "paste": "Paste",
+    "pasteInPlace": "Paste in Place",
+    "pasteInto": "Paste Into",
+    "clear": "Clear"
   },
   "badges": {
     "title": "2D Editor • Alpha"
@@ -33,7 +40,14 @@
       "tool": "Drawing and editing tools",
       "help": "Help and settings",
       "undo": "Undo last action",
-      "redo": "Redo last undone action"
+      "redo": "Redo last undone action",
+      "cut": "Cut selection to clipboard",
+      "copy": "Copy selection to clipboard",
+      "copyMerged": "Copy all visible layers to clipboard",
+      "paste": "Paste from clipboard",
+      "pasteInPlace": "Paste at original position",
+      "pasteInto": "Paste into selection as mask",
+      "clear": "Clear selection"
     },
     "tools": {
       "selectLayer": "Select and move layers",
@@ -372,6 +386,13 @@
       "file.saveToComputer": "Save to Computer",
       "edit.undo": "Undo",
       "edit.redo": "Redo",
+      "edit.cut": "Cut",
+      "edit.copy": "Copy",
+      "edit.copyMerged": "Copy Merged",
+      "edit.paste": "Paste",
+      "edit.pasteInPlace": "Paste in Place",
+      "edit.pasteInto": "Paste Into",
+      "edit.clear": "Clear",
       "edit.deselect": "Deselect",
       "edit.invertSelection": "Invert Selection",
       "edit.growBy1px": "Grow Selection by 1px",

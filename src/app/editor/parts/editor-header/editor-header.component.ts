@@ -45,6 +45,7 @@ export class EditorHeader {
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
   readonly showFileMenu = signal(false);
+  readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
   readonly showToolMenu = signal(false);
   readonly showHelpMenu = signal(false);
@@ -52,6 +53,8 @@ export class EditorHeader {
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
+  private editHoverOpenTimer?: number;
+  private editHoverCloseTimer?: number;
   private insertHoverOpenTimer?: number;
   private insertHoverCloseTimer?: number;
   private toolHoverOpenTimer?: number;
@@ -156,6 +159,111 @@ export class EditorHeader {
     }, 150);
   }
 
+  openEditMenuHover() {
+    if (this.editHoverCloseTimer) {
+      clearTimeout(this.editHoverCloseTimer);
+      this.editHoverCloseTimer = undefined;
+    }
+    if (!this.showEditMenu()) {
+      this.editHoverOpenTimer = window.setTimeout(() => {
+        this.showEditMenu.set(true);
+        this.editHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closeEditMenuHover() {
+    if (this.editHoverOpenTimer) {
+      clearTimeout(this.editHoverOpenTimer);
+      this.editHoverOpenTimer = undefined;
+    }
+    if (this.showEditMenu()) {
+      this.editHoverCloseTimer = window.setTimeout(() => {
+        this.showEditMenu.set(false);
+        this.editHoverCloseTimer = undefined;
+      }, 200);
+    }
+  }
+
+  onEditMenuFocusIn() {
+    if (this.editHoverCloseTimer) {
+      clearTimeout(this.editHoverCloseTimer);
+      this.editHoverCloseTimer = undefined;
+    }
+    this.showEditMenu.set(true);
+  }
+
+  onEditMenuFocusOut() {
+    if (this.editHoverCloseTimer) clearTimeout(this.editHoverCloseTimer);
+    this.editHoverCloseTimer = window.setTimeout(() => {
+      this.showEditMenu.set(false);
+      this.editHoverCloseTimer = undefined;
+    }, 150);
+  }
+
+  onCut() {
+    try {
+      this.document.cutSelection();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Cut failed', e);
+    }
+  }
+
+  onCopy() {
+    try {
+      this.document.copySelection();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Copy failed', e);
+    }
+  }
+
+  onCopyMerged() {
+    try {
+      this.document.copyMerged();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Copy merged failed', e);
+    }
+  }
+
+  onPaste() {
+    try {
+      this.document.pasteClipboard();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Paste failed', e);
+    }
+  }
+
+  onPasteInPlace() {
+    try {
+      this.document.pasteInPlace();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Paste in place failed', e);
+    }
+  }
+
+  onPasteInto() {
+    try {
+      this.document.pasteInto();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Paste into failed', e);
+    }
+  }
+
+  onClear() {
+    try {
+      this.document.clearSelectionContent();
+      this.showEditMenu.set(false);
+    } catch (e) {
+      console.error('Clear failed', e);
+    }
+  }
+
   onUndo() {
     try {
       this.document.undo();
@@ -213,6 +321,55 @@ export class EditorHeader {
       category: 'edit',
       defaultKey: 'ctrl+y',
       handler: () => this.onRedo(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.cut',
+      category: 'edit',
+      defaultKey: 'ctrl+x',
+      handler: () => this.onCut(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.copy',
+      category: 'edit',
+      defaultKey: 'ctrl+c',
+      handler: () => this.onCopy(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.copyMerged',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+c',
+      handler: () => this.onCopyMerged(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.paste',
+      category: 'edit',
+      defaultKey: 'ctrl+v',
+      handler: () => this.onPaste(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.pasteInPlace',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+v',
+      handler: () => this.onPasteInPlace(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.pasteInto',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+shift+v',
+      handler: () => this.onPasteInto(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.clear',
+      category: 'edit',
+      defaultKey: 'delete',
+      handler: () => this.onClear(),
     });
 
     this.hotkeys.register({
@@ -503,6 +660,14 @@ export class EditorHeader {
     if (this.hoverCloseTimer) {
       clearTimeout(this.hoverCloseTimer);
       this.hoverCloseTimer = undefined;
+    }
+    if (this.editHoverOpenTimer) {
+      clearTimeout(this.editHoverOpenTimer);
+      this.editHoverOpenTimer = undefined;
+    }
+    if (this.editHoverCloseTimer) {
+      clearTimeout(this.editHoverCloseTimer);
+      this.editHoverCloseTimer = undefined;
     }
     if (this.insertHoverOpenTimer) {
       clearTimeout(this.insertHoverOpenTimer);

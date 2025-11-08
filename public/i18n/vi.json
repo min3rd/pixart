@@ -6,7 +6,14 @@
     "tool": "Công cụ",
     "help": "Trợ giúp",
     "undo": "Quay lại",
-    "redo": "Bước tiếp"
+    "redo": "Bước tiếp",
+    "cut": "Cắt",
+    "copy": "Sao chép",
+    "copyMerged": "Sao chép tất cả",
+    "paste": "Dán",
+    "pasteInPlace": "Dán tại chỗ",
+    "pasteInto": "Dán vào vùng chọn",
+    "clear": "Xóa"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha"
@@ -33,7 +40,14 @@
       "tool": "Công cụ vẽ và chỉnh sửa",
       "help": "Trợ giúp và cài đặt",
       "undo": "Hoàn tác thao tác cuối",
-      "redo": "Làm lại thao tác vừa hoàn tác"
+      "redo": "Làm lại thao tác vừa hoàn tác",
+      "cut": "Cắt vùng chọn vào clipboard",
+      "copy": "Sao chép vùng chọn vào clipboard",
+      "copyMerged": "Sao chép tất cả layer hiển thị vào clipboard",
+      "paste": "Dán từ clipboard",
+      "pasteInPlace": "Dán tại vị trí gốc",
+      "pasteInto": "Dán vào vùng chọn làm mask",
+      "clear": "Xóa vùng chọn"
     },
     "tools": {
       "selectLayer": "Chọn và di chuyển layer",
@@ -375,6 +389,13 @@
       "file.saveToComputer": "Lưu về máy tính",
       "edit.undo": "Quay lại",
       "edit.redo": "Bước tiếp",
+      "edit.cut": "Cắt",
+      "edit.copy": "Sao chép",
+      "edit.copyMerged": "Sao chép tất cả",
+      "edit.paste": "Dán",
+      "edit.pasteInPlace": "Dán tại chỗ",
+      "edit.pasteInto": "Dán vào vùng chọn",
+      "edit.clear": "Xóa",
       "edit.deselect": "Bỏ chọn",
       "edit.invertSelection": "Đảo vùng chọn",
       "edit.growBy1px": "Mở rộng vùng chọn 1px",
