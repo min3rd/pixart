@@ -1515,4 +1515,87 @@ export class EditorDocumentService {
     this.canvasState.setCanvasSaved(false);
     return true;
   }
+
+  scaleSelectionOrLayer(scaleX: number, scaleY: number): boolean {
+    const sel = this.selectionService.selectionRect();
+    
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Scale (selection)');
+
+      const result = this.transformService.applyScale(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+        scaleX,
+        scaleY,
+      );
+
+      const newX = Math.max(
+        0,
+        Math.min(this.canvasWidth() - result.width, selBuf.x),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(this.canvasHeight() - result.height, selBuf.y),
+      );
+
+      this.applySelectionBuffer(
+        result.buffer,
+        result.width,
+        result.height,
+        newX,
+        newY,
+        true,
+      );
+
+      this.selectionService.selectionRect.set({
+        x: newX,
+        y: newY,
+        width: result.width,
+        height: result.height,
+      });
+
+      return true;
+    }
+
+    const targetId = this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Scale');
+    
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const result = this.transformService.applyScale(
+      buffer,
+      width,
+      height,
+      scaleX,
+      scaleY,
+    );
+
+    if (result.width !== width || result.height !== height) {
+      this.canvasState.setCanvasSize(result.width, result.height);
+      
+      for (const layer of this.layerService.getFlattenedLayers()) {
+        if (layer.id !== targetId) {
+          this.canvasState.ensureLayerBuffer(
+            layer.id,
+            result.width,
+            result.height,
+          );
+        }
+      }
+    }
+
+    this.canvasState.setLayerBuffer(targetId, result.buffer);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
 }

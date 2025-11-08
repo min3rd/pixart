@@ -788,57 +788,65 @@ export class EditorHeader {
   }
 
   onFreeTransform() {
-    console.info('Free transform activated');
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      console.info('Free transform: No selection - select an area first');
+      this.showTransformMenu.set(false);
+      return;
+    }
+    
+    this.transform.startTransform('free', sel.x, sel.y, sel.width, sel.height);
+    console.info('Free transform mode activated');
     this.showTransformMenu.set(false);
   }
 
   onScale() {
-    console.info('Scale transform activated');
+    this.document.scaleSelectionOrLayer(2.0, 2.0);
     this.showTransformMenu.set(false);
   }
 
   onRotate() {
-    console.info('Rotate transform activated');
+    console.info('Rotate transform - Use Rotate 90°/180° for now');
     this.showTransformMenu.set(false);
   }
 
   onSkew() {
-    console.info('Skew transform activated');
+    console.info('Skew transform - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onDistort() {
-    console.info('Distort transform activated');
+    console.info('Distort transform - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onPerspective() {
-    console.info('Perspective transform activated');
+    console.info('Perspective transform - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onWarp() {
-    console.info('Warp transform activated');
+    console.info('Warp transform - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onPuppetWarp() {
-    console.info('Puppet warp activated');
+    console.info('Puppet warp - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onContentAwareScale() {
-    console.info('Content-aware scale activated');
+    console.info('Content-aware scale - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onAutoAlignLayers() {
-    console.info('Auto-align layers activated');
+    console.info('Auto-align layers - Coming soon');
     this.showTransformMenu.set(false);
   }
 
   onAutoBlendLayers() {
-    console.info('Auto-blend layers activated');
+    console.info('Auto-blend layers - Coming soon');
     this.showTransformMenu.set(false);
   }
 
