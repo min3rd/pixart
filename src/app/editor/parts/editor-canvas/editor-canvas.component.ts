@@ -1099,7 +1099,7 @@ export class EditorCanvas implements OnDestroy {
     if (this.selectionMoving) {
       this.selectionMoving = false;
       this.selectionMoveStart = null;
-  this.document.endMoveSelection('Move selection');
+      this.document.endMoveSelection('Move selection');
       return;
     }
 
@@ -1107,7 +1107,7 @@ export class EditorCanvas implements OnDestroy {
       this.selectionContentMoving = false;
       this.selectionContentMoveStart = null;
       this.endSelectionContentMove();
-  this.document.endMoveSelection('Move pixels');
+      this.document.endMoveSelection('Move pixels');
       return;
     }
 

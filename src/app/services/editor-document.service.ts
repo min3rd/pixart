@@ -737,8 +737,6 @@ export class EditorDocumentService {
     this.saveSnapshotForUndo(description || 'Move selection');
   }
 
-  // endMoveSelection intentionally does not push a second snapshot.
-  // Keeping only the pre-change snapshot ensures a single Ctrl+Z reverts the move.
   endMoveSelection(_description?: string) {}
 
   invertSelection() {
