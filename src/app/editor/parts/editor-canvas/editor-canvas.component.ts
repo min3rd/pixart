@@ -32,6 +32,7 @@ import {
   GeneratePixelArtRequest,
 } from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
 import { PixelGenerationEngineService } from '../../../services/pixel-generation';
+import { EditorFreeTransformService, TransformHandle } from '../../../services/editor/editor-free-transform.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -90,6 +91,7 @@ export class EditorCanvas implements OnDestroy {
   readonly boneService = inject(EditorBoneService);
   readonly hotkeys = inject(HotkeysService);
   readonly pixelGenEngine = inject(PixelGenerationEngineService);
+  readonly freeTransform = inject(EditorFreeTransformService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -251,6 +253,13 @@ export class EditorCanvas implements OnDestroy {
       defaultKey: 'ctrl+shift+m',
       handler: () => this.document.mergeVisibleToNewLayer(),
     });
+
+    this.hotkeys.register({
+      id: 'edit.freeTransform',
+      category: 'edit',
+      defaultKey: 'ctrl+t',
+      handler: () => this.activateFreeTransform(),
+    });
   }
 
   private readonly layoutEffect = effect(
@@ -323,6 +332,10 @@ export class EditorCanvas implements OnDestroy {
           }
         }
         if (ev.key === 'Escape') {
+          if (this.freeTransform.isActive()) {
+            this.freeTransform.cancelTransform();
+            return;
+          }
           if (this.contextMenuVisible()) {
             this.closeContextMenu();
             return;
@@ -451,6 +464,11 @@ export class EditorCanvas implements OnDestroy {
       this.panY.set(this.panY() + dy);
       this.lastPointer.x = ev.clientX;
       this.lastPointer.y = ev.clientY;
+    }
+
+    if (this.freeTransform.isDraggingHandle()) {
+      this.freeTransform.updateHandleDrag(logicalX, logicalY);
+      return;
     }
 
     if (this.selectionMoving && this.selectionMoveStart) {
@@ -646,6 +664,28 @@ export class EditorCanvas implements OnDestroy {
     }
 
     if (ev.button === 0) {
+      const freeTransformState = this.freeTransform.transformState();
+      if (freeTransformState) {
+        const handleSize = 8;
+        const handles: TransformHandle[] = [
+          'top-left', 'top-center', 'top-right',
+          'middle-left', 'middle-right',
+          'bottom-left', 'bottom-center', 'bottom-right',
+          'rotate-center'
+        ];
+        
+        for (const handle of handles) {
+          if (this.freeTransform.isPointNearHandle(logicalX, logicalY, handle, freeTransformState, handleSize)) {
+            this.capturePointer(ev);
+            this.freeTransform.startHandleDrag(handle, logicalX, logicalY);
+            return;
+          }
+        }
+        
+        this.commitFreeTransform();
+        return;
+      }
+
       const hasExistingSelection = !!this.document.selectionRect();
       const clickedInSelection =
         hasExistingSelection && this.isPointInSelection(logicalX, logicalY);
@@ -1082,6 +1122,12 @@ export class EditorCanvas implements OnDestroy {
   onPointerUp(ev: PointerEvent) {
     this.releasePointer(ev);
     this.panning = false;
+
+    if (this.freeTransform.isDraggingHandle()) {
+      this.freeTransform.endHandleDrag();
+      return;
+    }
+
     if (this.shaping) {
       this.finishShape(ev.shiftKey);
     }
@@ -1289,6 +1335,130 @@ export class EditorCanvas implements OnDestroy {
   decreaseZoom(step = 0.1) {
     const factor = 1 + Math.max(0, step);
     this.applyZoom(this.scale() / factor);
+  }
+
+  private activateFreeTransform(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+    this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
+  }
+
+  private commitFreeTransform(): void {
+    const state = this.freeTransform.commitTransform();
+    if (!state) return;
+
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+
+    const scaleX = state.width / sel.width;
+    const scaleY = state.height / sel.height;
+
+    if (scaleX !== 1 || scaleY !== 1 || state.rotation !== 0) {
+      this.document.saveSnapshot('Free Transform');
+      const selectedLayer = this.document.selectedLayer();
+      if (selectedLayer && isLayer(selectedLayer)) {
+        this.applyTransformToSelection(state, scaleX, scaleY);
+      }
+    }
+
+    this.document.updateSelectionBounds(
+      state.x,
+      state.y,
+      state.width,
+      state.height,
+    );
+  }
+
+  private applyTransformToSelection(
+    state: any,
+    scaleX: number,
+    scaleY: number,
+  ): void {
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+
+    const selectedLayer = this.document.selectedLayer();
+    if (!selectedLayer || !isLayer(selectedLayer)) return;
+
+    const layerBuffer = this.document.getLayerBuffer(selectedLayer.id);
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+
+    const tempBuffer = new Array<string>(canvasWidth * canvasHeight).fill('');
+    for (let y = 0; y < canvasHeight; y++) {
+      for (let x = 0; x < canvasWidth; x++) {
+        const idx = y * canvasWidth + x;
+        if (this.isPixelInSelection(x, y)) {
+          tempBuffer[idx] = layerBuffer[idx] || '';
+          layerBuffer[idx] = '';
+        }
+      }
+    }
+
+    const selBuffer = new Array<string>(sel.width * sel.height).fill('');
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
+          const srcIdx = srcY * canvasWidth + srcX;
+          const destIdx = y * sel.width + x;
+          selBuffer[destIdx] = tempBuffer[srcIdx] || '';
+        }
+      }
+    }
+
+    const cos = Math.cos((state.rotation * Math.PI) / 180);
+    const sin = Math.sin((state.rotation * Math.PI) / 180);
+    const centerX = sel.width / 2;
+    const centerY = sel.height / 2;
+
+    const transformedBuffer = new Array<string>(state.width * state.height).fill('');
+    for (let y = 0; y < state.height; y++) {
+      for (let x = 0; x < state.width; x++) {
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
+
+        const dx = srcX - centerX;
+        const dy = srcY - centerY;
+        const rotX = centerX + dx * cos + dy * sin;
+        const rotY = centerY - dx * sin + dy * cos;
+
+        const sx = Math.floor(rotX);
+        const sy = Math.floor(rotY);
+
+        if (sx >= 0 && sx < sel.width && sy >= 0 && sy < sel.height) {
+          const srcIdx = sy * sel.width + sx;
+          const destIdx = y * state.width + x;
+          transformedBuffer[destIdx] = selBuffer[srcIdx] || '';
+        }
+      }
+    }
+
+    for (let y = 0; y < state.height; y++) {
+      for (let x = 0; x < state.width; x++) {
+        const destX = state.x + x;
+        const destY = state.y + y;
+        if (destX >= 0 && destX < canvasWidth && destY >= 0 && destY < canvasHeight) {
+          const srcIdx = y * state.width + x;
+          const destIdx = destY * canvasWidth + destX;
+          if (transformedBuffer[srcIdx]) {
+            layerBuffer[destIdx] = transformedBuffer[srcIdx];
+          }
+        }
+      }
+    }
+
+    this.document.setLayerBuffer(selectedLayer.id, layerBuffer);
+  }
+
+  private isPixelInSelection(x: number, y: number): boolean {
+    const sel = this.document.selectionRect();
+    const shape = this.document.selectionShape();
+    const poly = this.document.selectionPolygon();
+    return this.document.isPixelWithinSelection(x, y, sel, shape, poly);
   }
 
   ngOnDestroy(): void {
@@ -2073,6 +2243,78 @@ export class EditorCanvas implements OnDestroy {
           );
         }
       }
+      ctx.restore();
+    }
+
+    const freeTransformState = this.freeTransform.transformState();
+    if (freeTransformState) {
+      ctx.save();
+      
+      const handleSize = 8 / scale;
+      const rotateIconSize = 16 / scale;
+      
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.fillStyle = isDark ? 'rgba(50,150,255,0.9)' : 'rgba(30,130,255,0.9)';
+      ctx.lineWidth = pxLineWidth;
+      
+      ctx.strokeRect(
+        freeTransformState.x,
+        freeTransformState.y,
+        freeTransformState.width,
+        freeTransformState.height,
+      );
+      
+      const handles: TransformHandle[] = [
+        'top-left', 'top-center', 'top-right',
+        'middle-left', 'middle-right',
+        'bottom-left', 'bottom-center', 'bottom-right',
+      ];
+      
+      for (const handle of handles) {
+        const pos = this.freeTransform.getHandlePosition(handle, freeTransformState);
+        ctx.fillRect(
+          pos.x - handleSize / 2,
+          pos.y - handleSize / 2,
+          handleSize,
+          handleSize,
+        );
+        ctx.strokeRect(
+          pos.x - handleSize / 2,
+          pos.y - handleSize / 2,
+          handleSize,
+          handleSize,
+        );
+      }
+      
+      const centerPos = this.freeTransform.getHandlePosition('rotate-center', freeTransformState);
+      ctx.beginPath();
+      ctx.arc(centerPos.x, centerPos.y, rotateIconSize / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.lineWidth = pxLineWidth * 1.5;
+      ctx.beginPath();
+      ctx.arc(centerPos.x, centerPos.y, rotateIconSize / 3, 0.5, Math.PI * 1.7);
+      ctx.stroke();
+      
+      const arrowSize = rotateIconSize / 4;
+      const arrowAngle = Math.PI * 1.7;
+      const arrowX = centerPos.x + Math.cos(arrowAngle) * rotateIconSize / 3;
+      const arrowY = centerPos.y + Math.sin(arrowAngle) * rotateIconSize / 3;
+      ctx.beginPath();
+      ctx.moveTo(arrowX, arrowY);
+      ctx.lineTo(
+        arrowX - arrowSize * Math.cos(arrowAngle - 0.5),
+        arrowY - arrowSize * Math.sin(arrowAngle - 0.5),
+      );
+      ctx.moveTo(arrowX, arrowY);
+      ctx.lineTo(
+        arrowX - arrowSize * Math.cos(arrowAngle + 0.5),
+        arrowY - arrowSize * Math.sin(arrowAngle + 0.5),
+      );
+      ctx.stroke();
+      
       ctx.restore();
     }
   }

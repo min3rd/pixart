@@ -17,6 +17,7 @@ export * from './editor-bone-hierarchy.service';
 export * from './editor-export.service';
 export * from './editor-keyframe.service';
 export * from './editor-transform.service';
+export * from './editor-free-transform.service';
 export * from './editor-content-aware-scale.service';
 export * from './editor-auto-align.service';
 export * from './editor-auto-blend.service';
