@@ -6,7 +6,7 @@
   >
     <div
       id="scale-dialog-container"
-      class="bg-white dark:bg-neutral-800 rounded shadow-lg p-6 w-96 max-w-full"
+      class="bg-white dark:bg-neutral-800 rounded-sm shadow-lg p-6 w-96 max-w-full"
     >
       <h2
         id="scale-dialog-title"
@@ -55,7 +55,7 @@
               [value]="targetWidth()"
               (input)="onWidthInput($event)"
               min="1"
-              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
             />
           </div>
           <div id="scale-height-field">
@@ -72,7 +72,7 @@
               [value]="targetHeight()"
               (input)="onHeightInput($event)"
               min="1"
-              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
             />
           </div>
         </div>
@@ -93,7 +93,7 @@
               (input)="onPercentXInput($event)"
               min="1"
               step="0.1"
-              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
             />
           </div>
           <div id="scale-percent-y-field">
@@ -111,7 +111,7 @@
               (input)="onPercentYInput($event)"
               min="1"
               step="0.1"
-              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
             />
           </div>
         </div>
@@ -131,7 +131,7 @@
           type="button"
           id="scale-dialog-confirm-button"
           (click)="handleConfirm()"
-          class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+          class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm"
         >
           {{ "scale.ok" | transloco }}
         </button>
@@ -139,7 +139,7 @@
           type="button"
           id="scale-dialog-cancel-button"
           (click)="handleCancel()"
-          class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded"
+          class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded-sm"
         >
           {{ "scale.cancel" | transloco }}
         </button>

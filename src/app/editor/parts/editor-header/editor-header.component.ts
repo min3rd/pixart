@@ -807,7 +807,6 @@ export class EditorHeader {
   onScale() {
     const sel = this.document.selectionRect();
     if (!sel) {
-      console.warn('No selection to scale');
       this.showTransformMenu.set(false);
       return;
     }
@@ -824,7 +823,6 @@ export class EditorHeader {
   }
 
   handleScaleCancel() {
-    console.info('Scale cancelled');
   }
 
   onRotate() {
