@@ -20,6 +20,7 @@ import { HotkeysService } from '../../../services/hotkeys.service';
 import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dialog/hotkey-config-dialog.component';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { EditorTransformService } from '../../../services/editor/editor-transform.service';
+import { EditorFreeTransformService } from '../../../services/editor/editor-free-transform.service';
 import {
   ScaleDialog,
   ScaleResult,
@@ -51,6 +52,7 @@ export class EditorHeader {
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
   readonly transform = inject(EditorTransformService);
+  readonly freeTransform = inject(EditorFreeTransformService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -795,12 +797,12 @@ export class EditorHeader {
 
   onFreeTransform() {
     const sel = this.document.selectionRect();
-    if (!sel) {
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
       this.showTransformMenu.set(false);
       return;
     }
     
-    this.transform.startTransform('free', sel.x, sel.y, sel.width, sel.height);
+    this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
   }
 
