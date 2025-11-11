@@ -664,7 +664,7 @@ export class EditorCanvas implements OnDestroy {
         if (selectedLayer?.locked) {
           return;
         }
-        this.document.saveSnapshot('Move pixels');
+        this.document.beginMoveSelection('Move pixels');
         this.capturePointer(ev);
         this.selectionContentMoving = true;
         this.selectionContentMoveStart = { x: logicalX, y: logicalY };
@@ -679,6 +679,7 @@ export class EditorCanvas implements OnDestroy {
         isSelectTool
       ) {
         this.capturePointer(ev);
+        this.document.beginMoveSelection('Move selection');
         this.selectionMoving = true;
         this.selectionMoveStart = { x: logicalX, y: logicalY };
         return;
@@ -1098,6 +1099,7 @@ export class EditorCanvas implements OnDestroy {
     if (this.selectionMoving) {
       this.selectionMoving = false;
       this.selectionMoveStart = null;
+  this.document.endMoveSelection('Move selection');
       return;
     }
 
@@ -1105,6 +1107,7 @@ export class EditorCanvas implements OnDestroy {
       this.selectionContentMoving = false;
       this.selectionContentMoveStart = null;
       this.endSelectionContentMove();
+  this.document.endMoveSelection('Move pixels');
       return;
     }
 

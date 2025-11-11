@@ -703,6 +703,7 @@ export class EditorDocumentService {
     y: number,
     shape: 'rect' | 'ellipse' | 'lasso' = 'rect',
   ) {
+    this.saveSnapshotForUndo('Create selection');
     this.selectionService.beginSelection(x, y, shape);
   }
 
@@ -714,9 +715,7 @@ export class EditorDocumentService {
     this.selectionService.updateSelection(x, y);
   }
 
-  endSelection() {
-    this.saveSnapshotForUndo('Create selection');
-  }
+  endSelection() {}
 
   clearSelection() {
     const prev = this.selectionService.getSelectionSnapshot();
@@ -726,7 +725,6 @@ export class EditorDocumentService {
   }
 
   moveSelection(dx: number, dy: number) {
-    this.saveSnapshotForUndo('Move selection');
     this.selectionService.moveSelection(
       dx,
       dy,
@@ -734,6 +732,14 @@ export class EditorDocumentService {
       this.canvasState.canvasHeight(),
     );
   }
+
+  beginMoveSelection(description?: string) {
+    this.saveSnapshotForUndo(description || 'Move selection');
+  }
+
+  // endMoveSelection intentionally does not push a second snapshot.
+  // Keeping only the pre-change snapshot ensures a single Ctrl+Z reverts the move.
+  endMoveSelection(_description?: string) {}
 
   invertSelection() {
     this.saveSnapshotForUndo('Invert selection');
