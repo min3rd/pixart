@@ -1533,13 +1533,22 @@ export class EditorDocumentService {
         scaleY,
       );
 
+      const centerX = selBuf.x + selBuf.width / 2;
+      const centerY = selBuf.y + selBuf.height / 2;
+
       const newX = Math.max(
         0,
-        Math.min(this.canvasWidth() - result.width, selBuf.x),
+        Math.min(
+          this.canvasWidth() - result.width,
+          Math.round(centerX - result.width / 2),
+        ),
       );
       const newY = Math.max(
         0,
-        Math.min(this.canvasHeight() - result.height, selBuf.y),
+        Math.min(
+          this.canvasHeight() - result.height,
+          Math.round(centerY - result.height / 2),
+        ),
       );
 
       this.applySelectionBuffer(
