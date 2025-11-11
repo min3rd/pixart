@@ -326,7 +326,7 @@ export class EditorCanvas implements OnDestroy {
         }
         if (ev.key === 'Escape') {
           if (this.freeTransform.isActive()) {
-            this.freeTransform.cancelTransform();
+            this.cancelFreeTransform();
             return;
           }
           if (this.contextMenuVisible()) {
@@ -347,6 +347,12 @@ export class EditorCanvas implements OnDestroy {
             this.selectionStart = null;
           }
           return;
+        }
+        if (ev.key === 'Enter') {
+          if (this.freeTransform.isActive()) {
+            this.commitFreeTransform();
+            return;
+          }
         }
         const key = ev.key?.toLowerCase?.() ?? ev.key;
         if (key === 'v' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
@@ -660,6 +666,26 @@ export class EditorCanvas implements OnDestroy {
       const freeTransformState = this.freeTransform.transformState();
       if (freeTransformState) {
         const handleSize = 8;
+        
+        const buttonSize = 24;
+        const buttonMargin = 8;
+        const commitButtonX = freeTransformState.x + freeTransformState.width + buttonMargin;
+        const commitButtonY = freeTransformState.y - buttonSize - buttonMargin;
+        const cancelButtonX = commitButtonX + buttonSize + buttonMargin;
+        const cancelButtonY = commitButtonY;
+        
+        if (logicalX >= commitButtonX && logicalX <= commitButtonX + buttonSize &&
+            logicalY >= commitButtonY && logicalY <= commitButtonY + buttonSize) {
+          this.commitFreeTransform();
+          return;
+        }
+        
+        if (logicalX >= cancelButtonX && logicalX <= cancelButtonX + buttonSize &&
+            logicalY >= cancelButtonY && logicalY <= cancelButtonY + buttonSize) {
+          this.cancelFreeTransform();
+          return;
+        }
+        
         const handles: TransformHandle[] = [
           'top-left', 'top-center', 'top-right',
           'middle-left', 'middle-right',
@@ -675,7 +701,6 @@ export class EditorCanvas implements OnDestroy {
           }
         }
         
-        this.commitFreeTransform();
         return;
       }
 
@@ -1335,6 +1360,7 @@ export class EditorCanvas implements OnDestroy {
     if (!sel || sel.width <= 0 || sel.height <= 0) {
       return;
     }
+    this.document.saveSnapshot('Free Transform');
     this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
   }
 
@@ -1348,8 +1374,7 @@ export class EditorCanvas implements OnDestroy {
     const scaleX = state.width / sel.width;
     const scaleY = state.height / sel.height;
 
-    if (scaleX !== 1 || scaleY !== 1 || state.rotation !== 0) {
-      this.document.saveSnapshot('Free Transform');
+    if (Math.abs(scaleX - 1) > 0.01 || Math.abs(scaleY - 1) > 0.01 || Math.abs(state.rotation) > 0.1) {
       const selectedLayer = this.document.selectedLayer();
       if (selectedLayer && isLayer(selectedLayer)) {
         this.applyTransformToSelection(state, scaleX, scaleY);
@@ -1357,11 +1382,15 @@ export class EditorCanvas implements OnDestroy {
     }
 
     this.document.updateSelectionBounds(
-      state.x,
-      state.y,
-      state.width,
-      state.height,
+      Math.floor(state.x),
+      Math.floor(state.y),
+      Math.floor(state.width),
+      Math.floor(state.height),
     );
+  }
+
+  private cancelFreeTransform(): void {
+    this.freeTransform.cancelTransform();
   }
 
   private applyTransformToSelection(
@@ -2306,6 +2335,40 @@ export class EditorCanvas implements OnDestroy {
         arrowX - arrowSize * Math.cos(arrowAngle + 0.5),
         arrowY - arrowSize * Math.sin(arrowAngle + 0.5),
       );
+      ctx.stroke();
+      
+      const buttonSize = 24 / scale;
+      const buttonMargin = 8 / scale;
+      const commitButtonX = freeTransformState.x + freeTransformState.width + buttonMargin;
+      const commitButtonY = freeTransformState.y - buttonSize - buttonMargin;
+      const cancelButtonX = commitButtonX + buttonSize + buttonMargin;
+      const cancelButtonY = commitButtonY;
+      
+      ctx.fillStyle = isDark ? 'rgba(50,200,50,0.9)' : 'rgba(40,180,40,0.9)';
+      ctx.fillRect(commitButtonX, commitButtonY, buttonSize, buttonSize);
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.strokeRect(commitButtonX, commitButtonY, buttonSize, buttonSize);
+      
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.lineWidth = pxLineWidth * 2;
+      ctx.beginPath();
+      ctx.moveTo(commitButtonX + buttonSize * 0.25, commitButtonY + buttonSize * 0.5);
+      ctx.lineTo(commitButtonX + buttonSize * 0.45, commitButtonY + buttonSize * 0.7);
+      ctx.lineTo(commitButtonX + buttonSize * 0.75, commitButtonY + buttonSize * 0.3);
+      ctx.stroke();
+      
+      ctx.fillStyle = isDark ? 'rgba(200,50,50,0.9)' : 'rgba(180,40,40,0.9)';
+      ctx.fillRect(cancelButtonX, cancelButtonY, buttonSize, buttonSize);
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.strokeRect(cancelButtonX, cancelButtonY, buttonSize, buttonSize);
+      
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
+      ctx.lineWidth = pxLineWidth * 2;
+      ctx.beginPath();
+      ctx.moveTo(cancelButtonX + buttonSize * 0.3, cancelButtonY + buttonSize * 0.3);
+      ctx.lineTo(cancelButtonX + buttonSize * 0.7, cancelButtonY + buttonSize * 0.7);
+      ctx.moveTo(cancelButtonX + buttonSize * 0.7, cancelButtonY + buttonSize * 0.3);
+      ctx.lineTo(cancelButtonX + buttonSize * 0.3, cancelButtonY + buttonSize * 0.7);
       ctx.stroke();
       
       ctx.restore();
