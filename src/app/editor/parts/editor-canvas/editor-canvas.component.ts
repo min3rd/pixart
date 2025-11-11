@@ -253,13 +253,6 @@ export class EditorCanvas implements OnDestroy {
       defaultKey: 'ctrl+shift+m',
       handler: () => this.document.mergeVisibleToNewLayer(),
     });
-
-    this.hotkeys.register({
-      id: 'edit.freeTransform',
-      category: 'edit',
-      defaultKey: 'ctrl+t',
-      handler: () => this.activateFreeTransform(),
-    });
   }
 
   private readonly layoutEffect = effect(
