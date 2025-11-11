@@ -1222,8 +1222,8 @@ export class EditorDocumentService {
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        const destX = x + Math.floor(x);
-        const destY = y + Math.floor(y);
+        const destX = x;
+        const destY = y;
         if (destX < 0 || destX >= canvasWidth || destY < 0 || destY >= canvasHeight)
           continue;
 

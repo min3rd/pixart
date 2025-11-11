@@ -21,7 +21,7 @@ interface AlignmentTransform {
 @Injectable({ providedIn: 'root' })
 export class EditorAutoAlignService {
   detectFeatures(imageData: ImageData, maxFeatures = 100): FeatureDescriptor[] {
-    const { width, height, data } = imageData;
+    const { width, height } = imageData;
     const features: FeatureDescriptor[] = [];
     const grayscale = this.toGrayscale(imageData);
 
