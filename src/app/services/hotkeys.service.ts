@@ -133,11 +133,12 @@ export class HotkeysService {
           this.customBindings().get(actionId) ?? action.defaultKey;
         if (binding === key) {
           event.preventDefault();
+          event.stopPropagation();
           action.handler();
           break;
         }
       }
-    });
+    }, true);
   }
 
   private eventToKeyString(event: KeyboardEvent): string {
