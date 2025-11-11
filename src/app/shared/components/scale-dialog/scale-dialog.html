@@ -1,0 +1,149 @@
+@if (isOpen()) {
+  <div
+    id="scale-dialog-backdrop"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    (click)="handleBackdropClick($event)"
+  >
+    <div
+      id="scale-dialog-container"
+      class="bg-white dark:bg-neutral-800 rounded shadow-lg p-6 w-96 max-w-full"
+    >
+      <h2
+        id="scale-dialog-title"
+        class="text-lg font-semibold mb-4 text-neutral-900 dark:text-neutral-100"
+      >
+        {{ "scale.title" | transloco }}
+      </h2>
+
+      <div id="scale-dialog-content" class="space-y-4">
+        <div id="scale-original-size-section" class="text-sm text-neutral-600 dark:text-neutral-400">
+          <span id="scale-original-size-label">{{ "scale.originalSize" | transloco }}:</span>
+          <span id="scale-original-size-value" class="font-mono ml-2">
+            {{ originalWidth() }} × {{ originalHeight() }}
+          </span>
+        </div>
+
+        <div id="scale-maintain-aspect-section" class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="scale-maintain-aspect-checkbox"
+            [checked]="maintainAspectRatio()"
+            (change)="onMaintainAspectRatioChange($event)"
+            class="w-4 h-4"
+          />
+          <label
+            for="scale-maintain-aspect-checkbox"
+            id="scale-maintain-aspect-label"
+            class="text-sm text-neutral-700 dark:text-neutral-300"
+          >
+            {{ "scale.maintainAspectRatio" | transloco }}
+          </label>
+        </div>
+
+        <div id="scale-dimensions-section" class="grid grid-cols-2 gap-4">
+          <div id="scale-width-field">
+            <label
+              for="scale-width-input"
+              id="scale-width-label"
+              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+            >
+              {{ "scale.width" | transloco }}
+            </label>
+            <input
+              type="number"
+              id="scale-width-input"
+              [value]="targetWidth()"
+              (input)="onWidthInput($event)"
+              min="1"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+          <div id="scale-height-field">
+            <label
+              for="scale-height-input"
+              id="scale-height-label"
+              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+            >
+              {{ "scale.height" | transloco }}
+            </label>
+            <input
+              type="number"
+              id="scale-height-input"
+              [value]="targetHeight()"
+              (input)="onHeightInput($event)"
+              min="1"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+        </div>
+
+        <div id="scale-percent-section" class="grid grid-cols-2 gap-4">
+          <div id="scale-percent-x-field">
+            <label
+              for="scale-percent-x-input"
+              id="scale-percent-x-label"
+              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+            >
+              {{ "scale.scaleX" | transloco }} (%)
+            </label>
+            <input
+              type="number"
+              id="scale-percent-x-input"
+              [value]="scalePercentX()"
+              (input)="onPercentXInput($event)"
+              min="1"
+              step="0.1"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+          <div id="scale-percent-y-field">
+            <label
+              for="scale-percent-y-input"
+              id="scale-percent-y-label"
+              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+            >
+              {{ "scale.scaleY" | transloco }} (%)
+            </label>
+            <input
+              type="number"
+              id="scale-percent-y-input"
+              [value]="scalePercentY()"
+              (input)="onPercentYInput($event)"
+              min="1"
+              step="0.1"
+              class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+        </div>
+
+        <div id="scale-preview-section" class="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+          <div id="scale-preview-label" class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            {{ "scale.preview" | transloco }}:
+          </div>
+          <div id="scale-preview-value" class="text-sm text-neutral-600 dark:text-neutral-400 font-mono">
+            {{ previewDimensions() }}
+          </div>
+        </div>
+      </div>
+
+      <div id="scale-dialog-actions" class="flex gap-2 mt-6">
+        <button
+          type="button"
+          id="scale-dialog-confirm-button"
+          (click)="handleConfirm()"
+          class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+        >
+          {{ "scale.ok" | transloco }}
+        </button>
+        <button
+          type="button"
+          id="scale-dialog-cancel-button"
+          (click)="handleCancel()"
+          class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded"
+        >
+          {{ "scale.cancel" | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
