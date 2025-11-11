@@ -321,8 +321,22 @@ export class EditorDocumentService {
     return this.canvasState.getLayerBuffer(layerId);
   }
 
+  setLayerBuffer(layerId: string, buffer: string[]): void {
+    this.canvasState.setLayerBuffer(layerId, buffer);
+  }
+
   ensureLayerBuffer(layerId: string, width: number, height: number) {
     this.canvasState.ensureLayerBuffer(layerId, width, height);
+  }
+
+  isPixelWithinSelection(
+    x: number,
+    y: number,
+    rect: { x: number; y: number; width: number; height: number } | null,
+    shape: 'rect' | 'ellipse' | 'lasso',
+    poly: { x: number; y: number }[] | null,
+  ): boolean {
+    return this.selectionService.isPixelWithinSelection(x, y, rect, shape, poly);
   }
 
   getFlattenedLayers(): LayerItem[] {
@@ -731,6 +745,17 @@ export class EditorDocumentService {
       this.canvasState.canvasWidth(),
       this.canvasState.canvasHeight(),
     );
+  }
+
+  updateSelectionBounds(x: number, y: number, width: number, height: number) {
+    const sel = this.selectionService.selectionRect();
+    if (!sel) return;
+    this.selectionService.selectionRect.set({
+      x: Math.max(0, Math.floor(x)),
+      y: Math.max(0, Math.floor(y)),
+      width: Math.max(1, Math.floor(width)),
+      height: Math.max(1, Math.floor(height)),
+    });
   }
 
   beginMoveSelection(description?: string) {
