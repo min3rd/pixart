@@ -664,6 +664,7 @@ export class EditorCanvas implements OnDestroy {
         if (selectedLayer?.locked) {
           return;
         }
+        this.document.saveSnapshot('Move pixels');
         this.capturePointer(ev);
         this.selectionContentMoving = true;
         this.selectionContentMoveStart = { x: logicalX, y: logicalY };
