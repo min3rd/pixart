@@ -523,5 +523,17 @@
     "sketchPreview": "Sketch preview",
     "generateFromLayer": "From layer",
     "generateFromVisible": "From visible"
+  },
+  "scale": {
+    "title": "Scale",
+    "originalSize": "Original size",
+    "maintainAspectRatio": "Maintain aspect ratio",
+    "width": "Width",
+    "height": "Height",
+    "scaleX": "Width scale",
+    "scaleY": "Height scale",
+    "preview": "Preview",
+    "ok": "OK",
+    "cancel": "Cancel"
   }
 }

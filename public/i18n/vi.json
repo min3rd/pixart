@@ -526,5 +526,17 @@
     "sketchPreview": "Xem trước phác họa",
     "generateFromLayer": "Từ layer",
     "generateFromVisible": "Từ tầng hiển thị"
+  },
+  "scale": {
+    "title": "Thay đổi kích thước",
+    "originalSize": "Kích thước gốc",
+    "maintainAspectRatio": "Giữ tỷ lệ khung hình",
+    "width": "Chiều rộng",
+    "height": "Chiều cao",
+    "scaleX": "Tỷ lệ rộng",
+    "scaleY": "Tỷ lệ cao",
+    "preview": "Xem trước",
+    "ok": "Đồng ý",
+    "cancel": "Hủy"
   }
 }

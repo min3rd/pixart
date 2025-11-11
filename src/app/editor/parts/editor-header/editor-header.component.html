@@ -366,7 +366,10 @@
           ></div>
           <button
             id="menu-transform-scale-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onScale()"
           >
             <span id="menu-transform-scale-label">{{ "menu.scale" | transloco }}</span>
@@ -871,6 +874,11 @@
 <pa-insert-image-dialog
   (onConfirm)="handleInsertImageConfirm($event)"
   (onCancel)="handleInsertImageCancel()"
+/>
+
+<pa-scale-dialog
+  (onConfirm)="handleScaleConfirm($event)"
+  (onCancel)="handleScaleCancel()"
 />
 
 <pa-hotkey-config-dialog />

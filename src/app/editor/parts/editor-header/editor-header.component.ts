@@ -20,6 +20,10 @@ import { HotkeysService } from '../../../services/hotkeys.service';
 import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dialog/hotkey-config-dialog.component';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { EditorTransformService } from '../../../services/editor/editor-transform.service';
+import {
+  ScaleDialog,
+  ScaleResult,
+} from '../../../shared/components/scale-dialog/scale-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -32,6 +36,7 @@ import { EditorTransformService } from '../../../services/editor/editor-transfor
     InsertImageDialog,
     HotkeyConfigDialog,
     TooltipDirective,
+    ScaleDialog,
   ],
   host: {
     class:
@@ -54,6 +59,7 @@ export class EditorHeader {
   readonly showTransformMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
+  readonly scaleDialog = viewChild(ScaleDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -799,8 +805,26 @@ export class EditorHeader {
   }
 
   onScale() {
-    this.document.scaleSelectionOrLayer(2.0, 2.0);
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      console.warn('No selection to scale');
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.scaleDialog();
+    if (dialog) {
+      dialog.open(sel.width, sel.height);
+    }
     this.showTransformMenu.set(false);
+  }
+
+  handleScaleConfirm(result: ScaleResult) {
+    this.document.scaleSelectionOrLayer(result.scaleX, result.scaleY);
+  }
+
+  handleScaleCancel() {
+    console.info('Scale cancelled');
   }
 
   onRotate() {

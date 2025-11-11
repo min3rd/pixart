@@ -397,17 +397,118 @@ export class EditorTransformService {
 
     for (let y = 0; y < newHeight; y++) {
       for (let x = 0; x < newWidth; x++) {
-        const srcX = Math.floor(x / scaleX);
-        const srcY = Math.floor(y / scaleY);
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
 
-        if (srcX >= 0 && srcX < width && srcY >= 0 && srcY < height) {
-          const srcIdx = srcY * width + srcX;
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+        const x1 = Math.min(x0 + 1, width - 1);
+        const y1 = Math.min(y0 + 1, height - 1);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const fx = srcX - x0;
+          const fy = srcY - y0;
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
           const destIdx = y * newWidth + x;
-          result[destIdx] = buffer[srcIdx] || '';
+          result[destIdx] = finalColor;
         }
       }
     }
 
     return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  private bilinearInterpolateColor(
+    c00: string,
+    c10: string,
+    c01: string,
+    c11: string,
+    fx: number,
+    fy: number,
+  ): string {
+    const rgba00 = this.hexToRgba(c00);
+    const rgba10 = this.hexToRgba(c10);
+    const rgba01 = this.hexToRgba(c01);
+    const rgba11 = this.hexToRgba(c11);
+
+    const r =
+      (1 - fx) * (1 - fy) * rgba00.r +
+      fx * (1 - fy) * rgba10.r +
+      (1 - fx) * fy * rgba01.r +
+      fx * fy * rgba11.r;
+    const g =
+      (1 - fx) * (1 - fy) * rgba00.g +
+      fx * (1 - fy) * rgba10.g +
+      (1 - fx) * fy * rgba01.g +
+      fx * fy * rgba11.g;
+    const b =
+      (1 - fx) * (1 - fy) * rgba00.b +
+      fx * (1 - fy) * rgba10.b +
+      (1 - fx) * fy * rgba01.b +
+      fx * fy * rgba11.b;
+    const a =
+      (1 - fx) * (1 - fy) * rgba00.a +
+      fx * (1 - fy) * rgba10.a +
+      (1 - fx) * fy * rgba01.a +
+      fx * fy * rgba11.a;
+
+    return this.rgbaToHex(
+      Math.round(r),
+      Math.round(g),
+      Math.round(b),
+      Math.round(a),
+    );
+  }
+
+  private hexToRgba(hex: string): { r: number; g: number; b: number; a: number } {
+    if (!hex || hex.length < 7) {
+      return { r: 0, g: 0, b: 0, a: 0 };
+    }
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
+    const a = hex.length >= 9 ? Number.parseInt(hex.slice(7, 9), 16) : 255;
+    return { r, g, b, a };
+  }
+
+  private rgbaToHex(r: number, g: number, b: number, a: number): string {
+    const rr = Math.max(0, Math.min(255, r)).toString(16).padStart(2, '0');
+    const gg = Math.max(0, Math.min(255, g)).toString(16).padStart(2, '0');
+    const bb = Math.max(0, Math.min(255, b)).toString(16).padStart(2, '0');
+    const aa = Math.max(0, Math.min(255, a)).toString(16).padStart(2, '0');
+    return `#${rr}${gg}${bb}${aa}`;
   }
 }
