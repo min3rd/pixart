@@ -1220,14 +1220,14 @@ export class EditorDocumentService {
       }
     }
 
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const destX = x;
-        const destY = y;
+    for (let dy = 0; dy < height; dy++) {
+      for (let dx = 0; dx < width; dx++) {
+        const destX = x + dx;
+        const destY = y + dy;
         if (destX < 0 || destX >= canvasWidth || destY < 0 || destY >= canvasHeight)
           continue;
 
-        const srcIdx = y * width + x;
+        const srcIdx = dy * width + dx;
         const destIdx = destY * canvasWidth + destX;
         const pixel = buffer[srcIdx];
         if (pixel) {
