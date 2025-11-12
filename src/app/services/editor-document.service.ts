@@ -336,7 +336,13 @@ export class EditorDocumentService {
     shape: 'rect' | 'ellipse' | 'lasso',
     poly: { x: number; y: number }[] | null,
   ): boolean {
-    return this.selectionService.isPixelWithinSelection(x, y, rect, shape, poly);
+    return this.selectionService.isPixelWithinSelection(
+      x,
+      y,
+      rect,
+      shape,
+      poly,
+    );
   }
 
   getFlattenedLayers(): LayerItem[] {
@@ -1240,7 +1246,13 @@ export class EditorDocumentService {
             continue;
 
           if (
-            this.selectionService.isPixelWithinSelection(px, py, sel, shape, poly)
+            this.selectionService.isPixelWithinSelection(
+              px,
+              py,
+              sel,
+              shape,
+              poly,
+            )
           ) {
             const idx = py * canvasWidth + px;
             targetBuf[idx] = '';
@@ -1253,7 +1265,12 @@ export class EditorDocumentService {
       for (let dx = 0; dx < width; dx++) {
         const destX = x + dx;
         const destY = y + dy;
-        if (destX < 0 || destX >= canvasWidth || destY < 0 || destY >= canvasHeight)
+        if (
+          destX < 0 ||
+          destX >= canvasWidth ||
+          destY < 0 ||
+          destY >= canvasHeight
+        )
           continue;
 
         const srcIdx = dy * width + dx;
@@ -1272,7 +1289,7 @@ export class EditorDocumentService {
 
   flipLayerHorizontal(layerId?: string): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1302,7 +1319,7 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Flip horizontal');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const flipped = this.transformService.applySimpleFlipHorizontal(
@@ -1319,7 +1336,7 @@ export class EditorDocumentService {
 
   flipLayerVertical(layerId?: string): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1349,7 +1366,7 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Flip vertical');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const flipped = this.transformService.applySimpleFlipVertical(
@@ -1366,7 +1383,7 @@ export class EditorDocumentService {
 
   rotateLayer90CW(layerId?: string): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1414,17 +1431,21 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Rotate 90° CW');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const result = this.transformService.applyRotate90CW(buffer, width, height);
 
     this.canvasState.setCanvasSize(result.width, result.height);
     this.canvasState.setLayerBuffer(targetId, result.buffer);
-    
+
     for (const layer of this.layerService.getFlattenedLayers()) {
       if (layer.id !== targetId) {
-        this.canvasState.ensureLayerBuffer(layer.id, result.width, result.height);
+        this.canvasState.ensureLayerBuffer(
+          layer.id,
+          result.width,
+          result.height,
+        );
       }
     }
 
@@ -1435,7 +1456,7 @@ export class EditorDocumentService {
 
   rotateLayer90CCW(layerId?: string): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1483,17 +1504,25 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Rotate 90° CCW');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
-    const result = this.transformService.applyRotate90CCW(buffer, width, height);
+    const result = this.transformService.applyRotate90CCW(
+      buffer,
+      width,
+      height,
+    );
 
     this.canvasState.setCanvasSize(result.width, result.height);
     this.canvasState.setLayerBuffer(targetId, result.buffer);
-    
+
     for (const layer of this.layerService.getFlattenedLayers()) {
       if (layer.id !== targetId) {
-        this.canvasState.ensureLayerBuffer(layer.id, result.width, result.height);
+        this.canvasState.ensureLayerBuffer(
+          layer.id,
+          result.width,
+          result.height,
+        );
       }
     }
 
@@ -1504,7 +1533,7 @@ export class EditorDocumentService {
 
   rotateLayer180(layerId?: string): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1534,7 +1563,7 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Rotate 180°');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const rotated = this.transformService.applyRotate180(buffer, width, height);
@@ -1547,7 +1576,7 @@ export class EditorDocumentService {
 
   scaleSelectionOrLayer(scaleX: number, scaleY: number): boolean {
     const sel = this.selectionService.selectionRect();
-    
+
     if (sel) {
       const selBuf = this.getSelectionBuffer();
       if (!selBuf) return false;
@@ -1606,7 +1635,7 @@ export class EditorDocumentService {
     if (!buffer || buffer.length === 0) return false;
 
     this.saveSnapshotForUndo('Scale');
-    
+
     const width = this.canvasWidth();
     const height = this.canvasHeight();
     const result = this.transformService.applyScale(
@@ -1619,7 +1648,7 @@ export class EditorDocumentService {
 
     if (result.width !== width || result.height !== height) {
       this.canvasState.setCanvasSize(result.width, result.height);
-      
+
       for (const layer of this.layerService.getFlattenedLayers()) {
         if (layer.id !== targetId) {
           this.canvasState.ensureLayerBuffer(

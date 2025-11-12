@@ -141,7 +141,9 @@
                 id="menu-edit-cut-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
-                {{ hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.cut")!) }}
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.cut")!)
+                }}
               </span>
             }
           </button>
@@ -169,7 +171,9 @@
             (click)="onCopyMerged()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copyMerged')"
           >
-            <span id="menu-edit-copy-merged-label">{{ "menu.copyMerged" | transloco }}</span>
+            <span id="menu-edit-copy-merged-label">{{
+              "menu.copyMerged" | transloco
+            }}</span>
             @if (hotkeys.getBinding("edit.copyMerged")) {
               <span
                 id="menu-edit-copy-merged-shortcut"
@@ -193,7 +197,9 @@
             (click)="onPaste()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.paste')"
           >
-            <span id="menu-edit-paste-label">{{ "menu.paste" | transloco }}</span>
+            <span id="menu-edit-paste-label">{{
+              "menu.paste" | transloco
+            }}</span>
             @if (hotkeys.getBinding("edit.paste")) {
               <span
                 id="menu-edit-paste-shortcut"
@@ -211,7 +217,9 @@
             (click)="onPasteInPlace()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInPlace')"
           >
-            <span id="menu-edit-paste-in-place-label">{{ "menu.pasteInPlace" | transloco }}</span>
+            <span id="menu-edit-paste-in-place-label">{{
+              "menu.pasteInPlace" | transloco
+            }}</span>
             @if (hotkeys.getBinding("edit.pasteInPlace")) {
               <span
                 id="menu-edit-paste-in-place-shortcut"
@@ -231,7 +239,9 @@
             (click)="onPasteInto()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInto')"
           >
-            <span id="menu-edit-paste-into-label">{{ "menu.pasteInto" | transloco }}</span>
+            <span id="menu-edit-paste-into-label">{{
+              "menu.pasteInto" | transloco
+            }}</span>
             @if (hotkeys.getBinding("edit.pasteInto")) {
               <span
                 id="menu-edit-paste-into-shortcut"
@@ -255,7 +265,9 @@
             (click)="onClear()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.clear')"
           >
-            <span id="menu-edit-clear-label">{{ "menu.clear" | transloco }}</span>
+            <span id="menu-edit-clear-label">{{
+              "menu.clear" | transloco
+            }}</span>
             @if (hotkeys.getBinding("edit.clear")) {
               <span
                 id="menu-edit-clear-shortcut"
@@ -344,9 +356,13 @@
             id="menu-transform-free-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onFreeTransform()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.freeTransform')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.freeTransform')
+            "
           >
-            <span id="menu-transform-free-label">{{ "menu.freeTransform" | transloco }}</span>
+            <span id="menu-transform-free-label">{{
+              "menu.freeTransform" | transloco
+            }}</span>
             @if (hotkeys.getBinding("transform.freeTransform")) {
               <span
                 id="menu-transform-free-shortcut"
@@ -372,49 +388,63 @@
             [disabled]="!document.selectionRect()"
             (click)="onScale()"
           >
-            <span id="menu-transform-scale-label">{{ "menu.scale" | transloco }}</span>
+            <span id="menu-transform-scale-label">{{
+              "menu.scale" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-rotate-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onRotate()"
           >
-            <span id="menu-transform-rotate-label">{{ "menu.rotate" | transloco }}</span>
+            <span id="menu-transform-rotate-label">{{
+              "menu.rotate" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-skew-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onSkew()"
           >
-            <span id="menu-transform-skew-label">{{ "menu.skew" | transloco }}</span>
+            <span id="menu-transform-skew-label">{{
+              "menu.skew" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-distort-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onDistort()"
           >
-            <span id="menu-transform-distort-label">{{ "menu.distort" | transloco }}</span>
+            <span id="menu-transform-distort-label">{{
+              "menu.distort" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-perspective-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onPerspective()"
           >
-            <span id="menu-transform-perspective-label">{{ "menu.perspective" | transloco }}</span>
+            <span id="menu-transform-perspective-label">{{
+              "menu.perspective" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-warp-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onWarp()"
           >
-            <span id="menu-transform-warp-label">{{ "menu.warp" | transloco }}</span>
+            <span id="menu-transform-warp-label">{{
+              "menu.warp" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-puppet-warp-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onPuppetWarp()"
           >
-            <span id="menu-transform-puppet-warp-label">{{ "menu.puppetWarp" | transloco }}</span>
+            <span id="menu-transform-puppet-warp-label">{{
+              "menu.puppetWarp" | transloco
+            }}</span>
           </button>
           <div
             id="menu-transform-divider-2"
@@ -424,9 +454,13 @@
             id="menu-transform-content-aware-scale-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onContentAwareScale()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.contentAwareScale')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.contentAwareScale')
+            "
           >
-            <span id="menu-transform-content-aware-scale-label">{{ "menu.contentAwareScale" | transloco }}</span>
+            <span id="menu-transform-content-aware-scale-label">{{
+              "menu.contentAwareScale" | transloco
+            }}</span>
             @if (hotkeys.getBinding("transform.contentAwareScale")) {
               <span
                 id="menu-transform-content-aware-scale-shortcut"
@@ -449,14 +483,18 @@
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onAutoAlignLayers()"
           >
-            <span id="menu-transform-auto-align-label">{{ "menu.autoAlignLayers" | transloco }}</span>
+            <span id="menu-transform-auto-align-label">{{
+              "menu.autoAlignLayers" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-auto-blend-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onAutoBlendLayers()"
           >
-            <span id="menu-transform-auto-blend-label">{{ "menu.autoBlendLayers" | transloco }}</span>
+            <span id="menu-transform-auto-blend-label">{{
+              "menu.autoBlendLayers" | transloco
+            }}</span>
           </button>
           <div
             id="menu-transform-divider-4"
@@ -466,9 +504,13 @@
             id="menu-transform-flip-horizontal-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onFlipHorizontal()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.flipHorizontal')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.flipHorizontal')
+            "
           >
-            <span id="menu-transform-flip-horizontal-label">{{ "menu.flipHorizontal" | transloco }}</span>
+            <span id="menu-transform-flip-horizontal-label">{{
+              "menu.flipHorizontal" | transloco
+            }}</span>
             @if (hotkeys.getBinding("transform.flipHorizontal")) {
               <span
                 id="menu-transform-flip-horizontal-shortcut"
@@ -486,9 +528,13 @@
             id="menu-transform-flip-vertical-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onFlipVertical()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('transform.flipVertical')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.flipVertical')
+            "
           >
-            <span id="menu-transform-flip-vertical-label">{{ "menu.flipVertical" | transloco }}</span>
+            <span id="menu-transform-flip-vertical-label">{{
+              "menu.flipVertical" | transloco
+            }}</span>
             @if (hotkeys.getBinding("transform.flipVertical")) {
               <span
                 id="menu-transform-flip-vertical-shortcut"
@@ -507,21 +553,27 @@
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onRotate90CW()"
           >
-            <span id="menu-transform-rotate-90cw-label">{{ "menu.rotate90CW" | transloco }}</span>
+            <span id="menu-transform-rotate-90cw-label">{{
+              "menu.rotate90CW" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-rotate-90ccw-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onRotate90CCW()"
           >
-            <span id="menu-transform-rotate-90ccw-label">{{ "menu.rotate90CCW" | transloco }}</span>
+            <span id="menu-transform-rotate-90ccw-label">{{
+              "menu.rotate90CCW" | transloco
+            }}</span>
           </button>
           <button
             id="menu-transform-rotate-180-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onRotate180()"
           >
-            <span id="menu-transform-rotate-180-label">{{ "menu.rotate180" | transloco }}</span>
+            <span id="menu-transform-rotate-180-label">{{
+              "menu.rotate180" | transloco
+            }}</span>
           </button>
         </div>
       }

@@ -116,29 +116,37 @@ export class HotkeysService {
   private attachGlobalListener(): void {
     if (typeof window === 'undefined') return;
 
-    window.addEventListener('keydown', (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target) {
-        const tag = target.tagName.toLowerCase();
-        if (tag === 'input' || tag === 'textarea' || target.isContentEditable) {
-          return;
+    window.addEventListener(
+      'keydown',
+      (event: KeyboardEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (target) {
+          const tag = target.tagName.toLowerCase();
+          if (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            target.isContentEditable
+          ) {
+            return;
+          }
         }
-      }
 
-      const key = this.eventToKeyString(event);
-      if (!key) return;
+        const key = this.eventToKeyString(event);
+        if (!key) return;
 
-      for (const [actionId, action] of this.actions.entries()) {
-        const binding =
-          this.customBindings().get(actionId) ?? action.defaultKey;
-        if (binding === key) {
-          event.preventDefault();
-          event.stopPropagation();
-          action.handler();
-          break;
+        for (const [actionId, action] of this.actions.entries()) {
+          const binding =
+            this.customBindings().get(actionId) ?? action.defaultKey;
+          if (binding === key) {
+            event.preventDefault();
+            event.stopPropagation();
+            action.handler();
+            break;
+          }
         }
-      }
-    }, true);
+      },
+      true,
+    );
   }
 
   private eventToKeyString(event: KeyboardEvent): string {

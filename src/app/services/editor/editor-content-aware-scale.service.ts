@@ -165,7 +165,11 @@ export class EditorContentAwareScaleService {
 
     for (let x = 0; x < width; x++) {
       const seamIndices = seam.indices
-        .map((idx, i) => ({ y: Math.floor(idx / width), x: idx % width, row: i }))
+        .map((idx, i) => ({
+          y: Math.floor(idx / width),
+          x: idx % width,
+          row: i,
+        }))
         .filter((item) => item.x === x)
         .map((item) => item.y);
 

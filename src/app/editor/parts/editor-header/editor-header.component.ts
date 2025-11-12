@@ -788,7 +788,8 @@ export class EditorHeader {
   }
 
   onTransformMenuFocusOut() {
-    if (this.transformHoverCloseTimer) clearTimeout(this.transformHoverCloseTimer);
+    if (this.transformHoverCloseTimer)
+      clearTimeout(this.transformHoverCloseTimer);
     this.transformHoverCloseTimer = window.setTimeout(() => {
       this.showTransformMenu.set(false);
       this.transformHoverCloseTimer = undefined;
@@ -801,7 +802,7 @@ export class EditorHeader {
       this.showTransformMenu.set(false);
       return;
     }
-    
+
     this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
   }
@@ -824,8 +825,7 @@ export class EditorHeader {
     this.document.scaleSelectionOrLayer(result.scaleX, result.scaleY);
   }
 
-  handleScaleCancel() {
-  }
+  handleScaleCancel() {}
 
   onRotate() {
     this.showTransformMenu.set(false);
