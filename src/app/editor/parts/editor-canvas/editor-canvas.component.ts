@@ -278,6 +278,19 @@ export class EditorCanvas implements OnDestroy {
       defaultKey: 'ctrl+shift+m',
       handler: () => this.document.mergeVisibleToNewLayer(),
     });
+
+    this.hotkeys.register({
+      id: 'tool.freeTransform',
+      category: 'tool',
+      defaultKey: 'shift+t',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (!sel || sel.width <= 0 || sel.height <= 0) {
+          return;
+        }
+        this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
+      },
+    });
   }
 
   private readonly layoutEffect = effect(
