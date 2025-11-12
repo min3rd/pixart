@@ -30,6 +30,8 @@ export class EditorFreeTransformService {
   readonly isDraggingHandle = signal<TransformHandle | null>(null);
   readonly dragStartPos = signal<{ x: number; y: number } | null>(null);
   readonly dragStartState = signal<FreeTransformState | null>(null);
+  readonly snapRotation = signal(false);
+  readonly constrainProportions = signal(false);
 
   readonly isActive = computed(() => this.transformState() !== null);
 
@@ -93,6 +95,15 @@ export class EditorFreeTransformService {
     } else {
       this.updateScale(handle, x, y, startPos, startState);
     }
+    // live update center (useful for rotation handle reposition during drag)
+    const current = this.transformState();
+    if (current) {
+      this.transformState.set({
+        ...current,
+        centerX: current.x + current.width / 2,
+        centerY: current.y + current.height / 2,
+      });
+    }
   }
 
   endHandleDrag(): void {
@@ -101,14 +112,32 @@ export class EditorFreeTransformService {
     this.dragStartState.set(null);
   }
 
+  setSnapRotation(enabled: boolean) {
+    this.snapRotation.set(!!enabled);
+  }
+
+  setConstrainProportions(enabled: boolean) {
+    this.constrainProportions.set(!!enabled);
+  }
+
   private updateRotation(
     mouseX: number,
     mouseY: number,
     startState: FreeTransformState,
   ): void {
-    const dx = mouseX - startState.centerX;
-    const dy = mouseY - startState.centerY;
-    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    const current = this.transformState();
+    if (!current) return;
+    const cx = current.centerX;
+    const cy = current.centerY;
+    const dx = mouseX - cx;
+    const dy = mouseY - cy;
+    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    // Normalize angle to 0-360 and apply snapping if enabled
+    angle = (angle + 360) % 360;
+    if (this.snapRotation()) {
+      const step = 15;
+      angle = Math.round(angle / step) * step;
+    }
     this.updateTransform({ rotation: angle });
   }
 
@@ -167,6 +196,63 @@ export class EditorFreeTransformService {
     newWidth = Math.max(1, newWidth);
     newHeight = Math.max(1, newHeight);
 
+    if (this.constrainProportions()) {
+      const ratio = Math.max(0.0001, startState.width / startState.height);
+      // keep opposite corner fixed depending on handle, adjust x/y to maintain anchor
+      switch (handle) {
+        case 'top-left':
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newHeight = newWidth / ratio;
+            newY = startState.y + (startState.height - newHeight);
+          } else {
+            newWidth = newHeight * ratio;
+            newX = startState.x + (startState.width - newWidth);
+          }
+          break;
+        case 'top-center':
+          newWidth = startState.width;
+          newHeight = Math.max(1, newHeight);
+          newY = startState.y + (startState.height - newHeight);
+          break;
+        case 'top-right':
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newHeight = newWidth / ratio;
+            newY = startState.y + (startState.height - newHeight);
+          } else {
+            newWidth = newHeight * ratio;
+          }
+          break;
+        case 'middle-left':
+          newHeight = startState.height;
+          newWidth = Math.max(1, newWidth);
+          newX = startState.x + (startState.width - newWidth);
+          break;
+        case 'middle-right':
+          newHeight = startState.height;
+          newWidth = Math.max(1, newWidth);
+          break;
+        case 'bottom-left':
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newHeight = newWidth / ratio;
+          } else {
+            newWidth = newHeight * ratio;
+            newX = startState.x + (startState.width - newWidth);
+          }
+          break;
+        case 'bottom-center':
+          newWidth = startState.width;
+          newHeight = Math.max(1, newHeight);
+          break;
+        case 'bottom-right':
+          if (Math.abs(dx) > Math.abs(dy)) {
+            newHeight = newWidth / ratio;
+          } else {
+            newWidth = newHeight * ratio;
+          }
+          break;
+      }
+    }
+
     const scaleX = newWidth / startState.width;
     const scaleY = newHeight / startState.height;
 
@@ -186,26 +272,34 @@ export class EditorFreeTransformService {
     handle: TransformHandle,
     state: FreeTransformState,
   ): { x: number; y: number } {
-    const { x, y, width, height } = state;
+    const { x, y, width, height, rotation } = state;
+    const cx = x + width / 2;
+    const cy = y + height / 2;
+    const toRad = (rotation * Math.PI) / 180;
+    const cos = Math.cos(toRad);
+    const sin = Math.sin(toRad);
+    const corner = (dx: number, dy: number) => {
+      return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
+    };
     switch (handle) {
       case 'top-left':
-        return { x, y };
+        return corner(-width / 2, -height / 2);
       case 'top-center':
-        return { x: x + width / 2, y };
+        return corner(0, -height / 2);
       case 'top-right':
-        return { x: x + width, y };
+        return corner(width / 2, -height / 2);
       case 'middle-left':
-        return { x, y: y + height / 2 };
+        return corner(-width / 2, 0);
       case 'middle-right':
-        return { x: x + width, y: y + height / 2 };
+        return corner(width / 2, 0);
       case 'bottom-left':
-        return { x, y: y + height };
+        return corner(-width / 2, height / 2);
       case 'bottom-center':
-        return { x: x + width / 2, y: y + height };
+        return corner(0, height / 2);
       case 'bottom-right':
-        return { x: x + width, y: y + height };
+        return corner(width / 2, height / 2);
       case 'rotate-center':
-        return { x: x + width / 2, y: y + height / 2 };
+        return corner(0, -height / 2 - 8);
     }
   }
 

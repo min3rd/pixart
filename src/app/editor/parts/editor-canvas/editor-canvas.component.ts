@@ -132,6 +132,14 @@ export class EditorCanvas implements OnDestroy {
     height: number;
   } | null = null;
   private originalLayerId: string | null = null;
+  private freeTransformOriginalBuffer: string[] | null = null;
+  private freeTransformOriginalRect: { x: number; y: number; width: number; height: number } | null = null;
+  private freeTransformLayerId: string | null = null;
+  private freeTransformPreviewIndices: number[] | null = null;
+  private freeTransformDuplicate = false;
+  private freeTransformMirrorX = false;
+  private freeTransformMirrorY = false;
+  private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
   private stopRenderEffect: EffectRef | null = null;
@@ -194,6 +202,15 @@ export class EditorCanvas implements OnDestroy {
       return null as any;
     });
 
+    // If selection is cleared while free transform is active, cancel and clean state.
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.freeTransform.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelFreeTransform();
+      }
+    });
+
     effect(() => {
       const tool = this.tools.currentTool();
       if (tool !== 'bone' && this.currentBoneId) {
@@ -252,6 +269,13 @@ export class EditorCanvas implements OnDestroy {
       category: 'edit',
       defaultKey: 'ctrl+shift+m',
       handler: () => this.document.mergeVisibleToNewLayer(),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.freeTransform',
+      category: 'tool',
+      defaultKey: 'shift+t',
+      handler: () => this.activateFreeTransform(),
     });
   }
 
@@ -393,6 +417,8 @@ export class EditorCanvas implements OnDestroy {
           }
           return;
         }
+        // Ctrl+T is browser-reserved (new tab) and cannot be reliably overridden.
+        // Free Transform is bound to Shift+T via HotkeysService.
         if (ev.ctrlKey && key === 'g') {
           ev.preventDefault();
           const selectedIds = Array.from(this.document.selectedLayerIds());
@@ -407,6 +433,11 @@ export class EditorCanvas implements OnDestroy {
         const key = ev.key?.toLowerCase?.() ?? ev.key;
         if (key === 'v') {
           this.vKeyPressed = false;
+        }
+        if (ev.key === 'Shift') {
+          this.shiftPressed = false;
+          this.freeTransform.setSnapRotation(false);
+          this.freeTransform.setConstrainProportions(false);
         }
       });
     }
@@ -466,7 +497,16 @@ export class EditorCanvas implements OnDestroy {
     }
 
     if (this.freeTransform.isDraggingHandle()) {
+      const handle = this.freeTransform.isDraggingHandle();
+      if (handle === 'rotate-center') {
+        this.freeTransform.setSnapRotation(ev.shiftKey || this.shiftPressed);
+        this.freeTransform.setConstrainProportions(false);
+      } else {
+        this.freeTransform.setConstrainProportions(ev.shiftKey || this.shiftPressed);
+        this.freeTransform.setSnapRotation(false);
+      }
       this.freeTransform.updateHandleDrag(logicalX, logicalY);
+      this.renderLiveFreeTransformPreview();
       return;
     }
 
@@ -665,15 +705,54 @@ export class EditorCanvas implements OnDestroy {
     if (ev.button === 0) {
       const freeTransformState = this.freeTransform.transformState();
       if (freeTransformState) {
-        const handleSize = 8;
-        
-        const buttonSize = 24;
-        const buttonMargin = 8;
-        const commitButtonX = freeTransformState.x + freeTransformState.width + buttonMargin;
-        const commitButtonY = freeTransformState.y - buttonSize - buttonMargin;
-        const cancelButtonX = commitButtonX + buttonSize + buttonMargin;
-        const cancelButtonY = commitButtonY;
-        
+        const handleSize = Math.max(3, Math.round(5 / Math.max(0.001, this.scale())));
+        const buttonSize = Math.max(6, Math.round(8 / Math.max(0.001, this.scale())));
+        const buttonMargin = Math.max(2, Math.round(5 / Math.max(0.001, this.scale())));
+        const canvasW = this.document.canvasWidth();
+        const canvasH = this.document.canvasHeight();
+        // place inside top-right and clamp to canvas bounds
+        let commitButtonX = freeTransformState.x + freeTransformState.width - buttonSize - buttonMargin;
+        let commitButtonY = freeTransformState.y + buttonMargin;
+        let cancelButtonX = commitButtonX - buttonSize - buttonMargin;
+        let cancelButtonY = commitButtonY;
+  let duplicateButtonX = cancelButtonX - buttonSize - buttonMargin;
+  let duplicateButtonY = commitButtonY;
+  let mirrorXButtonX = duplicateButtonX - buttonSize - buttonMargin;
+  let mirrorXButtonY = commitButtonY;
+  let mirrorYButtonX = mirrorXButtonX - buttonSize - buttonMargin;
+  let mirrorYButtonY = commitButtonY;
+        const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(v, max));
+        commitButtonX = clamp(commitButtonX, 0, canvasW - buttonSize);
+        commitButtonY = clamp(commitButtonY, 0, canvasH - buttonSize);
+        cancelButtonX = clamp(cancelButtonX, 0, canvasW - buttonSize);
+        cancelButtonY = clamp(cancelButtonY, 0, canvasH - buttonSize);
+        duplicateButtonX = clamp(duplicateButtonX, 0, canvasW - buttonSize);
+        duplicateButtonY = clamp(duplicateButtonY, 0, canvasH - buttonSize);
+        mirrorXButtonX = clamp(mirrorXButtonX, 0, canvasW - buttonSize);
+        mirrorXButtonY = clamp(mirrorXButtonY, 0, canvasH - buttonSize);
+        mirrorYButtonX = clamp(mirrorYButtonX, 0, canvasW - buttonSize);
+        mirrorYButtonY = clamp(mirrorYButtonY, 0, canvasH - buttonSize);
+
+        if (logicalX >= mirrorXButtonX && logicalX <= mirrorXButtonX + buttonSize &&
+            logicalY >= mirrorXButtonY && logicalY <= mirrorXButtonY + buttonSize) {
+          this.freeTransformMirrorX = !this.freeTransformMirrorX;
+          this.renderLiveFreeTransformPreview();
+          return;
+        }
+
+        if (logicalX >= mirrorYButtonX && logicalX <= mirrorYButtonX + buttonSize &&
+            logicalY >= mirrorYButtonY && logicalY <= mirrorYButtonY + buttonSize) {
+          this.freeTransformMirrorY = !this.freeTransformMirrorY;
+          this.renderLiveFreeTransformPreview();
+          return;
+        }
+
+        if (logicalX >= duplicateButtonX && logicalX <= duplicateButtonX + buttonSize &&
+            logicalY >= duplicateButtonY && logicalY <= duplicateButtonY + buttonSize) {
+          this.freeTransformDuplicate = !this.freeTransformDuplicate;
+          return;
+        }
+
         if (logicalX >= commitButtonX && logicalX <= commitButtonX + buttonSize &&
             logicalY >= commitButtonY && logicalY <= commitButtonY + buttonSize) {
           this.commitFreeTransform();
@@ -1360,24 +1439,68 @@ export class EditorCanvas implements OnDestroy {
     if (!sel || sel.width <= 0 || sel.height <= 0) {
       return;
     }
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
+    // Pre-change snapshot so a single undo reverts the whole transform session.
     this.document.saveSnapshot('Free Transform');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+    const original: string[] = new Array<string>(sel.width * sel.height).fill('');
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update(v => v + 1);
+    this.freeTransformOriginalBuffer = original;
+    this.freeTransformOriginalRect = { x: sel.x, y: sel.y, width: sel.width, height: sel.height };
+    this.freeTransformLayerId = layer.id;
     this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
+    // Render initial preview into layer so user sees live pixels immediately
+    this.renderLiveFreeTransformPreview();
   }
 
   private commitFreeTransform(): void {
     const state = this.freeTransform.commitTransform();
     if (!state) return;
-
     const sel = this.document.selectionRect();
     if (!sel) return;
 
     const scaleX = state.width / sel.width;
     const scaleY = state.height / sel.height;
+    const doScale = Math.abs(scaleX - 1) > 0.0001 || Math.abs(scaleY - 1) > 0.0001;
+    const doRotate = Math.abs(state.rotation) > 0.0001;
 
-    if (Math.abs(scaleX - 1) > 0.01 || Math.abs(scaleY - 1) > 0.01 || Math.abs(state.rotation) > 0.1) {
-      const selectedLayer = this.document.selectedLayer();
-      if (selectedLayer && isLayer(selectedLayer)) {
-        this.applyTransformToSelection(state, scaleX, scaleY);
+    // Clear live preview pixels first to avoid duplicates
+    if (this.freeTransformPreviewIndices && this.freeTransformPreviewIndices.length && this.freeTransformLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.freeTransformLayerId);
+      if (layerBuffer) {
+        for (const idx of this.freeTransformPreviewIndices) {
+          if (idx >= 0 && idx < layerBuffer.length) layerBuffer[idx] = '';
+        }
+      }
+    }
+    if (this.freeTransformDuplicate && this.freeTransformOriginalBuffer && this.freeTransformOriginalRect && this.freeTransformLayerId) {
+      this.restoreOriginalTransformPixels();
+      this.applyTransformToSelection(state, scaleX, scaleY, this.freeTransformOriginalBuffer, this.freeTransformOriginalRect);
+    } else {
+      if (doScale || doRotate) {
+        if (this.freeTransformOriginalBuffer && this.freeTransformOriginalRect && this.freeTransformLayerId) {
+          this.applyTransformToSelection(state, scaleX, scaleY, this.freeTransformOriginalBuffer, this.freeTransformOriginalRect);
+        }
+      } else {
+        this.restoreOriginalTransformPixels();
       }
     }
 
@@ -1387,93 +1510,178 @@ export class EditorCanvas implements OnDestroy {
       Math.floor(state.width),
       Math.floor(state.height),
     );
+    // Mark canvas dirty after transform
+    this.document.setCanvasSaved(false);
+    this.freeTransformOriginalBuffer = null;
+    this.freeTransformOriginalRect = null;
+    this.freeTransformLayerId = null;
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
   }
 
   private cancelFreeTransform(): void {
+    // Clear preview pixels before restoring original
+    if (this.freeTransformPreviewIndices && this.freeTransformLayerId) {
+      const buf = this.document.getLayerBuffer(this.freeTransformLayerId);
+      if (buf) {
+        for (const idx of this.freeTransformPreviewIndices) {
+          if (idx >= 0 && idx < buf.length) buf[idx] = '';
+        }
+        this.document.layerPixelsVersion.update(v => v + 1);
+      }
+    }
+    this.restoreOriginalTransformPixels();
     this.freeTransform.cancelTransform();
+    this.freeTransformOriginalBuffer = null;
+    this.freeTransformOriginalRect = null;
+    this.freeTransformLayerId = null;
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
   }
 
   private applyTransformToSelection(
     state: any,
     scaleX: number,
     scaleY: number,
+    originalBuffer: string[],
+    originalRect: { x: number; y: number; width: number; height: number },
   ): void {
-    const sel = this.document.selectionRect();
-    if (!sel) return;
-
-    const selectedLayer = this.document.selectedLayer();
-    if (!selectedLayer || !isLayer(selectedLayer)) return;
-
-    const layerBuffer = this.document.getLayerBuffer(selectedLayer.id);
+    const layerId = this.freeTransformLayerId;
+    if (!layerId) return;
+    const layerBuffer = this.document.getLayerBuffer(layerId);
+    if (!layerBuffer) return;
     const canvasWidth = this.document.canvasWidth();
     const canvasHeight = this.document.canvasHeight();
 
-    const tempBuffer = new Array<string>(canvasWidth * canvasHeight).fill('');
-    for (let y = 0; y < canvasHeight; y++) {
-      for (let x = 0; x < canvasWidth; x++) {
-        const idx = y * canvasWidth + x;
-        if (this.isPixelInSelection(x, y)) {
-          tempBuffer[idx] = layerBuffer[idx] || '';
-          layerBuffer[idx] = '';
-        }
-      }
-    }
-
-    const selBuffer = new Array<string>(sel.width * sel.height).fill('');
-    for (let y = 0; y < sel.height; y++) {
-      for (let x = 0; x < sel.width; x++) {
-        const srcX = sel.x + x;
-        const srcY = sel.y + y;
-        if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
-          const srcIdx = srcY * canvasWidth + srcX;
-          const destIdx = y * sel.width + x;
-          selBuffer[destIdx] = tempBuffer[srcIdx] || '';
-        }
-      }
-    }
-
     const cos = Math.cos((state.rotation * Math.PI) / 180);
     const sin = Math.sin((state.rotation * Math.PI) / 180);
-    const centerX = sel.width / 2;
-    const centerY = sel.height / 2;
+    const centerX = originalRect.width / 2;
+    const centerY = originalRect.height / 2;
 
-    const transformedBuffer = new Array<string>(state.width * state.height).fill('');
-    for (let y = 0; y < state.height; y++) {
-      for (let x = 0; x < state.width; x++) {
+    const targetW = Math.max(1, Math.round(state.width));
+    const targetH = Math.max(1, Math.round(state.height));
+    const targetX = Math.floor(state.x);
+    const targetY = Math.floor(state.y);
+
+    const transformedBuffer = new Array<string>(targetW * targetH).fill('');
+    for (let y = 0; y < targetH; y++) {
+      for (let x = 0; x < targetW; x++) {
         const srcX = x / scaleX;
         const srcY = y / scaleY;
-
         const dx = srcX - centerX;
         const dy = srcY - centerY;
         const rotX = centerX + dx * cos + dy * sin;
         const rotY = centerY - dx * sin + dy * cos;
-
-        const sx = Math.floor(rotX);
-        const sy = Math.floor(rotY);
-
-        if (sx >= 0 && sx < sel.width && sy >= 0 && sy < sel.height) {
-          const srcIdx = sy * sel.width + sx;
-          const destIdx = y * state.width + x;
-          transformedBuffer[destIdx] = selBuffer[srcIdx] || '';
+        let sx = Math.floor(rotX);
+        let sy = Math.floor(rotY);
+        if (this.freeTransformMirrorX) sx = originalRect.width - 1 - sx;
+        if (this.freeTransformMirrorY) sy = originalRect.height - 1 - sy;
+        if (sx >= 0 && sx < originalRect.width && sy >= 0 && sy < originalRect.height) {
+          const srcIdx = sy * originalRect.width + sx;
+          const destIdx = y * targetW + x;
+          transformedBuffer[destIdx] = originalBuffer[srcIdx] || '';
         }
       }
     }
-
-    for (let y = 0; y < state.height; y++) {
-      for (let x = 0; x < state.width; x++) {
-        const destX = state.x + x;
-        const destY = state.y + y;
+    for (let y = 0; y < targetH; y++) {
+      for (let x = 0; x < targetW; x++) {
+        const destX = targetX + x;
+        const destY = targetY + y;
         if (destX >= 0 && destX < canvasWidth && destY >= 0 && destY < canvasHeight) {
-          const srcIdx = y * state.width + x;
+          const srcIdx = y * targetW + x;
           const destIdx = destY * canvasWidth + destX;
-          if (transformedBuffer[srcIdx]) {
-            layerBuffer[destIdx] = transformedBuffer[srcIdx];
+          const col = transformedBuffer[srcIdx];
+          if (col) layerBuffer[destIdx] = col;
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update(v => v + 1);
+  }
+
+  private restoreOriginalTransformPixels(): void {
+    if (!this.freeTransformOriginalBuffer || !this.freeTransformOriginalRect || !this.freeTransformLayerId) return;
+    const layerBuffer = this.document.getLayerBuffer(this.freeTransformLayerId);
+    if (!layerBuffer) return;
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+    const rect = this.freeTransformOriginalRect;
+    for (let y = 0; y < rect.height; y++) {
+      for (let x = 0; x < rect.width; x++) {
+        const srcIdx = y * rect.width + x;
+        const destX = rect.x + x;
+        const destY = rect.y + y;
+        if (destX >= 0 && destX < canvasWidth && destY >= 0 && destY < canvasHeight) {
+          const destIdx = destY * canvasWidth + destX;
+          const col = this.freeTransformOriginalBuffer[srcIdx];
+          if (col) layerBuffer[destIdx] = col;
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update(v => v + 1);
+  }
+
+  // Live preview: apply transformed pixels directly to layer buffer while dragging,
+  // restoring previous preview first to avoid accumulation.
+  private renderLiveFreeTransformPreview(): void {
+    const state = this.freeTransform.transformState();
+    if (!state || !this.freeTransformOriginalBuffer || !this.freeTransformOriginalRect || !this.freeTransformLayerId) return;
+    const layerBuffer = this.document.getLayerBuffer(this.freeTransformLayerId);
+    if (!layerBuffer) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    // Clear previous preview pixels if tracked.
+    if (this.freeTransformPreviewIndices && this.freeTransformPreviewIndices.length) {
+      for (const idx of this.freeTransformPreviewIndices) {
+        if (idx >= 0 && idx < layerBuffer.length) {
+          layerBuffer[idx] = ''; // revert to empty; original pixels are stored separately already
+        }
+      }
+    }
+    this.freeTransformPreviewIndices = [];
+
+    const srcW = this.freeTransformOriginalRect.width;
+    const srcH = this.freeTransformOriginalRect.height;
+    const scaleX = state.width / srcW;
+    const scaleY = state.height / srcH;
+    const rad = (state.rotation * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const cX = srcW / 2;
+    const cY = srcH / 2;
+    const tgtW = Math.max(1, Math.round(state.width));
+    const tgtH = Math.max(1, Math.round(state.height));
+    const baseX = Math.floor(state.x);
+    const baseY = Math.floor(state.y);
+
+    for (let y = 0; y < tgtH; y++) {
+      for (let x = 0; x < tgtW; x++) {
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
+        const dx = srcX - cX;
+        const dy = srcY - cY;
+        const rotX = cX + dx * cos + dy * sin;
+        const rotY = cY - dx * sin + dy * cos;
+        let sx = Math.floor(rotX);
+        let sy = Math.floor(rotY);
+        if (this.freeTransformMirrorX) sx = srcW - 1 - sx;
+        if (this.freeTransformMirrorY) sy = srcH - 1 - sy;
+        if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
+          const srcIdx = sy * srcW + sx;
+          const col = this.freeTransformOriginalBuffer[srcIdx];
+          if (col && col.length) {
+            const destX = baseX + x;
+            const destY = baseY + y;
+            if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+              const destIdx = destY * canvasW + destX;
+              layerBuffer[destIdx] = col;
+              this.freeTransformPreviewIndices.push(destIdx);
+            }
           }
         }
       }
     }
-
-    this.document.setLayerBuffer(selectedLayer.id, layerBuffer);
+    this.document.layerPixelsVersion.update(v => v + 1);
   }
 
   private isPixelInSelection(x: number, y: number): boolean {
@@ -2270,107 +2478,184 @@ export class EditorCanvas implements OnDestroy {
 
     const freeTransformState = this.freeTransform.transformState();
     if (freeTransformState) {
+      // removed duplicate overlay drawing; handled in the dedicated overlay section below
+    }
+
+    // Free transform overlay (selection live preview)
+    const ftState = this.freeTransform.transformState();
+    if (ftState && this.document.selectionRect()) {
       ctx.save();
-      
-      const handleSize = 8 / scale;
-      const rotateIconSize = 16 / scale;
-      
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.fillStyle = isDark ? 'rgba(50,150,255,0.9)' : 'rgba(30,130,255,0.9)';
-      ctx.lineWidth = pxLineWidth;
-      
-      ctx.strokeRect(
-        freeTransformState.x,
-        freeTransformState.y,
-        freeTransformState.width,
-        freeTransformState.height,
-      );
-      
-      const handles: TransformHandle[] = [
-        'top-left', 'top-center', 'top-right',
-        'middle-left', 'middle-right',
-        'bottom-left', 'bottom-center', 'bottom-right',
-      ];
-      
-      for (const handle of handles) {
-        const pos = this.freeTransform.getHandlePosition(handle, freeTransformState);
-        ctx.fillRect(
-          pos.x - handleSize / 2,
-          pos.y - handleSize / 2,
-          handleSize,
-          handleSize,
-        );
-        ctx.strokeRect(
-          pos.x - handleSize / 2,
-          pos.y - handleSize / 2,
-          handleSize,
-          handleSize,
-        );
+  // Draw transformed preview only if we are NOT applying live preview to the layer
+  if ((!this.freeTransformPreviewIndices || this.freeTransformPreviewIndices.length === 0) && this.freeTransformOriginalBuffer && this.freeTransformOriginalRect) {
+        const canvasW = this.document.canvasWidth();
+        const canvasH = this.document.canvasHeight();
+        const srcW = this.freeTransformOriginalRect.width;
+        const srcH = this.freeTransformOriginalRect.height;
+        const srcBuf = this.freeTransformOriginalBuffer;
+        const scaleX = ftState.width / srcW;
+        const scaleY = ftState.height / srcH;
+        const cosR = Math.cos((ftState.rotation * Math.PI) / 180);
+        const sinR = Math.sin((ftState.rotation * Math.PI) / 180);
+        const cX = srcW / 2;
+        const cY = srcH / 2;
+        for (let y = 0; y < ftState.height; y++) {
+          for (let x = 0; x < ftState.width; x++) {
+            const srcX = x / scaleX;
+            const srcY = y / scaleY;
+            const dx = srcX - cX;
+            const dy = srcY - cY;
+            const rotX = cX + dx * cosR + dy * sinR;
+            const rotY = cY - dx * sinR + dy * cosR;
+            const sx = Math.floor(rotX);
+            const sy = Math.floor(rotY);
+            if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
+              const srcIdx = sy * srcW + sx;
+              const col = srcBuf[srcIdx];
+              if (col && col.length) {
+                const destX = Math.floor(ftState.x + x);
+                const destY = Math.floor(ftState.y + y);
+                if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+                  ctx.fillStyle = col;
+                  ctx.fillRect(destX, destY, 1, 1);
+                }
+              }
+            }
+          }
+        }
       }
-      
-      const centerPos = this.freeTransform.getHandlePosition('rotate-center', freeTransformState);
+      // Draw rotated bounding box
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)';
+      const rad = (ftState.rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const cx = ftState.x + ftState.width / 2;
+      const cy = ftState.y + ftState.height / 2;
+      const corners = [
+        { dx: -ftState.width / 2, dy: -ftState.height / 2 },
+        { dx: ftState.width / 2, dy: -ftState.height / 2 },
+        { dx: ftState.width / 2, dy: ftState.height / 2 },
+        { dx: -ftState.width / 2, dy: ftState.height / 2 },
+      ].map(c => ({ x: cx + c.dx * cos - c.dy * sin, y: cy + c.dx * sin + c.dy * cos }));
       ctx.beginPath();
-      ctx.arc(centerPos.x, centerPos.y, rotateIconSize / 2, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for (let i = 1; i < corners.length; i++) ctx.lineTo(corners[i].x, corners[i].y);
+      ctx.closePath();
       ctx.stroke();
-      
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.lineWidth = pxLineWidth * 1.5;
+
+      // Handles (smaller)
+      const handles: TransformHandle[] = [
+        'top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right','rotate-center'
+      ];
+      for (const h of handles) {
+        const pos = this.freeTransform.getHandlePosition(h, ftState);
+        const rOuter = Math.max(0.5, 0.8 / Math.max(0.001, scale));
+        ctx.fillStyle = h === 'rotate-center' ? (isDark ? '#3b82f6' : '#1d4ed8') : (isDark ? '#ffffff' : '#000000');
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+        ctx.fill();
+        if (h === 'rotate-center') {
+          const rr = Math.max(2, 4 / Math.max(0.001, scale));
+          ctx.strokeStyle = ctx.fillStyle;
+          ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rr, -Math.PI * 0.2, Math.PI * 1.1);
+          ctx.stroke();
+        }
+      }
+  // Draw duplicate/commit/cancel buttons (smaller)
+  const btnSize = Math.max(6, Math.round(8 / Math.max(0.001, scale)));
+  const margin = Math.max(2, Math.round(5 / Math.max(0.001, scale)));
+  const canvasW = this.document.canvasWidth();
+  const canvasH = this.document.canvasHeight();
+  let commitX = ftState.x + ftState.width - btnSize - margin;
+  let commitY = ftState.y + margin;
+  let cancelX = commitX - btnSize - margin;
+  let cancelY = commitY;
+  let duplicateX = cancelX - btnSize - margin;
+  let duplicateY = commitY;
+  let mirrorXX = duplicateX - btnSize - margin;
+  let mirrorXY = commitY;
+  let mirrorYX = mirrorXX - btnSize - margin;
+  let mirrorYY = commitY;
+  const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(v, max));
+  commitX = clamp(commitX, 0, canvasW - btnSize - 1);
+  commitY = clamp(commitY, 0, canvasH - btnSize - 1);
+  cancelX = clamp(cancelX, 0, canvasW - btnSize - 1);
+  cancelY = clamp(cancelY, 0, canvasH - btnSize - 1);
+  duplicateX = clamp(duplicateX, 0, canvasW - btnSize - 1);
+  duplicateY = clamp(duplicateY, 0, canvasH - btnSize - 1);
+  mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize - 1);
+  mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize - 1);
+  mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize - 1);
+  mirrorYY = clamp(mirrorYY, 0, canvasH - btnSize - 1);
+  // mirror Y button (vertical arrows)
+  ctx.fillStyle = this.freeTransformMirrorY ? (isDark ? '#15803d' : '#15803d') : (isDark ? '#16a34a' : '#16a34a');
+  ctx.fillRect(mirrorYX + 0.5, mirrorYY + 0.5, btnSize - 1, btnSize - 1);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = Math.max(pxLineWidth, 1 / Math.max(0.001, scale));
+  ctx.beginPath();
+  ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+  ctx.lineTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+  ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+  ctx.lineTo(mirrorYX + btnSize * 0.35, mirrorYY + btnSize * 0.35);
+  ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+  ctx.lineTo(mirrorYX + btnSize * 0.65, mirrorYY + btnSize * 0.35);
+  ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+  ctx.lineTo(mirrorYX + btnSize * 0.35, mirrorYY + btnSize * 0.65);
+  ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+  ctx.lineTo(mirrorYX + btnSize * 0.65, mirrorYY + btnSize * 0.65);
+  ctx.stroke();
+
+  // mirror X button (horizontal arrows)
+  ctx.fillStyle = this.freeTransformMirrorX ? (isDark ? '#15803d' : '#15803d') : (isDark ? '#16a34a' : '#16a34a');
+  ctx.fillRect(mirrorXX + 0.5, mirrorXY + 0.5, btnSize - 1, btnSize - 1);
+  ctx.beginPath();
+  ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+  ctx.lineTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+  ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+  ctx.lineTo(mirrorXX + btnSize * 0.35, mirrorXY + btnSize * 0.35);
+  ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+  ctx.lineTo(mirrorXX + btnSize * 0.35, mirrorXY + btnSize * 0.65);
+  ctx.moveTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+  ctx.lineTo(mirrorXX + btnSize * 0.65, mirrorXY + btnSize * 0.35);
+  ctx.moveTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+  ctx.lineTo(mirrorXX + btnSize * 0.65, mirrorXY + btnSize * 0.65);
+  ctx.stroke();
+
+  // duplicate button (two squares)
+      ctx.fillStyle = this.freeTransformDuplicate ? (isDark ? '#16a34a' : '#16a34a') : (isDark ? '#22c55e' : '#22c55e');
+      ctx.fillRect(duplicateX + 0.5, duplicateY + 0.5, btnSize - 1, btnSize - 1);
+      ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+      ctx.strokeRect(duplicateX + 0.5, duplicateY + 0.5, btnSize - 1, btnSize - 1);
+      const s = btnSize * 0.35;
+      const ox = duplicateX + btnSize * 0.25;
+      const oy = duplicateY + btnSize * 0.25;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(pxLineWidth, 1.2 / Math.max(0.001, scale));
+      ctx.strokeRect(ox, oy, s, s);
+      ctx.strokeRect(ox + s * 0.35, oy - s * 0.35, s, s);
+      // commit button (check)
+      ctx.fillStyle = isDark ? '#2563eb' : '#1d4ed8';
+      ctx.fillRect(commitX + 0.5, commitY + 0.5, btnSize - 1, btnSize - 1);
+      // check icon
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(pxLineWidth, 1.2 / Math.max(0.001, scale));
       ctx.beginPath();
-      ctx.arc(centerPos.x, centerPos.y, rotateIconSize / 3, 0.5, Math.PI * 1.7);
+      ctx.moveTo(commitX + btnSize * 0.25, commitY + btnSize * 0.55);
+      ctx.lineTo(commitX + btnSize * 0.45, commitY + btnSize * 0.75);
+      ctx.lineTo(commitX + btnSize * 0.78, commitY + btnSize * 0.30);
       ctx.stroke();
-      
-      const arrowSize = rotateIconSize / 4;
-      const arrowAngle = Math.PI * 1.7;
-      const arrowX = centerPos.x + Math.cos(arrowAngle) * rotateIconSize / 3;
-      const arrowY = centerPos.y + Math.sin(arrowAngle) * rotateIconSize / 3;
+      // cancel button (X)
+      ctx.fillStyle = isDark ? '#dc2626' : '#b91c1c';
+      ctx.fillRect(cancelX + 0.5, cancelY + 0.5, btnSize - 1, btnSize - 1);
+      ctx.strokeStyle = '#ffffff';
       ctx.beginPath();
-      ctx.moveTo(arrowX, arrowY);
-      ctx.lineTo(
-        arrowX - arrowSize * Math.cos(arrowAngle - 0.5),
-        arrowY - arrowSize * Math.sin(arrowAngle - 0.5),
-      );
-      ctx.moveTo(arrowX, arrowY);
-      ctx.lineTo(
-        arrowX - arrowSize * Math.cos(arrowAngle + 0.5),
-        arrowY - arrowSize * Math.sin(arrowAngle + 0.5),
-      );
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
       ctx.stroke();
-      
-      const buttonSize = 24 / scale;
-      const buttonMargin = 8 / scale;
-      const commitButtonX = freeTransformState.x + freeTransformState.width + buttonMargin;
-      const commitButtonY = freeTransformState.y - buttonSize - buttonMargin;
-      const cancelButtonX = commitButtonX + buttonSize + buttonMargin;
-      const cancelButtonY = commitButtonY;
-      
-      ctx.fillStyle = isDark ? 'rgba(50,200,50,0.9)' : 'rgba(40,180,40,0.9)';
-      ctx.fillRect(commitButtonX, commitButtonY, buttonSize, buttonSize);
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.strokeRect(commitButtonX, commitButtonY, buttonSize, buttonSize);
-      
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.lineWidth = pxLineWidth * 2;
-      ctx.beginPath();
-      ctx.moveTo(commitButtonX + buttonSize * 0.25, commitButtonY + buttonSize * 0.5);
-      ctx.lineTo(commitButtonX + buttonSize * 0.45, commitButtonY + buttonSize * 0.7);
-      ctx.lineTo(commitButtonX + buttonSize * 0.75, commitButtonY + buttonSize * 0.3);
-      ctx.stroke();
-      
-      ctx.fillStyle = isDark ? 'rgba(200,50,50,0.9)' : 'rgba(180,40,40,0.9)';
-      ctx.fillRect(cancelButtonX, cancelButtonY, buttonSize, buttonSize);
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.strokeRect(cancelButtonX, cancelButtonY, buttonSize, buttonSize);
-      
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)';
-      ctx.lineWidth = pxLineWidth * 2;
-      ctx.beginPath();
-      ctx.moveTo(cancelButtonX + buttonSize * 0.3, cancelButtonY + buttonSize * 0.3);
-      ctx.lineTo(cancelButtonX + buttonSize * 0.7, cancelButtonY + buttonSize * 0.7);
-      ctx.moveTo(cancelButtonX + buttonSize * 0.7, cancelButtonY + buttonSize * 0.3);
-      ctx.lineTo(cancelButtonX + buttonSize * 0.3, cancelButtonY + buttonSize * 0.7);
-      ctx.stroke();
-      
       ctx.restore();
     }
   }

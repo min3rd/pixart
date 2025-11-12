@@ -209,7 +209,15 @@
     "height": "Height",
     "saved": "Saved",
     "infoTitle": "Properties",
-    "unsaved": "Unsaved"
+    "unsaved": "Unsaved",
+    "freeTransform": {
+      "commit": "Apply",
+      "cancel": "Cancel",
+      "duplicate": "Duplicate",
+      "mirrorX": "Mirror Horizontal",
+      "mirrorY": "Mirror Vertical",
+      "snapHint": "Hold Shift to snap rotation (15°) / constrain proportions"
+    }
   },
   "editor": {
     "tools": {
