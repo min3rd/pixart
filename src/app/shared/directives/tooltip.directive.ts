@@ -5,6 +5,8 @@ import {
   OnDestroy,
   Renderer2,
   inject,
+  effect,
+  computed,
 } from '@angular/core';
 import { HotkeysService } from '../../services/hotkeys.service';
 
@@ -22,6 +24,13 @@ export class TooltipDirective implements OnDestroy {
   private tooltipElement: HTMLElement | null = null;
   private mouseEnterListener?: () => void;
   private mouseLeaveListener?: () => void;
+  private isTooltipVisible = false;
+
+  private readonly currentHotkey = computed(() => {
+    const hotkeyId = this.paTooltipHotkeyId();
+    if (!hotkeyId) return undefined;
+    return this.hotkeys.getBinding(hotkeyId);
+  });
 
   constructor() {
     this.mouseEnterListener = this.renderer.listen(
@@ -35,14 +44,27 @@ export class TooltipDirective implements OnDestroy {
       'mouseleave',
       () => this.hideTooltip(),
     );
+
+    effect(() => {
+      this.currentHotkey();
+      if (this.isTooltipVisible) {
+        this.updateTooltipContent();
+      }
+    });
   }
 
   private showTooltip(): void {
     const text = this.paTooltip();
     if (!text) return;
 
-    const hotkeyId = this.paTooltipHotkeyId();
-    const hotkey = hotkeyId ? this.hotkeys.getBinding(hotkeyId) : undefined;
+    this.isTooltipVisible = true;
+    this.createTooltipElement();
+    this.updateTooltipContent();
+    this.positionTooltip();
+  }
+
+  private createTooltipElement(): void {
+    if (this.tooltipElement) return;
 
     this.tooltipElement = this.renderer.createElement('div');
     this.renderer.setStyle(this.tooltipElement, 'position', 'fixed');
@@ -71,6 +93,22 @@ export class TooltipDirective implements OnDestroy {
     );
     this.renderer.setStyle(this.tooltipElement, 'word-break', 'break-word');
 
+    this.renderer.appendChild(document.body, this.tooltipElement);
+  }
+
+  private updateTooltipContent(): void {
+    if (!this.tooltipElement) return;
+
+    const text = this.paTooltip();
+    const hotkey = this.currentHotkey();
+
+    while (this.tooltipElement.firstChild) {
+      this.renderer.removeChild(
+        this.tooltipElement,
+        this.tooltipElement.firstChild,
+      );
+    }
+
     const contentWrapper = this.renderer.createElement('div');
     const textNode = this.renderer.createText(text);
     this.renderer.appendChild(contentWrapper, textNode);
@@ -97,8 +135,6 @@ export class TooltipDirective implements OnDestroy {
     }
 
     this.renderer.appendChild(this.tooltipElement, contentWrapper);
-    this.renderer.appendChild(document.body, this.tooltipElement);
-
     this.positionTooltip();
   }
 
@@ -108,11 +144,18 @@ export class TooltipDirective implements OnDestroy {
     const hostRect = this.el.nativeElement.getBoundingClientRect();
     const tooltipRect = this.tooltipElement.getBoundingClientRect();
 
-    let top = hostRect.bottom + 8;
+    const hasDropdownBelow = this.checkForDropdownBelow(hostRect);
+
+    let top: number;
     let left = hostRect.left + hostRect.width / 2 - tooltipRect.width / 2;
 
-    if (top + tooltipRect.height > window.innerHeight) {
+    if (hasDropdownBelow || hostRect.top < tooltipRect.height + 16) {
       top = hostRect.top - tooltipRect.height - 8;
+    } else {
+      top = hostRect.bottom + 8;
+      if (top + tooltipRect.height > window.innerHeight) {
+        top = hostRect.top - tooltipRect.height - 8;
+      }
     }
 
     if (left < 8) {
@@ -125,7 +168,23 @@ export class TooltipDirective implements OnDestroy {
     this.renderer.setStyle(this.tooltipElement, 'left', `${left}px`);
   }
 
+  private checkForDropdownBelow(hostRect: DOMRect): boolean {
+    const hostElement = this.el.nativeElement;
+    const parent = hostElement.parentElement;
+    if (!parent) return false;
+
+    const dropdown = parent.querySelector('[id*="dropdown"]');
+    if (!dropdown) return false;
+
+    const dropdownRect = dropdown.getBoundingClientRect();
+    return (
+      dropdownRect.top > hostRect.bottom - 10 &&
+      dropdownRect.top < hostRect.bottom + 50
+    );
+  }
+
   private hideTooltip(): void {
+    this.isTooltipVisible = false;
     if (this.tooltipElement) {
       this.renderer.removeChild(document.body, this.tooltipElement);
       this.tooltipElement = null;
