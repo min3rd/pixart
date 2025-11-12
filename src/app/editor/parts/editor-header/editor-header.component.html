@@ -357,20 +357,20 @@
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onFreeTransform()"
             [attr.aria-keyshortcuts]="
-              hotkeys.getBinding('transform.freeTransform')
+              hotkeys.getBinding('tool.freeTransform')
             "
           >
             <span id="menu-transform-free-label">{{
               "menu.freeTransform" | transloco
             }}</span>
-            @if (hotkeys.getBinding("transform.freeTransform")) {
+            @if (hotkeys.getBinding("tool.freeTransform")) {
               <span
                 id="menu-transform-free-shortcut"
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
                   hotkeys.keyStringToDisplay(
-                    hotkeys.getBinding("transform.freeTransform")!
+                    hotkeys.getBinding("tool.freeTransform")!
                   )
                 }}
               </span>
