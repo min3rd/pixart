@@ -732,49 +732,17 @@ export class EditorCanvas implements OnDestroy {
           3,
           Math.round(5 / Math.max(0.001, this.scale())),
         );
-        const buttonSize = Math.max(
-          6,
-          Math.round(8 / Math.max(0.001, this.scale())),
+        const positions = this.computeTransformButtonPositions(
+          freeTransformState,
+          this.scale(),
         );
-        const buttonMargin = Math.max(
-          2,
-          Math.round(5 / Math.max(0.001, this.scale())),
-        );
-        const canvasW = this.document.canvasWidth();
-        const canvasH = this.document.canvasHeight();
-        // place inside top-right and clamp to canvas bounds
-        let commitButtonX =
-          freeTransformState.x +
-          freeTransformState.width -
-          buttonSize -
-          buttonMargin;
-        let commitButtonY = freeTransformState.y + buttonMargin;
-        let cancelButtonX = commitButtonX - buttonSize - buttonMargin;
-        let cancelButtonY = commitButtonY;
-        let duplicateButtonX = cancelButtonX - buttonSize - buttonMargin;
-        let duplicateButtonY = commitButtonY;
-        let mirrorXButtonX = duplicateButtonX - buttonSize - buttonMargin;
-        let mirrorXButtonY = commitButtonY;
-        let mirrorYButtonX = mirrorXButtonX - buttonSize - buttonMargin;
-        let mirrorYButtonY = commitButtonY;
-        const clamp = (v: number, min: number, max: number) =>
-          Math.max(min, Math.min(v, max));
-        commitButtonX = clamp(commitButtonX, 0, canvasW - buttonSize);
-        commitButtonY = clamp(commitButtonY, 0, canvasH - buttonSize);
-        cancelButtonX = clamp(cancelButtonX, 0, canvasW - buttonSize);
-        cancelButtonY = clamp(cancelButtonY, 0, canvasH - buttonSize);
-        duplicateButtonX = clamp(duplicateButtonX, 0, canvasW - buttonSize);
-        duplicateButtonY = clamp(duplicateButtonY, 0, canvasH - buttonSize);
-        mirrorXButtonX = clamp(mirrorXButtonX, 0, canvasW - buttonSize);
-        mirrorXButtonY = clamp(mirrorXButtonY, 0, canvasH - buttonSize);
-        mirrorYButtonX = clamp(mirrorYButtonX, 0, canvasW - buttonSize);
-        mirrorYButtonY = clamp(mirrorYButtonY, 0, canvasH - buttonSize);
+        const buttonSize = positions.btnSize;
 
         if (
-          logicalX >= mirrorXButtonX &&
-          logicalX <= mirrorXButtonX + buttonSize &&
-          logicalY >= mirrorXButtonY &&
-          logicalY <= mirrorXButtonY + buttonSize
+          logicalX >= positions.mirrorXX &&
+          logicalX <= positions.mirrorXX + buttonSize &&
+          logicalY >= positions.mirrorXY &&
+          logicalY <= positions.mirrorXY + buttonSize
         ) {
           this.freeTransformMirrorX = !this.freeTransformMirrorX;
           this.renderLiveFreeTransformPreview();
@@ -782,10 +750,10 @@ export class EditorCanvas implements OnDestroy {
         }
 
         if (
-          logicalX >= mirrorYButtonX &&
-          logicalX <= mirrorYButtonX + buttonSize &&
-          logicalY >= mirrorYButtonY &&
-          logicalY <= mirrorYButtonY + buttonSize
+          logicalX >= positions.mirrorYX &&
+          logicalX <= positions.mirrorYX + buttonSize &&
+          logicalY >= positions.mirrorYY &&
+          logicalY <= positions.mirrorYY + buttonSize
         ) {
           this.freeTransformMirrorY = !this.freeTransformMirrorY;
           this.renderLiveFreeTransformPreview();
@@ -793,30 +761,30 @@ export class EditorCanvas implements OnDestroy {
         }
 
         if (
-          logicalX >= duplicateButtonX &&
-          logicalX <= duplicateButtonX + buttonSize &&
-          logicalY >= duplicateButtonY &&
-          logicalY <= duplicateButtonY + buttonSize
+          logicalX >= positions.duplicateX &&
+          logicalX <= positions.duplicateX + buttonSize &&
+          logicalY >= positions.duplicateY &&
+          logicalY <= positions.duplicateY + buttonSize
         ) {
           this.freeTransformDuplicate = !this.freeTransformDuplicate;
           return;
         }
 
         if (
-          logicalX >= commitButtonX &&
-          logicalX <= commitButtonX + buttonSize &&
-          logicalY >= commitButtonY &&
-          logicalY <= commitButtonY + buttonSize
+          logicalX >= positions.commitX &&
+          logicalX <= positions.commitX + buttonSize &&
+          logicalY >= positions.commitY &&
+          logicalY <= positions.commitY + buttonSize
         ) {
           this.commitFreeTransform();
           return;
         }
 
         if (
-          logicalX >= cancelButtonX &&
-          logicalX <= cancelButtonX + buttonSize &&
-          logicalY >= cancelButtonY &&
-          logicalY <= cancelButtonY + buttonSize
+          logicalX >= positions.cancelX &&
+          logicalX <= positions.cancelX + buttonSize &&
+          logicalY >= positions.cancelY &&
+          logicalY <= positions.cancelY + buttonSize
         ) {
           this.cancelFreeTransform();
           return;
@@ -2732,44 +2700,31 @@ export class EditorCanvas implements OnDestroy {
           ctx.stroke();
         }
       }
-      // Draw duplicate/commit/cancel buttons (smaller)
-      const btnSize = Math.max(6, Math.round(8 / Math.max(0.001, scale)));
-      const margin = Math.max(2, Math.round(5 / Math.max(0.001, scale)));
-      const canvasW = this.document.canvasWidth();
-      const canvasH = this.document.canvasHeight();
-      let commitX = ftState.x + ftState.width - btnSize - margin;
-      let commitY = ftState.y + margin;
-      let cancelX = commitX - btnSize - margin;
-      let cancelY = commitY;
-      let duplicateX = cancelX - btnSize - margin;
-      let duplicateY = commitY;
-      let mirrorXX = duplicateX - btnSize - margin;
-      let mirrorXY = commitY;
-      let mirrorYX = mirrorXX - btnSize - margin;
-      let mirrorYY = commitY;
-      const clamp = (v: number, min: number, max: number) =>
-        Math.max(min, Math.min(v, max));
-      commitX = clamp(commitX, 0, canvasW - btnSize - 1);
-      commitY = clamp(commitY, 0, canvasH - btnSize - 1);
-      cancelX = clamp(cancelX, 0, canvasW - btnSize - 1);
-      cancelY = clamp(cancelY, 0, canvasH - btnSize - 1);
-      duplicateX = clamp(duplicateX, 0, canvasW - btnSize - 1);
-      duplicateY = clamp(duplicateY, 0, canvasH - btnSize - 1);
-      mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize - 1);
-      mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize - 1);
-      mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize - 1);
-      mirrorYY = clamp(mirrorYY, 0, canvasH - btnSize - 1);
+      const positions = this.computeTransformButtonPositions(ftState, scale);
+      const {
+        btnSize,
+        commitX,
+        commitY,
+        cancelX,
+        cancelY,
+        duplicateX,
+        duplicateY,
+        mirrorXX,
+        mirrorXY,
+        mirrorYX,
+        mirrorYY,
+      } = positions;
       // mirror Y button (vertical arrows)
       ctx.fillStyle = this.freeTransformMirrorY
         ? isDark
-          ? '#15803d'
-          : '#15803d'
+          ? '#059669'
+          : '#10b981'
         : isDark
-          ? '#16a34a'
-          : '#16a34a';
-      ctx.fillRect(mirrorYX + 0.5, mirrorYY + 0.5, btnSize - 1, btnSize - 1);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = Math.max(pxLineWidth, 1 / Math.max(0.001, scale));
+          ? '#10b981'
+          : '#34d399';
+      ctx.fillRect(mirrorYX, mirrorYY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#ffffff' : '#ffffff';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.beginPath();
       ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
       ctx.lineTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
@@ -2786,12 +2741,12 @@ export class EditorCanvas implements OnDestroy {
       // mirror X button (horizontal arrows)
       ctx.fillStyle = this.freeTransformMirrorX
         ? isDark
-          ? '#15803d'
-          : '#15803d'
+          ? '#059669'
+          : '#10b981'
         : isDark
-          ? '#16a34a'
-          : '#16a34a';
-      ctx.fillRect(mirrorXX + 0.5, mirrorXY + 0.5, btnSize - 1, btnSize - 1);
+          ? '#10b981'
+          : '#34d399';
+      ctx.fillRect(mirrorXX, mirrorXY, btnSize, btnSize);
       ctx.beginPath();
       ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
       ctx.lineTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
@@ -2808,45 +2763,35 @@ export class EditorCanvas implements OnDestroy {
       // duplicate button (two squares)
       ctx.fillStyle = this.freeTransformDuplicate
         ? isDark
-          ? '#16a34a'
-          : '#16a34a'
+          ? '#0284c7'
+          : '#0ea5e9'
         : isDark
-          ? '#22c55e'
-          : '#22c55e';
-      ctx.fillRect(
-        duplicateX + 0.5,
-        duplicateY + 0.5,
-        btnSize - 1,
-        btnSize - 1,
-      );
-      ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
-      ctx.strokeRect(
-        duplicateX + 0.5,
-        duplicateY + 0.5,
-        btnSize - 1,
-        btnSize - 1,
-      );
-      const s = btnSize * 0.35;
-      const ox = duplicateX + btnSize * 0.25;
-      const oy = duplicateY + btnSize * 0.25;
+          ? '#0ea5e9'
+          : '#38bdf8';
+      ctx.fillRect(duplicateX, duplicateY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#ffffff' : '#ffffff';
+      ctx.strokeRect(duplicateX, duplicateY, btnSize, btnSize);
+      const s = btnSize * 0.3;
+      const ox = duplicateX + btnSize * 0.3;
+      const oy = duplicateY + btnSize * 0.3;
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = Math.max(pxLineWidth, 1.2 / Math.max(0.001, scale));
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.strokeRect(ox, oy, s, s);
-      ctx.strokeRect(ox + s * 0.35, oy - s * 0.35, s, s);
-      // commit button (check)
-      ctx.fillStyle = isDark ? '#2563eb' : '#1d4ed8';
-      ctx.fillRect(commitX + 0.5, commitY + 0.5, btnSize - 1, btnSize - 1);
-      // check icon
+      ctx.strokeRect(ox + s * 0.4, oy - s * 0.4, s, s);
+      
+      ctx.fillStyle = isDark ? '#1d4ed8' : '#2563eb';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = Math.max(pxLineWidth, 1.2 / Math.max(0.001, scale));
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.beginPath();
-      ctx.moveTo(commitX + btnSize * 0.25, commitY + btnSize * 0.55);
-      ctx.lineTo(commitX + btnSize * 0.45, commitY + btnSize * 0.75);
-      ctx.lineTo(commitX + btnSize * 0.78, commitY + btnSize * 0.3);
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
       ctx.stroke();
-      // cancel button (X)
-      ctx.fillStyle = isDark ? '#dc2626' : '#b91c1c';
-      ctx.fillRect(cancelX + 0.5, cancelY + 0.5, btnSize - 1, btnSize - 1);
+      
+      ctx.fillStyle = isDark ? '#b91c1c' : '#dc2626';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
       ctx.strokeStyle = '#ffffff';
       ctx.beginPath();
       ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
@@ -2856,6 +2801,143 @@ export class EditorCanvas implements OnDestroy {
       ctx.stroke();
       ctx.restore();
     }
+  }
+
+  private computeTransformButtonPositions(
+    ftState: { x: number; y: number; width: number; height: number },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+    duplicateX: number;
+    duplicateY: number;
+    mirrorXX: number;
+    mirrorXY: number;
+    mirrorYX: number;
+    mirrorYY: number;
+  } {
+    const btnSize = Math.max(4, Math.round(6 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(3 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const totalButtonsWidth = 5 * btnSize + 4 * margin;
+    const spaceAbove = ftState.y;
+    const spaceBelow = canvasH - (ftState.y + ftState.height);
+    const spaceRight = canvasW - (ftState.x + ftState.width);
+    const spaceLeft = ftState.x;
+
+    let baseX: number;
+    let baseY: number;
+    let horizontal = true;
+
+    if (spaceAbove >= btnSize + 2 * margin && spaceRight >= totalButtonsWidth) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = ftState.y - btnSize - margin;
+    } else if (
+      spaceBelow >= btnSize + 2 * margin &&
+      spaceRight >= totalButtonsWidth
+    ) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = ftState.y + ftState.height + margin;
+    } else if (spaceRight >= totalButtonsWidth) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = Math.max(
+        margin,
+        Math.min(ftState.y + margin, canvasH - btnSize - margin),
+      );
+    } else if (spaceLeft >= totalButtonsWidth) {
+      baseX = ftState.x + margin;
+      baseY = Math.max(
+        margin,
+        Math.min(ftState.y + margin, canvasH - btnSize - margin),
+      );
+    } else {
+      horizontal = false;
+      const totalButtonsHeight = 5 * btnSize + 4 * margin;
+      if (spaceRight >= btnSize + 2 * margin) {
+        baseX = ftState.x + ftState.width + margin;
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
+        );
+      } else if (spaceLeft >= btnSize + 2 * margin) {
+        baseX = ftState.x - btnSize - margin;
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
+        );
+      } else {
+        baseX = Math.max(
+          margin,
+          Math.min(ftState.x + margin, canvasW - btnSize - margin),
+        );
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y + margin, canvasH - btnSize - margin),
+        );
+      }
+    }
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+    let duplicateX: number, duplicateY: number;
+    let mirrorXX: number, mirrorXY: number;
+    let mirrorYX: number, mirrorYY: number;
+
+    if (horizontal) {
+      mirrorYX = baseX;
+      mirrorYY = baseY;
+      mirrorXX = mirrorYX + btnSize + margin;
+      mirrorXY = baseY;
+      duplicateX = mirrorXX + btnSize + margin;
+      duplicateY = baseY;
+      cancelX = duplicateX + btnSize + margin;
+      cancelY = baseY;
+      commitX = cancelX + btnSize + margin;
+      commitY = baseY;
+    } else {
+      mirrorYX = baseX;
+      mirrorYY = baseY;
+      mirrorXX = baseX;
+      mirrorXY = mirrorYY + btnSize + margin;
+      duplicateX = baseX;
+      duplicateY = mirrorXY + btnSize + margin;
+      cancelX = baseX;
+      cancelY = duplicateY + btnSize + margin;
+      commitX = baseX;
+      commitY = cancelY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+    duplicateX = clamp(duplicateX, 0, canvasW - btnSize);
+    duplicateY = clamp(duplicateY, 0, canvasH - btnSize);
+    mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize);
+    mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize);
+    mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize);
+    mirrorYY = clamp(mirrorYY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+      duplicateX,
+      duplicateY,
+      mirrorXX,
+      mirrorXY,
+      mirrorYX,
+      mirrorYY,
+    };
   }
 
   private startShape(mode: 'line' | 'circle' | 'square', x: number, y: number) {
