@@ -2717,13 +2717,13 @@ export class EditorCanvas implements OnDestroy {
       // mirror Y button (vertical arrows)
       ctx.fillStyle = this.freeTransformMirrorY
         ? isDark
-          ? '#059669'
-          : '#10b981'
+          ? '#047857'
+          : '#059669'
         : isDark
-          ? '#10b981'
-          : '#34d399';
+          ? '#065f46'
+          : '#047857';
       ctx.fillRect(mirrorYX, mirrorYY, btnSize, btnSize);
-      ctx.strokeStyle = isDark ? '#ffffff' : '#ffffff';
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
       ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.beginPath();
       ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
@@ -2741,11 +2741,11 @@ export class EditorCanvas implements OnDestroy {
       // mirror X button (horizontal arrows)
       ctx.fillStyle = this.freeTransformMirrorX
         ? isDark
-          ? '#059669'
-          : '#10b981'
+          ? '#047857'
+          : '#059669'
         : isDark
-          ? '#10b981'
-          : '#34d399';
+          ? '#065f46'
+          : '#047857';
       ctx.fillRect(mirrorXX, mirrorXY, btnSize, btnSize);
       ctx.beginPath();
       ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
@@ -2763,26 +2763,26 @@ export class EditorCanvas implements OnDestroy {
       // duplicate button (two squares)
       ctx.fillStyle = this.freeTransformDuplicate
         ? isDark
-          ? '#0284c7'
-          : '#0ea5e9'
+          ? '#0369a1'
+          : '#0284c7'
         : isDark
-          ? '#0ea5e9'
-          : '#38bdf8';
+          ? '#075985'
+          : '#0369a1';
       ctx.fillRect(duplicateX, duplicateY, btnSize, btnSize);
-      ctx.strokeStyle = isDark ? '#ffffff' : '#ffffff';
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
       ctx.strokeRect(duplicateX, duplicateY, btnSize, btnSize);
       const s = btnSize * 0.3;
       const ox = duplicateX + btnSize * 0.3;
       const oy = duplicateY + btnSize * 0.3;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#d1d5db';
       ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.strokeRect(ox, oy, s, s);
       ctx.strokeRect(ox + s * 0.4, oy - s * 0.4, s, s);
       
-      ctx.fillStyle = isDark ? '#1d4ed8' : '#2563eb';
+      ctx.fillStyle = isDark ? '#1e40af' : '#1d4ed8';
       ctx.fillRect(commitX, commitY, btnSize, btnSize);
       
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#d1d5db';
       ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.beginPath();
       ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
@@ -2790,9 +2790,9 @@ export class EditorCanvas implements OnDestroy {
       ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
       ctx.stroke();
       
-      ctx.fillStyle = isDark ? '#b91c1c' : '#dc2626';
+      ctx.fillStyle = isDark ? '#991b1b' : '#b91c1c';
       ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#d1d5db';
       ctx.beginPath();
       ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
       ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
@@ -2819,8 +2819,8 @@ export class EditorCanvas implements OnDestroy {
     mirrorYX: number;
     mirrorYY: number;
   } {
-    const btnSize = Math.max(4, Math.round(6 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(3 / Math.max(0.001, scale)));
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
