@@ -200,9 +200,27 @@ export class EditorAutoBlendService {
           const rightIdx = (y * width + (x + 1)) * 4;
 
           const laplacian =
-            Math.abs(4 * data[centerIdx] - data[topIdx] - data[bottomIdx] - data[leftIdx] - data[rightIdx]) +
-            Math.abs(4 * data[centerIdx + 1] - data[topIdx + 1] - data[bottomIdx + 1] - data[leftIdx + 1] - data[rightIdx + 1]) +
-            Math.abs(4 * data[centerIdx + 2] - data[topIdx + 2] - data[bottomIdx + 2] - data[leftIdx + 2] - data[rightIdx + 2]);
+            Math.abs(
+              4 * data[centerIdx] -
+                data[topIdx] -
+                data[bottomIdx] -
+                data[leftIdx] -
+                data[rightIdx],
+            ) +
+            Math.abs(
+              4 * data[centerIdx + 1] -
+                data[topIdx + 1] -
+                data[bottomIdx + 1] -
+                data[leftIdx + 1] -
+                data[rightIdx + 1],
+            ) +
+            Math.abs(
+              4 * data[centerIdx + 2] -
+                data[topIdx + 2] -
+                data[bottomIdx + 2] -
+                data[leftIdx + 2] -
+                data[rightIdx + 2],
+            );
 
           sharpness[y * width + x] = laplacian / 3;
         }

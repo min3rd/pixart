@@ -95,10 +95,8 @@ export class EditorAutoAlignService {
         const py = y + dy;
         const idx = py * width + px;
 
-        const Ix =
-          dx !== 0 ? gray[idx + 1] - gray[idx - 1] : 0;
-        const Iy =
-          dy !== 0 ? gray[idx + width] - gray[idx - width] : 0;
+        const Ix = dx !== 0 ? gray[idx + 1] - gray[idx - 1] : 0;
+        const Iy = dy !== 0 ? gray[idx + width] - gray[idx - width] : 0;
 
         Ixx += Ix * Ix;
         Iyy += Iy * Iy;
@@ -166,9 +164,10 @@ export class EditorAutoAlignService {
       }
 
       if (bestMatch && bestDist < threshold * secondBestDist) {
-        matches.push(
-          { p1: { x: f1.x, y: f1.y }, p2: { x: bestMatch.x, y: bestMatch.y } },
-        );
+        matches.push({
+          p1: { x: f1.x, y: f1.y },
+          p2: { x: bestMatch.x, y: bestMatch.y },
+        });
       }
     }
 

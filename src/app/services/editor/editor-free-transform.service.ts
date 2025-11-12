@@ -72,11 +72,7 @@ export class EditorFreeTransformService {
     this.dragStartState.set(null);
   }
 
-  startHandleDrag(
-    handle: TransformHandle,
-    x: number,
-    y: number,
-  ): void {
+  startHandleDrag(handle: TransformHandle, x: number, y: number): void {
     const state = this.transformState();
     if (!state) return;
     this.isDraggingHandle.set(handle);

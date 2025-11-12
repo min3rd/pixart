@@ -190,14 +190,8 @@ export class EditorTransformService {
     const c = -sin * state.scaleY + state.skewX;
     const d = cos * state.scaleY + state.skewY;
 
-    const e =
-      state.x +
-      anchorOffsetX -
-      (a * anchorOffsetX + c * anchorOffsetY);
-    const f =
-      state.y +
-      anchorOffsetY -
-      (b * anchorOffsetX + d * anchorOffsetY);
+    const e = state.x + anchorOffsetX - (a * anchorOffsetX + c * anchorOffsetY);
+    const f = state.y + anchorOffsetY - (b * anchorOffsetX + d * anchorOffsetY);
 
     return { a, b, c, d, e, f };
   }
@@ -224,7 +218,9 @@ export class EditorTransformService {
       { x: width, y: height },
       { x: 0, y: height },
     ];
-    return corners.map((corner) => this.applyTransformToPoint(corner.x, corner.y, matrix));
+    return corners.map((corner) =>
+      this.applyTransformToPoint(corner.x, corner.y, matrix),
+    );
   }
 
   applyTransformToBuffer(
@@ -234,27 +230,28 @@ export class EditorTransformService {
     transform: TransformState,
   ): { buffer: string[]; width: number; height: number } {
     const matrix = this.getTransformMatrix();
-    
+
     const corners = this.calculateBoundingBox(sourceWidth, sourceHeight);
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    
+
     for (const corner of corners) {
       minX = Math.min(minX, corner.x);
       minY = Math.min(minY, corner.y);
       maxX = Math.max(maxX, corner.x);
       maxY = Math.max(maxY, corner.y);
     }
-    
+
     const newWidth = Math.ceil(maxX - minX);
     const newHeight = Math.ceil(maxY - minY);
     const newBuffer = new Array<string>(newWidth * newHeight).fill('');
-    
+
     const inverseMatrix = this.invertMatrix(matrix);
-    if (!inverseMatrix) return { buffer: sourceBuffer, width: sourceWidth, height: sourceHeight };
-    
+    if (!inverseMatrix)
+      return { buffer: sourceBuffer, width: sourceWidth, height: sourceHeight };
+
     for (let y = 0; y < newHeight; y++) {
       for (let x = 0; x < newWidth; x++) {
         const srcPoint = this.applyTransformToPoint(
@@ -262,10 +259,10 @@ export class EditorTransformService {
           y + minY,
           inverseMatrix,
         );
-        
+
         const sx = Math.floor(srcPoint.x);
         const sy = Math.floor(srcPoint.y);
-        
+
         if (sx >= 0 && sx < sourceWidth && sy >= 0 && sy < sourceHeight) {
           const srcIdx = sy * sourceWidth + sx;
           const destIdx = y * newWidth + x;
@@ -273,14 +270,14 @@ export class EditorTransformService {
         }
       }
     }
-    
+
     return { buffer: newBuffer, width: newWidth, height: newHeight };
   }
 
   private invertMatrix(m: TransformMatrix): TransformMatrix | null {
     const det = m.a * m.d - m.b * m.c;
     if (Math.abs(det) < 0.0001) return null;
-    
+
     const invDet = 1 / det;
     return {
       a: m.d * invDet,
@@ -332,7 +329,7 @@ export class EditorTransformService {
     const newWidth = height;
     const newHeight = width;
     const result = new Array<string>(newWidth * newHeight).fill('');
-    
+
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const srcIdx = y * width + x;
@@ -342,7 +339,7 @@ export class EditorTransformService {
         result[destIdx] = buffer[srcIdx] || '';
       }
     }
-    
+
     return { buffer: result, width: newWidth, height: newHeight };
   }
 
@@ -354,7 +351,7 @@ export class EditorTransformService {
     const newWidth = height;
     const newHeight = width;
     const result = new Array<string>(newWidth * newHeight).fill('');
-    
+
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const srcIdx = y * width + x;
@@ -364,15 +361,11 @@ export class EditorTransformService {
         result[destIdx] = buffer[srcIdx] || '';
       }
     }
-    
+
     return { buffer: result, width: newWidth, height: newHeight };
   }
 
-  applyRotate180(
-    buffer: string[],
-    width: number,
-    height: number,
-  ): string[] {
+  applyRotate180(buffer: string[], width: number, height: number): string[] {
     const result = new Array<string>(buffer.length);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -493,7 +486,12 @@ export class EditorTransformService {
     );
   }
 
-  private hexToRgba(hex: string): { r: number; g: number; b: number; a: number } {
+  private hexToRgba(hex: string): {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  } {
     if (!hex || hex.length < 7) {
       return { r: 0, g: 0, b: 0, a: 0 };
     }
