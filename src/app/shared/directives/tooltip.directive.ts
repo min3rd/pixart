@@ -45,12 +45,15 @@ export class TooltipDirective implements OnDestroy {
       () => this.hideTooltip(),
     );
 
-    effect(() => {
-      this.currentHotkey();
-      if (this.isTooltipVisible) {
-        this.updateTooltipContent();
-      }
-    }, { allowSignalWrites: true });
+    effect(
+      () => {
+        this.currentHotkey();
+        if (this.isTooltipVisible) {
+          this.updateTooltipContent();
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   private showTooltip(): void {
@@ -173,7 +176,9 @@ export class TooltipDirective implements OnDestroy {
     const parent = hostElement.parentElement;
     if (!parent) return false;
 
-    const dropdown = parent.querySelector('.dropdown, [data-dropdown], [id*="dropdown"]');
+    const dropdown = parent.querySelector(
+      '.dropdown, [data-dropdown], [id*="dropdown"]',
+    );
     if (!dropdown) return false;
 
     const dropdownRect = dropdown.getBoundingClientRect();
