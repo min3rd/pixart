@@ -226,6 +226,13 @@ export class EditorCanvas implements OnDestroy {
       }
     });
 
+    effect(() => {
+      const active = this.freeTransform.isActive();
+      if (active && !this.freeTransformOriginalBuffer) {
+        this.activateFreeTransform();
+      }
+    });
+
     this.registerCanvasHotkeys();
   }
 
@@ -2498,10 +2505,11 @@ export class EditorCanvas implements OnDestroy {
       }
     }
 
-    // Draw active selection if present
+    // Draw active selection if present (but hide when Free Transform is active)
     const sel = this.document.selectionRect();
     const selShape = this.document.selectionShape();
-    if (sel && sel.width > 0 && sel.height > 0) {
+    const isFreeTransformActive = this.freeTransform.isActive();
+    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive) {
       ctx.save();
 
       // Check if we have a mask-based selection
