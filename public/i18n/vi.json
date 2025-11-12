@@ -209,7 +209,15 @@
     "size": "Kích thước vải",
     "width": "Chiều rộng",
     "infoTitle": "Thông tin",
-    "unsaved": "Chưa lưu"
+    "unsaved": "Chưa lưu",
+    "freeTransform": {
+      "commit": "Áp dụng",
+      "cancel": "Hủy",
+      "duplicate": "Nhân bản",
+      "mirrorX": "Lật ngang",
+      "mirrorY": "Lật dọc",
+      "snapHint": "Giữ Shift để bắt góc 15° / giữ tỷ lệ"
+    }
   },
   "editor": {
     "tools": {
