@@ -467,6 +467,7 @@
       "tool.square": "Square Tool",
       "tool.brush": "Brush Tool",
       "tool.bone": "Bone Tool",
+      "tool.freeTransform": "Free Transform",
       "insert.image": "Insert Image",
       "insert.pixelArt": "Generate Pixel Art from Sketch",
       "transform.freeTransform": "Free Transform",
