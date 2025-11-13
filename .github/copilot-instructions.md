@@ -24,8 +24,6 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
 - Prefer inline templates for small components
 - Prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
 - When creating new components or pages, always use external HTML template files (e.g., `my-component.component.html`) and reference them with `templateUrl`.
 - Do NOT use inline `template` or `styles` in the `@Component` decorator. Use `styleUrls` to point to one or more external CSS/SCSS files.
 - Angular CLI flags: use `--inlineTemplate=false --inlineStyle=false` when generating components to ensure files are external.
