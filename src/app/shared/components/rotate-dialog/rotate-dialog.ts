@@ -196,12 +196,13 @@ export class RotateDialog {
 
     ctx.clearRect(0, 0, newWidth, newHeight);
 
-    ctx.save();
-    ctx.translate(newWidth / 2, newHeight / 2);
-    ctx.rotate(radians);
-    ctx.translate(-width / 2, -height / 2);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
 
-    const imageData = ctx.createImageData(width, height);
+    const imageData = tempCtx.createImageData(width, height);
     for (let i = 0; i < buffer.length; i++) {
       const color = buffer[i];
       if (color) {
@@ -213,8 +214,12 @@ export class RotateDialog {
         imageData.data[idx + 3] = rgba.a;
       }
     }
-    ctx.putImageData(imageData, 0, 0);
+    tempCtx.putImageData(imageData, 0, 0);
 
+    ctx.save();
+    ctx.translate(newWidth / 2, newHeight / 2);
+    ctx.rotate(radians);
+    ctx.drawImage(tempCanvas, -width / 2, -height / 2);
     ctx.restore();
   }
 
