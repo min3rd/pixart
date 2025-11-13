@@ -1,164 +1,139 @@
-@if (isOpen()) {
-  <div
-    id="hotkey-config-overlay"
-    class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center"
-    (click)="close()"
-  >
-    <div
-      id="hotkey-config-dialog"
-      class="bg-white dark:bg-neutral-800 rounded shadow-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
-      (click)="$event.stopPropagation()"
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'hotkeys.title' | transloco"
+  [size]="'md'"
+  [modalId]="'hotkey-config-dialog'"
+  [showCloseButton]="false"
+  (onClose)="close()"
+>
+  <div id="hotkey-config-content" class="space-y-4">
+    <p
+      id="hotkey-config-description"
+      class="text-sm text-neutral-600 dark:text-neutral-400"
     >
-      <div
-        id="hotkey-config-header"
-        class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
-      >
-        <h2 id="hotkey-config-title" class="text-lg font-semibold">
-          {{ "hotkeys.title" | transloco }}
-        </h2>
-        <button
-          type="button"
-          id="hotkey-config-close-button"
-          class="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-          (click)="close()"
-          title="{{ 'hotkeys.close' | transloco }}"
-        >
-          <ng-icon name="heroXMark" class="w-5 h-5"></ng-icon>
-        </button>
-      </div>
+      {{ "hotkeys.description" | transloco }}
+    </p>
 
-      <div id="hotkey-config-content" class="flex-1 overflow-y-auto px-4 py-3">
-        <p
-          id="hotkey-config-description"
-          class="text-sm mb-4 text-neutral-600 dark:text-neutral-400"
+    @for (group of groupedActions() | keyvalue; track group.key) {
+      <div [id]="'hotkey-group-' + group.key" class="mb-4">
+        <h3
+          [id]="'hotkey-group-title-' + group.key"
+          class="text-sm font-semibold mb-2"
         >
-          {{ "hotkeys.description" | transloco }}
-        </p>
-
-        @for (group of groupedActions() | keyvalue; track group.key) {
-          <div [id]="'hotkey-group-' + group.key" class="mb-4">
-            <h3
-              [id]="'hotkey-group-title-' + group.key"
-              class="text-sm font-semibold mb-2"
+          {{ "hotkeys.category." + group.key | transloco }}
+        </h3>
+        <div [id]="'hotkey-group-items-' + group.key" class="space-y-2">
+          @for (action of group.value; track action.id) {
+            <div
+              [id]="'hotkey-row-' + action.id"
+              class="flex items-center justify-between py-2 px-3 rounded bg-neutral-50 dark:bg-neutral-900"
             >
-              {{ "hotkeys.category." + group.key | transloco }}
-            </h3>
-            <div [id]="'hotkey-group-items-' + group.key" class="space-y-2">
-              @for (action of group.value; track action.id) {
-                <div
-                  [id]="'hotkey-row-' + action.id"
-                  class="flex items-center justify-between py-2 px-3 rounded bg-neutral-50 dark:bg-neutral-900"
-                >
-                  <span
-                    [id]="'hotkey-label-' + action.id"
-                    class="text-sm flex-1"
-                  >
-                    {{ "hotkeys.action." + action.id | transloco }}
-                  </span>
+              <span [id]="'hotkey-label-' + action.id" class="text-sm flex-1">
+                {{ "hotkeys.action." + action.id | transloco }}
+              </span>
 
-                  @if (editingActionId() === action.id) {
-                    <div
-                      [id]="'hotkey-edit-' + action.id"
-                      class="flex items-center gap-2"
+              @if (editingActionId() === action.id) {
+                <div
+                  [id]="'hotkey-edit-' + action.id"
+                  class="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    [id]="'hotkey-input-' + action.id"
+                    class="px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-sm w-32"
+                    [value]="displayKey(capturedKey() || action.currentKey)"
+                    (keydown)="onKeyCapture($event)"
+                    placeholder="{{ 'hotkeys.pressKey' | transloco }}"
+                    [attr.aria-label]="'hotkeys.pressKey' | transloco"
+                    readonly
+                  />
+                  @if (conflictError()) {
+                    <span
+                      [id]="'hotkey-conflict-' + action.id"
+                      class="text-xs text-red-600 dark:text-red-400"
                     >
-                      <input
-                        type="text"
-                        [id]="'hotkey-input-' + action.id"
-                        class="px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-sm w-32"
-                        [value]="displayKey(capturedKey() || action.currentKey)"
-                        (keydown)="onKeyCapture($event)"
-                        placeholder="{{ 'hotkeys.pressKey' | transloco }}"
-                        [attr.aria-label]="'hotkeys.pressKey' | transloco"
-                        readonly
-                      />
-                      @if (conflictError()) {
-                        <span
-                          [id]="'hotkey-conflict-' + action.id"
-                          class="text-xs text-red-600 dark:text-red-400"
-                        >
-                          {{ "hotkeys.conflictWith" | transloco }}
-                          {{ "hotkeys.action." + conflictError() | transloco }}
-                        </span>
-                      }
-                      <button
-                        type="button"
-                        [id]="'hotkey-save-' + action.id"
-                        class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        (click)="saveEdit()"
-                        [disabled]="!capturedKey()"
-                      >
-                        {{ "hotkeys.save" | transloco }}
-                      </button>
-                      <button
-                        type="button"
-                        [id]="'hotkey-cancel-edit-' + action.id"
-                        class="px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                        (click)="cancelEdit()"
-                      >
-                        {{ "hotkeys.cancel" | transloco }}
-                      </button>
-                    </div>
-                  } @else {
-                    <div
-                      [id]="'hotkey-display-' + action.id"
-                      class="flex items-center gap-2"
+                      {{ "hotkeys.conflictWith" | transloco }}
+                      {{ "hotkeys.action." + conflictError() | transloco }}
+                    </span>
+                  }
+                  <button
+                    type="button"
+                    [id]="'hotkey-save-' + action.id"
+                    class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                    (click)="saveEdit()"
+                    [disabled]="!capturedKey()"
+                  >
+                    {{ "hotkeys.save" | transloco }}
+                  </button>
+                  <button
+                    type="button"
+                    [id]="'hotkey-cancel-edit-' + action.id"
+                    class="px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                    (click)="cancelEdit()"
+                  >
+                    {{ "hotkeys.cancel" | transloco }}
+                  </button>
+                </div>
+              } @else {
+                <div
+                  [id]="'hotkey-display-' + action.id"
+                  class="flex items-center gap-2"
+                >
+                  <kbd
+                    [id]="'hotkey-kbd-' + action.id"
+                    class="px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-neutral-100 dark:bg-neutral-800 text-sm font-mono"
+                  >
+                    {{ displayKey(action.currentKey) }}
+                  </kbd>
+                  <button
+                    type="button"
+                    [id]="'hotkey-edit-button-' + action.id"
+                    class="px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                    (click)="startEdit(action.id)"
+                    title="{{ 'hotkeys.edit' | transloco }}"
+                  >
+                    {{ "hotkeys.edit" | transloco }}
+                  </button>
+                  @if (action.currentKey !== action.defaultKey) {
+                    <button
+                      type="button"
+                      [id]="'hotkey-reset-' + action.id"
+                      class="px-2 py-1 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      (click)="resetAction(action.id)"
+                      title="{{ 'hotkeys.reset' | transloco }}"
                     >
-                      <kbd
-                        [id]="'hotkey-kbd-' + action.id"
-                        class="px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-neutral-100 dark:bg-neutral-800 text-sm font-mono"
-                      >
-                        {{ displayKey(action.currentKey) }}
-                      </kbd>
-                      <button
-                        type="button"
-                        [id]="'hotkey-edit-button-' + action.id"
-                        class="px-2 py-1 text-xs border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                        (click)="startEdit(action.id)"
-                        title="{{ 'hotkeys.edit' | transloco }}"
-                      >
-                        {{ "hotkeys.edit" | transloco }}
-                      </button>
-                      @if (action.currentKey !== action.defaultKey) {
-                        <button
-                          type="button"
-                          [id]="'hotkey-reset-' + action.id"
-                          class="px-2 py-1 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
-                          (click)="resetAction(action.id)"
-                          title="{{ 'hotkeys.reset' | transloco }}"
-                        >
-                          {{ "hotkeys.reset" | transloco }}
-                        </button>
-                      }
-                    </div>
+                      {{ "hotkeys.reset" | transloco }}
+                    </button>
                   }
                 </div>
               }
             </div>
-          </div>
-        }
+          }
+        </div>
       </div>
-
-      <div
-        id="hotkey-config-footer"
-        class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
-      >
-        <button
-          type="button"
-          id="hotkey-reset-all-button"
-          class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
-          (click)="resetAll()"
-        >
-          {{ "hotkeys.resetAll" | transloco }}
-        </button>
-        <button
-          type="button"
-          id="hotkey-done-button"
-          class="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-          (click)="close()"
-        >
-          {{ "hotkeys.done" | transloco }}
-        </button>
-      </div>
-    </div>
+    }
   </div>
-}
+
+  <div
+    modal-footer
+    id="hotkey-config-footer"
+    class="flex items-center justify-between"
+  >
+    <button
+      type="button"
+      id="hotkey-reset-all-button"
+      class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+      (click)="resetAll()"
+    >
+      {{ "hotkeys.resetAll" | transloco }}
+    </button>
+    <button
+      type="button"
+      id="hotkey-done-button"
+      class="px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+      (click)="close()"
+    >
+      {{ "hotkeys.done" | transloco }}
+    </button>
+  </div>
+</pa-modal>

@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
+import { Modal } from '../modal/modal';
 
 export interface EditPointResult {
   name: string;
@@ -19,7 +20,7 @@ export interface EditPointResult {
   templateUrl: './edit-point-dialog.component.html',
   styleUrls: ['./edit-point-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon, FormsModule],
+  imports: [TranslocoPipe, NgIcon, FormsModule, Modal],
   providers: [
     provideIcons({
       heroXMark,
@@ -59,12 +60,6 @@ export class EditPointDialog {
   handleCancel() {
     this.onCancel.emit();
     this.close();
-  }
-
-  handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.handleCancel();
-    }
   }
 
   onNameInput(event: Event) {

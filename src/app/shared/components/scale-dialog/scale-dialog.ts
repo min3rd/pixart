@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Modal } from '../modal/modal';
 
 export interface ScaleResult {
   scaleX: number;
@@ -20,7 +21,7 @@ export interface ScaleResult {
   templateUrl: './scale-dialog.html',
   styleUrls: ['./scale-dialog.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, Modal],
 })
 export class ScaleDialog {
   readonly isOpen = signal(false);
@@ -120,12 +121,6 @@ export class ScaleDialog {
   handleCancel() {
     this.onCancel.emit();
     this.close();
-  }
-
-  handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.handleCancel();
-    }
   }
 
   onWidthInput(event: Event) {

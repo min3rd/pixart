@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NgIcon } from '@ng-icons/core';
+import { Modal } from '../modal/modal';
 
 export interface InsertImageResult {
   file: File;
@@ -20,7 +20,7 @@ export interface InsertImageResult {
   templateUrl: './insert-image-dialog.component.html',
   styleUrls: ['./insert-image-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon],
+  imports: [TranslocoPipe, Modal],
 })
 export class InsertImageDialog {
   readonly isOpen = signal(false);
@@ -92,12 +92,6 @@ export class InsertImageDialog {
   handleCancel() {
     this.onCancel.emit();
     this.close();
-  }
-
-  handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.handleCancel();
-    }
   }
 
   onWidthInput(event: Event) {

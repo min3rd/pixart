@@ -17,6 +17,7 @@ import {
   BoneTemplateType,
   BoneTemplate,
 } from '../../../services/bone-generation.service';
+import { Modal } from '../modal/modal';
 
 export interface BoneGenerationResult {
   templateType: BoneTemplateType;
@@ -27,7 +28,7 @@ export interface BoneGenerationResult {
   templateUrl: './bone-generation-dialog.component.html',
   styleUrls: ['./bone-generation-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, TranslocoPipe, NgIconComponent],
+  imports: [CommonModule, FormsModule, TranslocoPipe, NgIconComponent, Modal],
   providers: [
     provideIcons({
       heroXMark,

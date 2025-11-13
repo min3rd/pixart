@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { Modal } from '../modal/modal';
 
 export interface RotateResult {
   angle: number;
@@ -19,7 +20,7 @@ export interface RotateResult {
   templateUrl: './rotate-dialog.html',
   styleUrls: ['./rotate-dialog.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, Modal],
 })
 export class RotateDialog {
   readonly isOpen = signal(false);
@@ -100,12 +101,6 @@ export class RotateDialog {
   handleCancel() {
     this.onCancel.emit();
     this.close();
-  }
-
-  handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.handleCancel();
-    }
   }
 
   onAngleInput(event: Event) {
