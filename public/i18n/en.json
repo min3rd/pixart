@@ -555,5 +555,8 @@
     "reset": "Reset",
     "apply": "Apply",
     "cancel": "Cancel"
+  },
+  "modal": {
+    "close": "Close"
   }
 }

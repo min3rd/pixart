@@ -27,6 +27,7 @@ import {
   EditorDocumentService,
   isGroup,
 } from '../../../services/editor-document.service';
+import { Modal } from '../modal/modal';
 
 export interface PixelArtGenerationResult {
   jobId: string;
@@ -38,7 +39,7 @@ export interface PixelArtGenerationResult {
   templateUrl: './pixel-art-generation-dialog.component.html',
   styleUrls: ['./pixel-art-generation-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, TranslocoPipe, NgIconComponent],
+  imports: [CommonModule, FormsModule, TranslocoPipe, NgIconComponent, Modal],
   providers: [
     provideIcons({
       heroXMark,

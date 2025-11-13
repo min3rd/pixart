@@ -7,18 +7,18 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NgIcon } from '@ng-icons/core';
 import {
   HotkeysService,
   HotkeyRegistration,
 } from '../../../services/hotkeys.service';
+import { Modal } from '../modal/modal';
 
 @Component({
   selector: 'pa-hotkey-config-dialog',
   templateUrl: './hotkey-config-dialog.component.html',
   styleUrls: ['./hotkey-config-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIcon],
+  imports: [CommonModule, TranslocoPipe, Modal],
 })
 export class HotkeyConfigDialog {
   readonly hotkeys = inject(HotkeysService);
