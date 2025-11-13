@@ -144,6 +144,7 @@ export class EditorCanvas implements OnDestroy {
   } | null = null;
   private freeTransformLayerId: string | null = null;
   private freeTransformPreviewIndices: number[] | null = null;
+  private freeTransformPreviewBackup: Map<number, string> | null = null;
   private freeTransformDuplicate = false;
   private freeTransformMirrorX = false;
   private freeTransformMirrorY = false;
@@ -1469,6 +1470,7 @@ export class EditorCanvas implements OnDestroy {
     }
     this.freeTransformDuplicate = false;
     this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
     // Pre-change snapshot so a single undo reverts the whole transform session.
     this.document.saveSnapshot('Free Transform');
     const layer = this.document.selectedLayer();
@@ -1518,18 +1520,22 @@ export class EditorCanvas implements OnDestroy {
       Math.abs(scaleX - 1) > 0.0001 || Math.abs(scaleY - 1) > 0.0001;
     const doRotate = Math.abs(state.rotation) > 0.0001;
 
-    // Clear live preview pixels first to avoid duplicates
+    // Restore pixels from backup first to avoid losing content outside selection
     if (
       this.freeTransformPreviewIndices &&
       this.freeTransformPreviewIndices.length &&
-      this.freeTransformLayerId
+      this.freeTransformLayerId &&
+      this.freeTransformPreviewBackup
     ) {
       const layerBuffer = this.document.getLayerBuffer(
         this.freeTransformLayerId,
       );
       if (layerBuffer) {
         for (const idx of this.freeTransformPreviewIndices) {
-          if (idx >= 0 && idx < layerBuffer.length) layerBuffer[idx] = '';
+          if (idx >= 0 && idx < layerBuffer.length) {
+            const backupValue = this.freeTransformPreviewBackup.get(idx);
+            layerBuffer[idx] = backupValue !== undefined ? backupValue : '';
+          }
         }
       }
     }
@@ -1580,15 +1586,23 @@ export class EditorCanvas implements OnDestroy {
     this.freeTransformLayerId = null;
     this.freeTransformDuplicate = false;
     this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
   }
 
   private cancelFreeTransform(): void {
-    // Clear preview pixels before restoring original
-    if (this.freeTransformPreviewIndices && this.freeTransformLayerId) {
+    // Restore pixels from backup before clearing preview
+    if (
+      this.freeTransformPreviewIndices &&
+      this.freeTransformLayerId &&
+      this.freeTransformPreviewBackup
+    ) {
       const buf = this.document.getLayerBuffer(this.freeTransformLayerId);
       if (buf) {
         for (const idx of this.freeTransformPreviewIndices) {
-          if (idx >= 0 && idx < buf.length) buf[idx] = '';
+          if (idx >= 0 && idx < buf.length) {
+            const backupValue = this.freeTransformPreviewBackup.get(idx);
+            buf[idx] = backupValue !== undefined ? backupValue : '';
+          }
         }
         this.document.layerPixelsVersion.update((v) => v + 1);
       }
@@ -1600,6 +1614,7 @@ export class EditorCanvas implements OnDestroy {
     this.freeTransformLayerId = null;
     this.freeTransformDuplicate = false;
     this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
   }
 
   private applyTransformToSelection(
@@ -1719,18 +1734,22 @@ export class EditorCanvas implements OnDestroy {
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
-    // Clear previous preview pixels if tracked.
+    // Restore pixels from backup before clearing preview.
+    // This ensures pixels outside the original selection are preserved.
     if (
       this.freeTransformPreviewIndices &&
-      this.freeTransformPreviewIndices.length
+      this.freeTransformPreviewIndices.length &&
+      this.freeTransformPreviewBackup
     ) {
       for (const idx of this.freeTransformPreviewIndices) {
         if (idx >= 0 && idx < layerBuffer.length) {
-          layerBuffer[idx] = ''; // revert to empty; original pixels are stored separately already
+          const backupValue = this.freeTransformPreviewBackup.get(idx);
+          layerBuffer[idx] = backupValue !== undefined ? backupValue : '';
         }
       }
     }
     this.freeTransformPreviewIndices = [];
+    this.freeTransformPreviewBackup = new Map<number, string>();
 
     const srcW = this.freeTransformOriginalRect.width;
     const srcH = this.freeTransformOriginalRect.height;
@@ -1771,6 +1790,13 @@ export class EditorCanvas implements OnDestroy {
               destY < canvasH
             ) {
               const destIdx = destY * canvasW + destX;
+              // Backup the current pixel value before overwriting
+              if (!this.freeTransformPreviewBackup.has(destIdx)) {
+                this.freeTransformPreviewBackup.set(
+                  destIdx,
+                  layerBuffer[destIdx] || '',
+                );
+              }
               layerBuffer[destIdx] = col;
               this.freeTransformPreviewIndices.push(destIdx);
             }
@@ -2750,7 +2776,7 @@ export class EditorCanvas implements OnDestroy {
 
       ctx.fillStyle = isDark ? '#1e40af' : '#1d4ed8';
       ctx.fillRect(commitX, commitY, btnSize, btnSize);
-      
+
       ctx.strokeStyle = '#d1d5db';
       ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
       ctx.beginPath();
@@ -2758,7 +2784,7 @@ export class EditorCanvas implements OnDestroy {
       ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
       ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
       ctx.stroke();
-      
+
       ctx.fillStyle = isDark ? '#991b1b' : '#b91c1c';
       ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
       ctx.strokeStyle = '#d1d5db';
