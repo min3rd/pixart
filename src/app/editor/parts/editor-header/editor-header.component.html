@@ -354,7 +354,10 @@
         >
           <button
             id="menu-transform-free-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onFreeTransform()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.freeTransform')"
           >
@@ -503,7 +506,10 @@
           ></div>
           <button
             id="menu-transform-flip-horizontal-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onFlipHorizontal()"
             [attr.aria-keyshortcuts]="
               hotkeys.getBinding('transform.flipHorizontal')
@@ -527,7 +533,10 @@
           </button>
           <button
             id="menu-transform-flip-vertical-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onFlipVertical()"
             [attr.aria-keyshortcuts]="
               hotkeys.getBinding('transform.flipVertical')
@@ -551,7 +560,10 @@
           </button>
           <button
             id="menu-transform-rotate-90cw-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onRotate90CW()"
           >
             <span id="menu-transform-rotate-90cw-label">{{
@@ -560,7 +572,10 @@
           </button>
           <button
             id="menu-transform-rotate-90ccw-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onRotate90CCW()"
           >
             <span id="menu-transform-rotate-90ccw-label">{{
@@ -569,7 +584,10 @@
           </button>
           <button
             id="menu-transform-rotate-180-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onRotate180()"
           >
             <span id="menu-transform-rotate-180-label">{{

@@ -500,14 +500,24 @@ export class EditorHeader {
       id: 'transform.flipHorizontal',
       category: 'edit',
       defaultKey: 'ctrl+shift+h',
-      handler: () => this.onFlipHorizontal(),
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onFlipHorizontal();
+        }
+      },
     });
 
     this.hotkeys.register({
       id: 'transform.flipVertical',
       category: 'edit',
       defaultKey: 'ctrl+shift+v',
-      handler: () => this.onFlipVertical(),
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onFlipVertical();
+        }
+      },
     });
   }
 
@@ -907,26 +917,51 @@ export class EditorHeader {
   }
 
   onFlipHorizontal() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
     this.document.flipLayerHorizontal();
     this.showTransformMenu.set(false);
   }
 
   onFlipVertical() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
     this.document.flipLayerVertical();
     this.showTransformMenu.set(false);
   }
 
   onRotate90CW() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
     this.document.rotateLayer90CW();
     this.showTransformMenu.set(false);
   }
 
   onRotate90CCW() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
     this.document.rotateLayer90CCW();
     this.showTransformMenu.set(false);
   }
 
   onRotate180() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
     this.document.rotateLayer180();
     this.showTransformMenu.set(false);
   }
