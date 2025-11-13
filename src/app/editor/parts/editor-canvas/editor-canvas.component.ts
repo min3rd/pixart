@@ -761,16 +761,6 @@ export class EditorCanvas implements OnDestroy {
         }
 
         if (
-          logicalX >= positions.duplicateX &&
-          logicalX <= positions.duplicateX + buttonSize &&
-          logicalY >= positions.duplicateY &&
-          logicalY <= positions.duplicateY + buttonSize
-        ) {
-          this.freeTransformDuplicate = !this.freeTransformDuplicate;
-          return;
-        }
-
-        if (
           logicalX >= positions.commitX &&
           logicalX <= positions.commitX + buttonSize &&
           logicalY >= positions.commitY &&
@@ -2707,8 +2697,6 @@ export class EditorCanvas implements OnDestroy {
         commitY,
         cancelX,
         cancelY,
-        duplicateX,
-        duplicateY,
         mirrorXX,
         mirrorXY,
         mirrorYX,
@@ -2760,25 +2748,6 @@ export class EditorCanvas implements OnDestroy {
       ctx.lineTo(mirrorXX + btnSize * 0.65, mirrorXY + btnSize * 0.65);
       ctx.stroke();
 
-      // duplicate button (two squares)
-      ctx.fillStyle = this.freeTransformDuplicate
-        ? isDark
-          ? '#0369a1'
-          : '#0284c7'
-        : isDark
-          ? '#075985'
-          : '#0369a1';
-      ctx.fillRect(duplicateX, duplicateY, btnSize, btnSize);
-      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
-      ctx.strokeRect(duplicateX, duplicateY, btnSize, btnSize);
-      const s = btnSize * 0.3;
-      const ox = duplicateX + btnSize * 0.3;
-      const oy = duplicateY + btnSize * 0.3;
-      ctx.strokeStyle = '#d1d5db';
-      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
-      ctx.strokeRect(ox, oy, s, s);
-      ctx.strokeRect(ox + s * 0.4, oy - s * 0.4, s, s);
-      
       ctx.fillStyle = isDark ? '#1e40af' : '#1d4ed8';
       ctx.fillRect(commitX, commitY, btnSize, btnSize);
       
@@ -2812,8 +2781,6 @@ export class EditorCanvas implements OnDestroy {
     commitY: number;
     cancelX: number;
     cancelY: number;
-    duplicateX: number;
-    duplicateY: number;
     mirrorXX: number;
     mirrorXY: number;
     mirrorYX: number;
@@ -2824,7 +2791,7 @@ export class EditorCanvas implements OnDestroy {
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
-    const totalButtonsWidth = 5 * btnSize + 4 * margin;
+    const totalButtonsWidth = 4 * btnSize + 3 * margin;
     const spaceAbove = ftState.y;
     const spaceBelow = canvasH - (ftState.y + ftState.height);
     const spaceRight = canvasW - (ftState.x + ftState.width);
@@ -2857,7 +2824,7 @@ export class EditorCanvas implements OnDestroy {
       );
     } else {
       horizontal = false;
-      const totalButtonsHeight = 5 * btnSize + 4 * margin;
+      const totalButtonsHeight = 4 * btnSize + 3 * margin;
       if (spaceRight >= btnSize + 2 * margin) {
         baseX = ftState.x + ftState.width + margin;
         baseY = Math.max(
@@ -2884,7 +2851,6 @@ export class EditorCanvas implements OnDestroy {
 
     let commitX: number, commitY: number;
     let cancelX: number, cancelY: number;
-    let duplicateX: number, duplicateY: number;
     let mirrorXX: number, mirrorXY: number;
     let mirrorYX: number, mirrorYY: number;
 
@@ -2893,9 +2859,7 @@ export class EditorCanvas implements OnDestroy {
       mirrorYY = baseY;
       mirrorXX = mirrorYX + btnSize + margin;
       mirrorXY = baseY;
-      duplicateX = mirrorXX + btnSize + margin;
-      duplicateY = baseY;
-      cancelX = duplicateX + btnSize + margin;
+      cancelX = mirrorXX + btnSize + margin;
       cancelY = baseY;
       commitX = cancelX + btnSize + margin;
       commitY = baseY;
@@ -2904,10 +2868,8 @@ export class EditorCanvas implements OnDestroy {
       mirrorYY = baseY;
       mirrorXX = baseX;
       mirrorXY = mirrorYY + btnSize + margin;
-      duplicateX = baseX;
-      duplicateY = mirrorXY + btnSize + margin;
       cancelX = baseX;
-      cancelY = duplicateY + btnSize + margin;
+      cancelY = mirrorXY + btnSize + margin;
       commitX = baseX;
       commitY = cancelY + btnSize + margin;
     }
@@ -2918,8 +2880,6 @@ export class EditorCanvas implements OnDestroy {
     commitY = clamp(commitY, 0, canvasH - btnSize);
     cancelX = clamp(cancelX, 0, canvasW - btnSize);
     cancelY = clamp(cancelY, 0, canvasH - btnSize);
-    duplicateX = clamp(duplicateX, 0, canvasW - btnSize);
-    duplicateY = clamp(duplicateY, 0, canvasH - btnSize);
     mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize);
     mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize);
     mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize);
@@ -2931,8 +2891,6 @@ export class EditorCanvas implements OnDestroy {
       commitY,
       cancelX,
       cancelY,
-      duplicateX,
-      duplicateY,
       mirrorXX,
       mirrorXY,
       mirrorYX,
