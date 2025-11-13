@@ -544,5 +544,16 @@
     "preview": "Preview",
     "ok": "OK",
     "cancel": "Cancel"
+  },
+  "rotate": {
+    "title": "Rotate",
+    "originalSize": "Original size",
+    "angle": "Angle",
+    "preview": "Preview",
+    "original": "Original",
+    "rotated": "Rotated",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
   }
 }

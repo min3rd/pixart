@@ -1,0 +1,152 @@
+@if (isOpen()) {
+<div
+  id="rotate-dialog-backdrop"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  (click)="handleBackdropClick($event)"
+>
+  <div
+    id="rotate-dialog-container"
+    class="bg-white dark:bg-neutral-800 rounded-sm shadow-lg p-6 w-[48rem] max-w-full"
+  >
+    <h2
+      id="rotate-dialog-title"
+      class="text-lg font-semibold mb-4 text-neutral-900 dark:text-neutral-100"
+    >
+      {{ "rotate.title" | transloco }}
+    </h2>
+
+    <div id="rotate-dialog-content" class="space-y-4">
+      <div
+        id="rotate-original-size-section"
+        class="text-sm text-neutral-600 dark:text-neutral-400"
+      >
+        <span id="rotate-original-size-label"
+          >{{ "rotate.originalSize" | transloco }}:</span
+        >
+        <span id="rotate-original-size-value" class="font-mono ml-2">
+          {{ originalWidth() }} × {{ originalHeight() }}
+        </span>
+      </div>
+
+      <div id="rotate-angle-section" class="space-y-2">
+        <label
+          for="rotate-angle-input"
+          id="rotate-angle-label"
+          class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+        >
+          {{ "rotate.angle" | transloco }} (°)
+        </label>
+        <div id="rotate-angle-controls" class="flex gap-2 items-center">
+          <input
+            type="number"
+            id="rotate-angle-input"
+            [value]="angleInput()"
+            (input)="onAngleInput($event)"
+            min="-360"
+            max="360"
+            step="0.1"
+            class="w-24 px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+          />
+          <input
+            type="range"
+            id="rotate-angle-slider"
+            [value]="angle()"
+            (input)="onAngleSliderChange($event)"
+            min="-180"
+            max="180"
+            step="1"
+            class="flex-1"
+          />
+          <button
+            type="button"
+            id="rotate-reset-button"
+            (click)="resetAngle()"
+            class="px-3 py-1 bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-900 dark:text-neutral-100 rounded-sm"
+          >
+            {{ "rotate.reset" | transloco }}
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="rotate-preview-section"
+        class="pt-2 border-t border-neutral-200 dark:border-neutral-700"
+      >
+        <div
+          id="rotate-preview-label"
+          class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3"
+        >
+          {{ "rotate.preview" | transloco }}:
+        </div>
+        <div id="rotate-preview-container" class="grid grid-cols-2 gap-4">
+          <div id="rotate-preview-original" class="space-y-2">
+            <div
+              id="rotate-preview-original-label"
+              class="text-xs text-neutral-600 dark:text-neutral-400"
+            >
+              {{ "rotate.original" | transloco }}
+            </div>
+            <div
+              id="rotate-preview-original-canvas-wrapper"
+              class="border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 p-2 flex items-center justify-center min-h-32"
+            >
+              <canvas
+                id="rotate-preview-original-canvas"
+                class="max-w-full max-h-32"
+              ></canvas>
+            </div>
+            <div
+              id="rotate-preview-original-size"
+              class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+            >
+              {{ originalWidth() }} × {{ originalHeight() }}
+            </div>
+          </div>
+          <div id="rotate-preview-rotated" class="space-y-2">
+            <div
+              id="rotate-preview-rotated-label"
+              class="text-xs text-neutral-600 dark:text-neutral-400"
+            >
+              {{ "rotate.rotated" | transloco }}
+            </div>
+            <div
+              id="rotate-preview-rotated-canvas-wrapper"
+              class="border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-900 p-2 flex items-center justify-center min-h-32"
+            >
+              <canvas
+                id="rotate-preview-rotated-canvas"
+                class="max-w-full max-h-32"
+              ></canvas>
+            </div>
+            <div
+              id="rotate-preview-rotated-size"
+              class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+            >
+              {{ previewDimensions() }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="rotate-dialog-actions" class="flex gap-2 mt-6">
+      <button
+        type="button"
+        id="rotate-dialog-confirm-button"
+        (click)="handleConfirm()"
+        class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm"
+      >
+        {{ "rotate.apply" | transloco }}
+      </button>
+      <button
+        type="button"
+        id="rotate-dialog-cancel-button"
+        (click)="handleCancel()"
+        class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded-sm"
+      >
+        {{ "rotate.cancel" | transloco }}
+      </button>
+    </div>
+  </div>
+</div>
+}

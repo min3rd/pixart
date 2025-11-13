@@ -377,6 +377,52 @@ export class EditorTransformService {
     return result;
   }
 
+  applyRotateByAngle(
+    buffer: string[],
+    width: number,
+    height: number,
+    angleDegrees: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const radians = (angleDegrees * Math.PI) / 180;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+
+    const newWidth = Math.ceil(
+      Math.abs(width * cos) + Math.abs(height * sin),
+    );
+    const newHeight = Math.ceil(
+      Math.abs(width * sin) + Math.abs(height * cos),
+    );
+
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const newCenterX = newWidth / 2;
+    const newCenterY = newHeight / 2;
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const offsetX = x - newCenterX;
+        const offsetY = y - newCenterY;
+
+        const srcX = offsetX * cos + offsetY * sin + centerX;
+        const srcY = -offsetX * sin + offsetY * cos + centerY;
+
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const srcIdx = y0 * width + x0;
+          const destIdx = y * newWidth + x;
+          result[destIdx] = buffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
   applyScale(
     buffer: string[],
     width: number,

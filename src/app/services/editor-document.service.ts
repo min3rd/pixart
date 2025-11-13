@@ -1677,4 +1677,94 @@ export class EditorDocumentService {
     this.canvasState.setCanvasSaved(false);
     return true;
   }
+
+  rotateSelectionOrLayer(angleDegrees: number): boolean {
+    const sel = this.selectionService.selectionRect();
+
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Rotate (selection)');
+
+      const result = this.transformService.applyRotateByAngle(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+        angleDegrees,
+      );
+
+      const centerX = selBuf.x + selBuf.width / 2;
+      const centerY = selBuf.y + selBuf.height / 2;
+
+      const newX = Math.max(
+        0,
+        Math.min(
+          this.canvasWidth() - result.width,
+          Math.round(centerX - result.width / 2),
+        ),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(
+          this.canvasHeight() - result.height,
+          Math.round(centerY - result.height / 2),
+        ),
+      );
+
+      this.applySelectionBuffer(
+        result.buffer,
+        result.width,
+        result.height,
+        newX,
+        newY,
+        true,
+      );
+
+      this.selectionService.selectionRect.set({
+        x: newX,
+        y: newY,
+        width: result.width,
+        height: result.height,
+      });
+
+      return true;
+    }
+
+    const targetId = this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Rotate');
+
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const result = this.transformService.applyRotateByAngle(
+      buffer,
+      width,
+      height,
+      angleDegrees,
+    );
+
+    if (result.width !== width || result.height !== height) {
+      this.canvasState.setCanvasSize(result.width, result.height);
+
+      for (const layer of this.layerService.getFlattenedLayers()) {
+        if (layer.id !== targetId) {
+          this.canvasState.ensureLayerBuffer(
+            layer.id,
+            result.width,
+            result.height,
+          );
+        }
+      }
+    }
+
+    this.canvasState.setLayerBuffer(targetId, result.buffer);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
 }
