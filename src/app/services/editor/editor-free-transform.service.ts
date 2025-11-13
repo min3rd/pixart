@@ -32,6 +32,7 @@ export class EditorFreeTransformService {
   readonly dragStartState = signal<FreeTransformState | null>(null);
   readonly snapRotation = signal(false);
   readonly constrainProportions = signal(false);
+  private dragStartAngle: number | null = null;
 
   readonly isActive = computed(() => this.transformState() !== null);
 
@@ -78,6 +79,13 @@ export class EditorFreeTransformService {
     this.isDraggingHandle.set(handle);
     this.dragStartPos.set({ x, y });
     this.dragStartState.set({ ...state });
+    if (handle === 'rotate-center') {
+      const dx = x - state.centerX;
+      const dy = y - state.centerY;
+      this.dragStartAngle = Math.atan2(dy, dx);
+    } else {
+      this.dragStartAngle = null;
+    }
   }
 
   updateHandleDrag(x: number, y: number): void {
@@ -106,6 +114,7 @@ export class EditorFreeTransformService {
     this.isDraggingHandle.set(null);
     this.dragStartPos.set(null);
     this.dragStartState.set(null);
+    this.dragStartAngle = null;
   }
 
   setSnapRotation(enabled: boolean) {
@@ -123,12 +132,14 @@ export class EditorFreeTransformService {
   ): void {
     const current = this.transformState();
     if (!current) return;
+    if (this.dragStartAngle === null) return;
     const cx = current.centerX;
     const cy = current.centerY;
     const dx = mouseX - cx;
     const dy = mouseY - cy;
-    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    // Normalize angle to 0-360 and apply snapping if enabled
+    const currentAngle = Math.atan2(dy, dx);
+    const deltaAngle = currentAngle - this.dragStartAngle;
+    let angle = startState.rotation + (deltaAngle * 180) / Math.PI;
     angle = (angle + 360) % 360;
     if (this.snapRotation()) {
       const step = 15;
