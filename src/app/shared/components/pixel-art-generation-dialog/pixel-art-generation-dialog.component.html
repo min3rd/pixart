@@ -1,12 +1,11 @@
-<div
-  *ngIf="visible()"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-  id="pixel-art-generation-dialog-overlay"
+<pa-modal
+  [isOpen]="visible()"
+  [size]="'md'"
+  [modalId]="'pixel-art-generation-dialog'"
+  [showCloseButton]="false"
+  (onClose)="cancel()"
 >
-  <div
-    class="bg-white dark:bg-gray-800 rounded-sm shadow-lg w-full max-w-lg mx-4 p-4"
-    id="pixel-art-generation-dialog-content"
-  >
+  <div>
     <div
       class="flex items-center justify-between mb-4"
       id="pixel-art-generation-dialog-header"
@@ -336,4 +335,4 @@
       </div>
     </div>
   </div>
-</div>
+</pa-modal>

@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { NgIcon, provideIcons } from '@ng-icons/core';
+import { provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
 import { Modal } from '../modal/modal';
 
@@ -20,7 +20,7 @@ export interface EditPointResult {
   templateUrl: './edit-point-dialog.component.html',
   styleUrls: ['./edit-point-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe, NgIcon, FormsModule, Modal],
+  imports: [TranslocoPipe, FormsModule, Modal],
   providers: [
     provideIcons({
       heroXMark,
