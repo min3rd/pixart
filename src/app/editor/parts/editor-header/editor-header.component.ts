@@ -25,6 +25,10 @@ import {
   ScaleDialog,
   ScaleResult,
 } from '../../../shared/components/scale-dialog/scale-dialog';
+import {
+  RotateDialog,
+  RotateResult,
+} from '../../../shared/components/rotate-dialog/rotate-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -38,6 +42,7 @@ import {
     HotkeyConfigDialog,
     TooltipDirective,
     ScaleDialog,
+    RotateDialog,
   ],
   host: {
     class:
@@ -62,6 +67,7 @@ export class EditorHeader {
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
+  readonly rotateDialog = viewChild(RotateDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -828,8 +834,45 @@ export class EditorHeader {
   handleScaleCancel() {}
 
   onRotate() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.rotateDialog();
+    if (dialog) {
+      const layerId = this.document.selectedLayerId();
+      if (!layerId) {
+        this.showTransformMenu.set(false);
+        return;
+      }
+
+      const fullBuffer = this.document.getLayerBuffer(layerId);
+      if (!fullBuffer) {
+        this.showTransformMenu.set(false);
+        return;
+      }
+
+      const canvasWidth = this.document.canvasWidth();
+      const selBuffer: string[] = [];
+      for (let y = 0; y < sel.height; y++) {
+        for (let x = 0; x < sel.width; x++) {
+          const srcIdx = (sel.y + y) * canvasWidth + (sel.x + x);
+          selBuffer.push(fullBuffer[srcIdx] || '');
+        }
+      }
+
+      dialog.open(sel.width, sel.height, selBuffer);
+    }
     this.showTransformMenu.set(false);
   }
+
+  handleRotateConfirm(result: RotateResult) {
+    this.document.rotateSelectionOrLayer(result.angle);
+  }
+
+  handleRotateCancel() {}
 
   onSkew() {
     this.showTransformMenu.set(false);

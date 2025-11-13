@@ -547,5 +547,16 @@
     "preview": "Xem trước",
     "ok": "Đồng ý",
     "cancel": "Hủy"
+  },
+  "rotate": {
+    "title": "Xoay",
+    "originalSize": "Kích thước gốc",
+    "angle": "Góc xoay",
+    "preview": "Xem trước",
+    "original": "Bản gốc",
+    "rotated": "Đã xoay",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }

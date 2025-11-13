@@ -392,7 +392,10 @@
           </button>
           <button
             id="menu-transform-rotate-action"
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
             (click)="onRotate()"
           >
             <span id="menu-transform-rotate-label">{{
@@ -929,6 +932,11 @@
 <pa-scale-dialog
   (onConfirm)="handleScaleConfirm($event)"
   (onCancel)="handleScaleCancel()"
+/>
+
+<pa-rotate-dialog
+  (onConfirm)="handleRotateConfirm($event)"
+  (onCancel)="handleRotateCancel()"
 />
 
 <pa-hotkey-config-dialog />
