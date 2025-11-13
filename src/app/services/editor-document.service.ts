@@ -29,6 +29,7 @@ import {
   isGroup,
   isLayer,
 } from './editor/index';
+import { EditorFreeTransformService } from './editor/editor-free-transform.service';
 import { GradientType, ShapeFillMode, ToolMetaKey } from './tools/tool.types';
 import { ProjectSnapshot } from './editor/history.types';
 
@@ -75,6 +76,7 @@ export class EditorDocumentService {
   private readonly exportService = inject(EditorExportService);
   readonly keyframeService = inject(EditorKeyframeService);
   private readonly transformService = inject(EditorTransformService);
+  private readonly freeTransformService = inject(EditorFreeTransformService);
 
   readonly layers = this.layerService.layers;
   readonly selectedLayerId = this.layerService.selectedLayerId;
@@ -148,6 +150,7 @@ export class EditorDocumentService {
       }));
     }
     const keyframeSnapshot = this.keyframeService.snapshot();
+    const freeTransformState = this.freeTransformService.transformState();
     return {
       canvas: {
         width: this.canvasState.canvasWidth(),
@@ -179,6 +182,7 @@ export class EditorDocumentService {
       animationDuration: keyframeSnapshot.animationDuration,
       timelineMode: keyframeSnapshot.timelineMode,
       toolSnapshot,
+      freeTransformState: freeTransformState ? { ...freeTransformState } : null,
     };
   }
 
@@ -242,6 +246,14 @@ export class EditorDocumentService {
       this.tools.applySnapshot(snapshot.toolSnapshot, {
         maxBrush: Math.max(snapshot.canvas.width, snapshot.canvas.height),
       });
+    }
+
+    if (snapshot.freeTransformState) {
+      this.freeTransformService.transformState.set({
+        ...snapshot.freeTransformState,
+      });
+    } else {
+      this.freeTransformService.transformState.set(null);
     }
 
     this.canvasState.incrementPixelsVersion();

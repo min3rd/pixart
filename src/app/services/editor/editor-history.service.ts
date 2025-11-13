@@ -114,6 +114,9 @@ export class EditorHistoryService {
       animationDuration: snapshot.animationDuration,
       timelineMode: snapshot.timelineMode,
       toolSnapshot: snapshot.toolSnapshot ? { ...snapshot.toolSnapshot } : null,
+      freeTransformState: snapshot.freeTransformState
+        ? { ...snapshot.freeTransformState }
+        : null,
     };
   }
 }

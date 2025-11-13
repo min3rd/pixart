@@ -24,6 +24,7 @@ function createMockProjectSnapshot(): ProjectSnapshot {
     animationDuration: 1000,
     timelineMode: 'frame',
     toolSnapshot: null,
+    freeTransformState: null,
   };
 }
 

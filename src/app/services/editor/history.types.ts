@@ -26,6 +26,18 @@ export interface ProjectSnapshot {
   animationDuration: number;
   timelineMode: 'frame' | 'time';
   toolSnapshot: any;
+  freeTransformState: {
+    active: boolean;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    scaleX: number;
+    scaleY: number;
+    centerX: number;
+    centerY: number;
+  } | null;
 }
 
 export interface HistoryEntry {
