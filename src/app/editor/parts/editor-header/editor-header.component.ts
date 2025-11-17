@@ -21,6 +21,7 @@ import { HotkeyConfigDialog } from '../../../shared/components/hotkey-config-dia
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { EditorTransformService } from '../../../services/editor/editor-transform.service';
 import { EditorFreeTransformService } from '../../../services/editor/editor-free-transform.service';
+import { EditorDistortService } from '../../../services/editor/editor-distort.service';
 import {
   ScaleDialog,
   ScaleResult,
@@ -33,10 +34,6 @@ import {
   SkewDialog,
   SkewResult,
 } from '../../../shared/components/skew-dialog/skew-dialog';
-import {
-  DistortDialog,
-  DistortResult,
-} from '../../../shared/components/distort-dialog/distort-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -52,7 +49,6 @@ import {
     ScaleDialog,
     RotateDialog,
     SkewDialog,
-    DistortDialog,
   ],
   host: {
     class:
@@ -68,6 +64,7 @@ export class EditorHeader {
   readonly hotkeys = inject(HotkeysService);
   readonly transform = inject(EditorTransformService);
   readonly freeTransform = inject(EditorFreeTransformService);
+  readonly distort = inject(EditorDistortService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -79,7 +76,6 @@ export class EditorHeader {
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
-  readonly distortDialog = viewChild(DistortDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -978,18 +974,9 @@ export class EditorHeader {
       return;
     }
 
-    const dialog = this.distortDialog();
-    if (dialog) {
-      dialog.open(sel.width, sel.height);
-    }
+    this.distort.startDistort(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
   }
-
-  handleDistortConfirm(result: DistortResult) {
-    this.document.distortSelectionOrLayer(result.corners, result.sourceWidth, result.sourceHeight);
-  }
-
-  handleDistortCancel() {}
 
   onPerspective() {
     this.showTransformMenu.set(false);

@@ -32,10 +32,15 @@ import {
   GeneratePixelArtRequest,
 } from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
 import { PixelGenerationEngineService } from '../../../services/pixel-generation';
+import { EditorTransformService } from '../../../services/editor/editor-transform.service';
 import {
   EditorFreeTransformService,
   TransformHandle,
 } from '../../../services/editor/editor-free-transform.service';
+import {
+  EditorDistortService,
+  DistortHandle,
+} from '../../../services/editor/editor-distort.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -94,7 +99,9 @@ export class EditorCanvas implements OnDestroy {
   readonly boneService = inject(EditorBoneService);
   readonly hotkeys = inject(HotkeysService);
   readonly pixelGenEngine = inject(PixelGenerationEngineService);
+  readonly transformService = inject(EditorTransformService);
   readonly freeTransform = inject(EditorFreeTransformService);
+  readonly distort = inject(EditorDistortService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -149,6 +156,14 @@ export class EditorCanvas implements OnDestroy {
   private freeTransformDuplicate = false;
   private freeTransformMirrorX = false;
   private freeTransformMirrorY = false;
+  private distortOriginalBuffer: string[] | null = null;
+  private distortOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private distortLayerId: string | null = null;
   private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
@@ -232,6 +247,21 @@ export class EditorCanvas implements OnDestroy {
       const active = this.freeTransform.isActive();
       if (active && !this.freeTransformOriginalBuffer) {
         this.activateFreeTransform();
+      }
+    });
+
+    effect(() => {
+      const active = this.distort.isActive();
+      if (active && !this.distortOriginalBuffer) {
+        this.activateDistort();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.distort.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelDistort();
       }
     });
 
@@ -421,6 +451,10 @@ export class EditorCanvas implements OnDestroy {
             this.cancelFreeTransform();
             return;
           }
+          if (this.distort.isActive()) {
+            this.cancelDistort();
+            return;
+          }
           if (this.contextMenuVisible()) {
             this.closeContextMenu();
             return;
@@ -443,6 +477,10 @@ export class EditorCanvas implements OnDestroy {
         if (ev.key === 'Enter') {
           if (this.freeTransform.isActive()) {
             this.commitFreeTransform();
+            return;
+          }
+          if (this.distort.isActive()) {
+            this.commitDistort();
             return;
           }
         }
@@ -570,6 +608,11 @@ export class EditorCanvas implements OnDestroy {
       }
       this.freeTransform.updateHandleDrag(logicalX, logicalY);
       this.renderLiveFreeTransformPreview();
+      return;
+    }
+
+    if (this.distort.isDraggingHandle()) {
+      this.distort.updateHandleDrag(logicalX, logicalY);
       return;
     }
 
@@ -766,6 +809,36 @@ export class EditorCanvas implements OnDestroy {
     }
 
     if (ev.button === 0) {
+      const distortState = this.distort.distortState();
+      if (distortState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const handles: DistortHandle[] = [
+          'top-left',
+          'top-right',
+          'bottom-right',
+          'bottom-left',
+        ];
+
+        for (const handle of handles) {
+          const pos = this.distort.getHandlePosition(handle);
+          if (pos) {
+            const dx = logicalX - pos.x;
+            const dy = logicalY - pos.y;
+            if (dx * dx + dy * dy <= handleSize * handleSize) {
+              this.capturePointer(ev);
+              this.distort.startHandleDrag(handle, logicalX, logicalY);
+              return;
+            }
+          }
+        }
+
+        return;
+      }
+
       const freeTransformState = this.freeTransform.transformState();
       if (freeTransformState) {
         const handleSize = Math.max(
@@ -1287,6 +1360,11 @@ export class EditorCanvas implements OnDestroy {
       return;
     }
 
+    if (this.distort.isDraggingHandle()) {
+      this.distort.endHandleDrag();
+      return;
+    }
+
     if (this.shaping) {
       this.finishShape(ev.shiftKey);
     }
@@ -1648,6 +1726,148 @@ export class EditorCanvas implements OnDestroy {
     this.freeTransformDuplicate = false;
     this.freeTransformPreviewIndices = null;
     this.freeTransformPreviewBackup = null;
+  }
+
+  private activateDistort(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Distort');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.distortOriginalBuffer = original;
+    this.distortOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.distortLayerId = layer.id;
+  }
+
+  private commitDistort(): void {
+    const state = this.distort.commitDistort();
+    if (!state) return;
+
+    if (
+      !this.distortOriginalBuffer ||
+      !this.distortOriginalRect ||
+      !this.distortLayerId
+    ) {
+      return;
+    }
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.distortOriginalBuffer,
+      this.distortOriginalRect.width,
+      this.distortOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = x;
+          const destY = y;
+          if (
+            destX >= 0 &&
+            destX < canvasW &&
+            destY >= 0 &&
+            destY < canvasH
+          ) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.distortOriginalBuffer = null;
+    this.distortOriginalRect = null;
+    this.distortLayerId = null;
+  }
+
+  private cancelDistort(): void {
+    if (
+      this.distortOriginalBuffer &&
+      this.distortOriginalRect &&
+      this.distortLayerId
+    ) {
+      const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+      if (layerBuffer) {
+        const canvasW = this.document.canvasWidth();
+        const canvasH = this.document.canvasHeight();
+        for (let y = 0; y < this.distortOriginalRect.height; y++) {
+          for (let x = 0; x < this.distortOriginalRect.width; x++) {
+            const srcIdx = y * this.distortOriginalRect.width + x;
+            const destX: number = this.distortOriginalRect.x + x;
+            const destY: number = this.distortOriginalRect.y + y;
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              layerBuffer[destIdx] = this.distortOriginalBuffer[srcIdx] || '';
+            }
+          }
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.distort.cancelDistort();
+    this.distortOriginalBuffer = null;
+    this.distortOriginalRect = null;
+    this.distortLayerId = null;
   }
 
   private applyTransformToSelection(
@@ -2827,6 +3047,69 @@ export class EditorCanvas implements OnDestroy {
       ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
       ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
       ctx.stroke();
+      ctx.restore();
+    }
+
+    const distortState = this.distort.distortState();
+    if (distortState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(59,130,246,0.9)' : 'rgba(37,99,235,0.9)';
+
+      const corners = distortState.corners;
+      ctx.beginPath();
+      ctx.moveTo(corners.topLeft.x, corners.topLeft.y);
+      ctx.lineTo(corners.topRight.x, corners.topRight.y);
+      ctx.lineTo(corners.bottomRight.x, corners.bottomRight.y);
+      ctx.lineTo(corners.bottomLeft.x, corners.bottomLeft.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.strokeStyle = isDark ? 'rgba(59,130,246,0.5)' : 'rgba(37,99,235,0.5)';
+      const gridSteps = 3;
+      for (let i = 1; i < gridSteps; i++) {
+        const t = i / gridSteps;
+        const topX = corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
+        const topY = corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
+        const bottomX = corners.bottomLeft.x + (corners.bottomRight.x - corners.bottomLeft.x) * t;
+        const bottomY = corners.bottomLeft.y + (corners.bottomRight.y - corners.bottomLeft.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(topX, topY);
+        ctx.lineTo(bottomX, bottomY);
+        ctx.stroke();
+
+        const leftX = corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
+        const leftY = corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
+        const rightX = corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
+        const rightY = corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(rightX, rightY);
+        ctx.stroke();
+      }
+
+      const handles: DistortHandle[] = [
+        'top-left',
+        'top-right',
+        'bottom-right',
+        'bottom-left',
+      ];
+      for (const h of handles) {
+        const pos = this.distort.getHandlePosition(h);
+        if (pos) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#3b82f6' : '#2563eb';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
       ctx.restore();
     }
   }
