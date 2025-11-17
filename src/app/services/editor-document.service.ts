@@ -1883,4 +1883,158 @@ export class EditorDocumentService {
     this.canvasState.setCanvasSaved(false);
     return true;
   }
+
+  distortSelectionOrLayer(
+    corners: {
+      topLeft: { x: number; y: number };
+      topRight: { x: number; y: number };
+      bottomRight: { x: number; y: number };
+      bottomLeft: { x: number; y: number };
+    },
+    sourceWidth: number,
+    sourceHeight: number,
+  ): boolean {
+    const sel = this.selectionService.selectionRect();
+
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Distort (selection)');
+
+      const srcCorners = [
+        { x: 0, y: 0 },
+        { x: sourceWidth, y: 0 },
+        { x: sourceWidth, y: sourceHeight },
+        { x: 0, y: sourceHeight },
+      ];
+
+      const dstCorners = [
+        corners.topLeft,
+        corners.topRight,
+        corners.bottomRight,
+        corners.bottomLeft,
+      ];
+
+      const result = this.transformService.applyDistort(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+        srcCorners,
+        dstCorners,
+      );
+
+      const newLayer = this.layerService.addLayer('Distorted Layer');
+
+      const canvasW = this.canvasWidth();
+      const canvasH = this.canvasHeight();
+
+      this.canvasState.ensureLayerBuffer(newLayer.id, canvasW, canvasH);
+
+      const centerX = selBuf.x + selBuf.width / 2;
+      const centerY = selBuf.y + selBuf.height / 2;
+
+      const newX = Math.max(
+        0,
+        Math.min(
+          canvasW - result.width,
+          Math.round(centerX - result.width / 2),
+        ),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(
+          canvasH - result.height,
+          Math.round(centerY - result.height / 2),
+        ),
+      );
+
+      const layerBuf = this.canvasState.getLayerBuffer(newLayer.id);
+      if (layerBuf) {
+        for (let y = 0; y < result.height; y++) {
+          for (let x = 0; x < result.width; x++) {
+            const srcIdx = y * result.width + x;
+            const color = result.buffer[srcIdx];
+            if (color) {
+              const destX = newX + x;
+              const destY = newY + y;
+              if (
+                destX >= 0 &&
+                destX < canvasW &&
+                destY >= 0 &&
+                destY < canvasH
+              ) {
+                const destIdx = destY * canvasW + destX;
+                layerBuf[destIdx] = color;
+              }
+            }
+          }
+        }
+      }
+
+      this.canvasState.setLayerBuffer(newLayer.id, layerBuf || []);
+      this.canvasState.incrementPixelsVersion();
+      this.canvasState.setCanvasSaved(false);
+      return true;
+    }
+
+    const targetId = this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Distort');
+
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: sourceWidth, y: 0 },
+      { x: sourceWidth, y: sourceHeight },
+      { x: 0, y: sourceHeight },
+    ];
+
+    const dstCorners = [
+      corners.topLeft,
+      corners.topRight,
+      corners.bottomRight,
+      corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      buffer,
+      width,
+      height,
+      srcCorners,
+      dstCorners,
+    );
+
+    const newLayer = this.layerService.addLayer('Distorted Layer');
+
+    if (result.width !== width || result.height !== height) {
+      this.canvasState.setCanvasSize(result.width, result.height);
+
+      for (const layer of this.layerService.getFlattenedLayers()) {
+        if (layer.id !== newLayer.id) {
+          this.canvasState.ensureLayerBuffer(
+            layer.id,
+            result.width,
+            result.height,
+          );
+        }
+      }
+    }
+
+    this.canvasState.ensureLayerBuffer(
+      newLayer.id,
+      result.width,
+      result.height,
+    );
+    this.canvasState.setLayerBuffer(newLayer.id, result.buffer);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
 }

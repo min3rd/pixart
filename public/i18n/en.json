@@ -569,6 +569,17 @@
     "apply": "Apply",
     "cancel": "Cancel"
   },
+  "distort": {
+    "title": "Distort",
+    "originalSize": "Original size",
+    "topLeft": "Top Left",
+    "topRight": "Top Right",
+    "bottomLeft": "Bottom Left",
+    "bottomRight": "Bottom Right",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "modal": {
     "close": "Close"
   }

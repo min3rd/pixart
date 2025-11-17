@@ -571,5 +571,16 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "distort": {
+    "title": "Bóp méo",
+    "originalSize": "Kích thước gốc",
+    "topLeft": "Góc trên trái",
+    "topRight": "Góc trên phải",
+    "bottomLeft": "Góc dưới trái",
+    "bottomRight": "Góc dưới phải",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }
