@@ -1,0 +1,129 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'skew.title' | transloco"
+  (onClose)="handleCancel()"
+  id="skew-dialog-modal"
+>
+  <div class="flex flex-col gap-4 p-4">
+    <div class="grid grid-cols-2 gap-4" id="skew-dialog-preview-section">
+      <div id="skew-dialog-original-preview">
+        <label class="block text-sm mb-2" id="skew-dialog-original-label">{{
+          "skew.original" | transloco
+        }}</label>
+        <canvas
+          id="skew-preview-original-canvas"
+          class="border border-neutral-300 dark:border-neutral-700"
+          style="image-rendering: pixelated; max-width: 100%; height: auto"
+        ></canvas>
+      </div>
+      <div id="skew-dialog-skewed-preview">
+        <label class="block text-sm mb-2" id="skew-dialog-skewed-label">{{
+          "skew.skewed" | transloco
+        }}</label>
+        <canvas
+          id="skew-preview-skewed-canvas"
+          class="border border-neutral-300 dark:border-neutral-700"
+          style="image-rendering: pixelated; max-width: 100%; height: auto"
+        ></canvas>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4" id="skew-dialog-info-section">
+      <div id="skew-dialog-original-size">
+        <label class="block text-sm mb-1" id="skew-dialog-original-size-label">{{
+          "skew.originalSize" | transloco
+        }}</label>
+        <div class="text-sm text-neutral-600 dark:text-neutral-400" id="skew-dialog-original-size-value">
+          {{ originalWidth() }} × {{ originalHeight() }}
+        </div>
+      </div>
+      <div id="skew-dialog-result-size">
+        <label class="block text-sm mb-1" id="skew-dialog-result-size-label">{{
+          "skew.resultSize" | transloco
+        }}</label>
+        <div class="text-sm text-neutral-600 dark:text-neutral-400" id="skew-dialog-result-size-value">
+          {{ previewDimensions() }}
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4" id="skew-dialog-controls">
+      <div id="skew-dialog-skew-x-control">
+        <label class="block text-sm mb-2" id="skew-dialog-skew-x-label"
+          >{{ "skew.skewX" | transloco }}: {{ normalizedSkewX() }}°</label
+        >
+        <input
+          type="range"
+          min="-85"
+          max="85"
+          step="1"
+          [value]="skewXInput()"
+          (input)="onSkewXSliderChange($event)"
+          class="w-full"
+          id="skew-dialog-skew-x-slider"
+        />
+        <input
+          type="number"
+          [value]="skewXInput()"
+          (input)="onSkewXInput($event)"
+          min="-85"
+          max="85"
+          step="1"
+          class="mt-2 w-full px-2 py-1 border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded"
+          id="skew-dialog-skew-x-input"
+        />
+      </div>
+
+      <div id="skew-dialog-skew-y-control">
+        <label class="block text-sm mb-2" id="skew-dialog-skew-y-label"
+          >{{ "skew.skewY" | transloco }}: {{ normalizedSkewY() }}°</label
+        >
+        <input
+          type="range"
+          min="-85"
+          max="85"
+          step="1"
+          [value]="skewYInput()"
+          (input)="onSkewYSliderChange($event)"
+          class="w-full"
+          id="skew-dialog-skew-y-slider"
+        />
+        <input
+          type="number"
+          [value]="skewYInput()"
+          (input)="onSkewYInput($event)"
+          min="-85"
+          max="85"
+          step="1"
+          class="mt-2 w-full px-2 py-1 border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded"
+          id="skew-dialog-skew-y-input"
+        />
+      </div>
+    </div>
+
+    <div class="flex gap-2 mt-4" id="skew-dialog-actions">
+      <button
+        (click)="resetSkew()"
+        class="px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+        id="skew-dialog-reset-button"
+      >
+        {{ "skew.reset" | transloco }}
+      </button>
+      <div class="flex-1"></div>
+      <button
+        (click)="handleCancel()"
+        class="px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700"
+        id="skew-dialog-cancel-button"
+      >
+        {{ "skew.cancel" | transloco }}
+      </button>
+      <button
+        (click)="handleConfirm()"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        id="skew-dialog-apply-button"
+      >
+        {{ "skew.apply" | transloco }}
+      </button>
+    </div>
+  </div>
+</pa-modal>

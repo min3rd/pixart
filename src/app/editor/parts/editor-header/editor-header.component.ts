@@ -29,6 +29,10 @@ import {
   RotateDialog,
   RotateResult,
 } from '../../../shared/components/rotate-dialog/rotate-dialog';
+import {
+  SkewDialog,
+  SkewResult,
+} from '../../../shared/components/skew-dialog/skew-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -43,6 +47,7 @@ import {
     TooltipDirective,
     ScaleDialog,
     RotateDialog,
+    SkewDialog,
   ],
   host: {
     class:
@@ -68,6 +73,7 @@ export class EditorHeader {
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
+  readonly skewDialog = viewChild(SkewDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -490,6 +496,18 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'transform.skew',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+k',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onSkew();
+        }
+      },
+    });
+
+    this.hotkeys.register({
       id: 'transform.contentAwareScale',
       category: 'edit',
       defaultKey: 'ctrl+shift+alt+c',
@@ -885,8 +903,55 @@ export class EditorHeader {
   handleRotateCancel() {}
 
   onSkew() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.skewDialog();
+    if (dialog) {
+      const layerId = this.document.selectedLayerId();
+      if (!layerId) {
+        this.showTransformMenu.set(false);
+        return;
+      }
+
+      const fullBuffer = this.document.getLayerBuffer(layerId);
+      if (!fullBuffer) {
+        this.showTransformMenu.set(false);
+        return;
+      }
+
+      const selBuffer: string[] = [];
+      for (let y = 0; y < sel.height; y++) {
+        for (let x = 0; x < sel.width; x++) {
+          const srcX = sel.x + x;
+          const srcY = sel.y + y;
+          if (
+            srcX >= 0 &&
+            srcX < this.document.canvasWidth() &&
+            srcY >= 0 &&
+            srcY < this.document.canvasHeight()
+          ) {
+            const srcIdx = srcY * this.document.canvasWidth() + srcX;
+            selBuffer.push(fullBuffer[srcIdx] || '');
+          } else {
+            selBuffer.push('');
+          }
+        }
+      }
+
+      dialog.open(sel.width, sel.height, selBuffer);
+    }
     this.showTransformMenu.set(false);
   }
+
+  handleSkewConfirm(result: SkewResult) {
+    this.document.skewSelectionOrLayer(result.skewX, result.skewY);
+  }
+
+  handleSkewCancel() {}
 
   onDistort() {
     this.showTransformMenu.set(false);

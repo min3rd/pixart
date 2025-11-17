@@ -1767,4 +1767,111 @@ export class EditorDocumentService {
     this.canvasState.setCanvasSaved(false);
     return true;
   }
+
+  skewSelectionOrLayer(skewXDegrees: number, skewYDegrees: number): boolean {
+    const sel = this.selectionService.selectionRect();
+
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Skew (selection)');
+
+      const result = this.transformService.applySkew(
+        selBuf.buffer,
+        selBuf.width,
+        selBuf.height,
+        skewXDegrees,
+        skewYDegrees,
+      );
+
+      const newLayer = this.layerService.addLayer('Skewed Layer');
+      
+      const canvasW = this.canvasWidth();
+      const canvasH = this.canvasHeight();
+      
+      this.canvasState.ensureLayerBuffer(newLayer.id, canvasW, canvasH);
+
+      const centerX = selBuf.x + selBuf.width / 2;
+      const centerY = selBuf.y + selBuf.height / 2;
+
+      const newX = Math.max(
+        0,
+        Math.min(
+          canvasW - result.width,
+          Math.round(centerX - result.width / 2),
+        ),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(
+          canvasH - result.height,
+          Math.round(centerY - result.height / 2),
+        ),
+      );
+
+      const layerBuf = this.canvasState.getLayerBuffer(newLayer.id);
+      if (layerBuf) {
+        for (let y = 0; y < result.height; y++) {
+          for (let x = 0; x < result.width; x++) {
+            const srcIdx = y * result.width + x;
+            const color = result.buffer[srcIdx];
+            if (color) {
+              const destX = newX + x;
+              const destY = newY + y;
+              if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+                const destIdx = destY * canvasW + destX;
+                layerBuf[destIdx] = color;
+              }
+            }
+          }
+        }
+      }
+
+      this.canvasState.setLayerBuffer(newLayer.id, layerBuf || []);
+      this.canvasState.incrementPixelsVersion();
+      this.canvasState.setCanvasSaved(false);
+      return true;
+    }
+
+    const targetId = this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Skew');
+
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+    const result = this.transformService.applySkew(
+      buffer,
+      width,
+      height,
+      skewXDegrees,
+      skewYDegrees,
+    );
+
+    const newLayer = this.layerService.addLayer('Skewed Layer');
+
+    if (result.width !== width || result.height !== height) {
+      this.canvasState.setCanvasSize(result.width, result.height);
+
+      for (const layer of this.layerService.getFlattenedLayers()) {
+        if (layer.id !== newLayer.id) {
+          this.canvasState.ensureLayerBuffer(
+            layer.id,
+            result.width,
+            result.height,
+          );
+        }
+      }
+    }
+
+    this.canvasState.ensureLayerBuffer(newLayer.id, result.width, result.height);
+    this.canvasState.setLayerBuffer(newLayer.id, result.buffer);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
 }

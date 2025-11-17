@@ -423,6 +423,43 @@ export class EditorTransformService {
     return { buffer: result, width: newWidth, height: newHeight };
   }
 
+  applySkew(
+    buffer: string[],
+    width: number,
+    height: number,
+    skewXDegrees: number,
+    skewYDegrees: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const tanX = Math.tan((skewXDegrees * Math.PI) / 180);
+    const tanY = Math.tan((skewYDegrees * Math.PI) / 180);
+
+    const newWidth = Math.ceil(width + Math.abs(tanX * height));
+    const newHeight = Math.ceil(height + Math.abs(tanY * width));
+
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const offsetX = tanX < 0 ? -tanX * height : 0;
+    const offsetY = tanY < 0 ? -tanY * width : 0;
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcX = (x - offsetX - tanX * y);
+        const srcY = (y - offsetY - tanY * x);
+
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const srcIdx = y0 * width + x0;
+          const destIdx = y * newWidth + x;
+          result[destIdx] = buffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
   applyScale(
     buffer: string[],
     width: number,

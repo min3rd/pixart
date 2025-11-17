@@ -409,6 +409,7 @@
             id="menu-transform-skew-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
             (click)="onSkew()"
+            aria-keyshortcuts="Ctrl+Shift+K"
           >
             <span id="menu-transform-skew-label">{{
               "menu.skew" | transloco
@@ -955,6 +956,11 @@
 <pa-rotate-dialog
   (onConfirm)="handleRotateConfirm($event)"
   (onCancel)="handleRotateCancel()"
+/>
+
+<pa-skew-dialog
+  (onConfirm)="handleSkewConfirm($event)"
+  (onCancel)="handleSkewCancel()"
 />
 
 <pa-hotkey-config-dialog />
