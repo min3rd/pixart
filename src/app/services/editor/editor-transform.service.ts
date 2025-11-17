@@ -387,12 +387,8 @@ export class EditorTransformService {
     const cos = Math.cos(radians);
     const sin = Math.sin(radians);
 
-    const newWidth = Math.ceil(
-      Math.abs(width * cos) + Math.abs(height * sin),
-    );
-    const newHeight = Math.ceil(
-      Math.abs(width * sin) + Math.abs(height * cos),
-    );
+    const newWidth = Math.ceil(Math.abs(width * cos) + Math.abs(height * sin));
+    const newHeight = Math.ceil(Math.abs(width * sin) + Math.abs(height * cos));
 
     const result = new Array<string>(newWidth * newHeight).fill('');
 
@@ -443,8 +439,8 @@ export class EditorTransformService {
 
     for (let y = 0; y < newHeight; y++) {
       for (let x = 0; x < newWidth; x++) {
-        const srcX = (x - offsetX - tanX * y);
-        const srcY = (y - offsetY - tanY * x);
+        const srcX = x - offsetX - tanX * y;
+        const srcY = y - offsetY - tanY * x;
 
         const x0 = Math.floor(srcX);
         const y0 = Math.floor(srcY);

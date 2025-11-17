@@ -176,12 +176,8 @@ export class RotateDialog {
     const cos = Math.cos(radians);
     const sin = Math.sin(radians);
 
-    const newWidth = Math.ceil(
-      Math.abs(width * cos) + Math.abs(height * sin),
-    );
-    const newHeight = Math.ceil(
-      Math.abs(width * sin) + Math.abs(height * cos),
-    );
+    const newWidth = Math.ceil(Math.abs(width * cos) + Math.abs(height * sin));
+    const newHeight = Math.ceil(Math.abs(width * sin) + Math.abs(height * cos));
 
     canvas.width = newWidth;
     canvas.height = newHeight;

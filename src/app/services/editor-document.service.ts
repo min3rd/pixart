@@ -1786,10 +1786,10 @@ export class EditorDocumentService {
       );
 
       const newLayer = this.layerService.addLayer('Skewed Layer');
-      
+
       const canvasW = this.canvasWidth();
       const canvasH = this.canvasHeight();
-      
+
       this.canvasState.ensureLayerBuffer(newLayer.id, canvasW, canvasH);
 
       const centerX = selBuf.x + selBuf.width / 2;
@@ -1819,7 +1819,12 @@ export class EditorDocumentService {
             if (color) {
               const destX = newX + x;
               const destY = newY + y;
-              if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+              if (
+                destX >= 0 &&
+                destX < canvasW &&
+                destY >= 0 &&
+                destY < canvasH
+              ) {
                 const destIdx = destY * canvasW + destX;
                 layerBuf[destIdx] = color;
               }
@@ -1868,7 +1873,11 @@ export class EditorDocumentService {
       }
     }
 
-    this.canvasState.ensureLayerBuffer(newLayer.id, result.width, result.height);
+    this.canvasState.ensureLayerBuffer(
+      newLayer.id,
+      result.width,
+      result.height,
+    );
     this.canvasState.setLayerBuffer(newLayer.id, result.buffer);
     this.canvasState.incrementPixelsVersion();
     this.canvasState.setCanvasSaved(false);
