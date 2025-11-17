@@ -446,6 +446,7 @@
       "edit.growCustom": "Grow Selection (Custom)",
       "edit.makeCopyLayer": "Make Copy Layer",
       "edit.mergeVisibleToNewLayer": "Merge Visible to New Layer",
+      "edit.moveSelectionPixels": "Move Selection Pixels",
       "edit.selectPixel": "Select Pixel",
       "edit.duplicateLayer": "Duplicate Layer",
       "edit.lockLayer": "Lock/Unlock Layer",

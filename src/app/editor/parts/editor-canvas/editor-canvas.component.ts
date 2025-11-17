@@ -124,7 +124,8 @@ export class EditorCanvas implements OnDestroy {
   private selectionMoving = false;
   private selectionMoveStart: { x: number; y: number } | null = null;
   private generationCheckInterval: number | null = null;
-  private vKeyPressed = false;
+  private moveSelectionHotkeyActive = false;
+  private moveSelectionHotkeyParts = new Set<string>();
   private selectionContentMoving = false;
   private selectionContentMoveStart: { x: number; y: number } | null = null;
   private movingContentBuffer: string[] | null = null;
@@ -288,6 +289,13 @@ export class EditorCanvas implements OnDestroy {
     });
 
     this.hotkeys.register({
+      id: 'edit.moveSelectionPixels',
+      category: 'edit',
+      defaultKey: 'shift+v',
+      handler: () => this.activateMoveSelectionHotkey(),
+    });
+
+    this.hotkeys.register({
       id: 'tool.freeTransform',
       category: 'tool',
       defaultKey: 'shift+t',
@@ -299,6 +307,44 @@ export class EditorCanvas implements OnDestroy {
         this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
       },
     });
+  }
+
+  private activateMoveSelectionHotkey() {
+    const binding = this.hotkeys.getBinding('edit.moveSelectionPixels');
+    if (!binding) return;
+    this.moveSelectionHotkeyActive = true;
+    this.moveSelectionHotkeyParts.clear();
+    for (const part of binding.split('+')) {
+      if (part) {
+        this.moveSelectionHotkeyParts.add(part);
+      }
+    }
+  }
+
+  private deactivateMoveSelectionHotkey() {
+    this.moveSelectionHotkeyActive = false;
+    this.moveSelectionHotkeyParts.clear();
+  }
+
+  private handleMoveSelectionHotkeyRelease(event: KeyboardEvent) {
+    if (!this.moveSelectionHotkeyActive) {
+      return;
+    }
+    const part = this.normalizeMoveSelectionKey(event.key);
+    if (part && this.moveSelectionHotkeyParts.has(part)) {
+      this.deactivateMoveSelectionHotkey();
+    }
+  }
+
+  private normalizeMoveSelectionKey(key: string): string | null {
+    const lower = key.toLowerCase();
+    if (lower === 'control' || lower === 'meta') {
+      return 'ctrl';
+    }
+    if (lower === 'shift' || lower === 'alt') {
+      return lower;
+    }
+    return lower;
   }
 
   private readonly layoutEffect = effect(
@@ -401,10 +447,6 @@ export class EditorCanvas implements OnDestroy {
           }
         }
         const key = ev.key?.toLowerCase?.() ?? ev.key;
-        if (key === 'v' && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
-          this.vKeyPressed = true;
-          return;
-        }
         if (ev.ctrlKey && ev.shiftKey && key === 'd') {
           ev.preventDefault();
           this.document.clearSelection();
@@ -452,10 +494,7 @@ export class EditorCanvas implements OnDestroy {
       };
       window.addEventListener('keydown', this.keyListener as EventListener);
       window.addEventListener('keyup', (ev: KeyboardEvent) => {
-        const key = ev.key?.toLowerCase?.() ?? ev.key;
-        if (key === 'v') {
-          this.vKeyPressed = false;
-        }
+        this.handleMoveSelectionHotkeyRelease(ev);
         if (ev.key === 'Shift') {
           this.shiftPressed = false;
           this.freeTransform.setSnapRotation(false);
@@ -819,13 +858,7 @@ export class EditorCanvas implements OnDestroy {
         tool === 'rect-select' ||
         tool === 'ellipse-select' ||
         tool === 'lasso-select';
-      if (
-        clickedInSelection &&
-        insideCanvas &&
-        !ev.shiftKey &&
-        !ev.ctrlKey &&
-        this.vKeyPressed
-      ) {
+      if (clickedInSelection && insideCanvas && this.moveSelectionHotkeyActive) {
         const selectedLayer = this.document.selectedLayer();
         if (selectedLayer?.locked) {
           return;

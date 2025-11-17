@@ -19,6 +19,7 @@ Pixart supports customizable keyboard shortcuts to help you work faster. You can
 |--------|-----------------|
 | Undo | `Ctrl + Z` |
 | Redo | `Ctrl + Y` |
+| Move Selection Pixels | `Shift + V` |
 
 ### Tool Selection
 

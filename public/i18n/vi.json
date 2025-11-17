@@ -449,6 +449,7 @@
       "edit.growCustom": "Mở rộng vùng chọn (Tùy chỉnh)",
       "edit.makeCopyLayer": "Tạo layer sao chép",
       "edit.mergeVisibleToNewLayer": "Gộp layer hiển thị",
+      "edit.moveSelectionPixels": "Di chuyển pixel trong vùng chọn",
       "edit.selectPixel": "Chọn pixel",
       "edit.duplicateLayer": "Nhân bản layer",
       "edit.lockLayer": "Khóa/Mở khóa layer",
