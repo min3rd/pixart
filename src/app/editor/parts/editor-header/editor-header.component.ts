@@ -33,6 +33,10 @@ import {
   SkewDialog,
   SkewResult,
 } from '../../../shared/components/skew-dialog/skew-dialog';
+import {
+  DistortDialog,
+  DistortResult,
+} from '../../../shared/components/distort-dialog/distort-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -48,6 +52,7 @@ import {
     ScaleDialog,
     RotateDialog,
     SkewDialog,
+    DistortDialog,
   ],
   host: {
     class:
@@ -74,6 +79,7 @@ export class EditorHeader {
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
+  readonly distortDialog = viewChild(DistortDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -503,6 +509,18 @@ export class EditorHeader {
         const sel = this.document.selectionRect();
         if (sel) {
           this.onSkew();
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'transform.distort',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+d',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onDistort();
         }
       },
     });
@@ -954,8 +972,24 @@ export class EditorHeader {
   handleSkewCancel() {}
 
   onDistort() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.distortDialog();
+    if (dialog) {
+      dialog.open(sel.width, sel.height);
+    }
     this.showTransformMenu.set(false);
   }
+
+  handleDistortConfirm(result: DistortResult) {
+    this.document.distortSelectionOrLayer(result.corners, result.sourceWidth, result.sourceHeight);
+  }
+
+  handleDistortCancel() {}
 
   onPerspective() {
     this.showTransformMenu.set(false);

@@ -588,4 +588,215 @@ export class EditorTransformService {
     const aa = Math.max(0, Math.min(255, a)).toString(16).padStart(2, '0');
     return `#${rr}${gg}${bb}${aa}`;
   }
+
+  applyDistort(
+    buffer: string[],
+    width: number,
+    height: number,
+    srcCorners: { x: number; y: number }[],
+    dstCorners: { x: number; y: number }[],
+  ): { buffer: string[]; width: number; height: number } {
+    const matrix = this.computeHomographyMatrix(srcCorners, dstCorners);
+    if (!matrix) {
+      return { buffer, width, height };
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const corner of dstCorners) {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    }
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const inverseMatrix = this.invertHomographyMatrix(matrix);
+    if (!inverseMatrix) {
+      return { buffer, width, height };
+    }
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.applyHomographyTransform(
+          worldX,
+          worldY,
+          inverseMatrix,
+        );
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  private computeHomographyMatrix(
+    src: { x: number; y: number }[],
+    dst: { x: number; y: number }[],
+  ): number[] | null {
+    if (src.length !== 4 || dst.length !== 4) return null;
+
+    const A: number[][] = [];
+    for (let i = 0; i < 4; i++) {
+      const sx = src[i].x;
+      const sy = src[i].y;
+      const dx = dst[i].x;
+      const dy = dst[i].y;
+
+      A.push([sx, sy, 1, 0, 0, 0, -dx * sx, -dx * sy]);
+      A.push([0, 0, 0, sx, sy, 1, -dy * sx, -dy * sy]);
+    }
+
+    const b = [
+      dst[0].x,
+      dst[0].y,
+      dst[1].x,
+      dst[1].y,
+      dst[2].x,
+      dst[2].y,
+      dst[3].x,
+      dst[3].y,
+    ];
+
+    const h = this.solveLinearSystem(A, b);
+    if (!h) return null;
+
+    return [...h, 1];
+  }
+
+  private solveLinearSystem(A: number[][], b: number[]): number[] | null {
+    const n = A.length;
+    const augmented: number[][] = A.map((row, i) => [...row, b[i]]);
+
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) {
+        if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+          maxRow = k;
+        }
+      }
+
+      [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+
+      if (Math.abs(augmented[i][i]) < 1e-10) {
+        return null;
+      }
+
+      for (let k = i + 1; k < n; k++) {
+        const factor = augmented[k][i] / augmented[i][i];
+        for (let j = i; j < n + 1; j++) {
+          augmented[k][j] -= factor * augmented[i][j];
+        }
+      }
+    }
+
+    const x: number[] = new Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      x[i] = augmented[i][n];
+      for (let j = i + 1; j < n; j++) {
+        x[i] -= augmented[i][j] * x[j];
+      }
+      x[i] /= augmented[i][i];
+    }
+
+    return x;
+  }
+
+  private applyHomographyTransform(
+    x: number,
+    y: number,
+    matrix: number[],
+  ): { x: number; y: number } {
+    const w = matrix[6] * x + matrix[7] * y + matrix[8];
+    if (Math.abs(w) < 1e-10) {
+      return { x, y };
+    }
+
+    const newX = (matrix[0] * x + matrix[1] * y + matrix[2]) / w;
+    const newY = (matrix[3] * x + matrix[4] * y + matrix[5]) / w;
+
+    return { x: newX, y: newY };
+  }
+
+  private invertHomographyMatrix(matrix: number[]): number[] | null {
+    const [h11, h12, h13, h21, h22, h23, h31, h32, h33] = matrix;
+
+    const det =
+      h11 * (h22 * h33 - h23 * h32) -
+      h12 * (h21 * h33 - h23 * h31) +
+      h13 * (h21 * h32 - h22 * h31);
+
+    if (Math.abs(det) < 1e-10) return null;
+
+    const invDet = 1 / det;
+
+    return [
+      (h22 * h33 - h23 * h32) * invDet,
+      (h13 * h32 - h12 * h33) * invDet,
+      (h12 * h23 - h13 * h22) * invDet,
+      (h23 * h31 - h21 * h33) * invDet,
+      (h11 * h33 - h13 * h31) * invDet,
+      (h13 * h21 - h11 * h23) * invDet,
+      (h21 * h32 - h22 * h31) * invDet,
+      (h12 * h31 - h11 * h32) * invDet,
+      (h11 * h22 - h12 * h21) * invDet,
+    ];
+  }
 }
