@@ -245,7 +245,14 @@ export class SkewDialog {
     tempCtx.putImageData(imageData, 0, 0);
 
     ctx.save();
-    ctx.transform(1, tanY, tanX, 1, tanX < 0 ? -tanX * height : 0, tanY < 0 ? -tanY * width : 0);
+    ctx.transform(
+      1,
+      tanY,
+      tanX,
+      1,
+      tanX < 0 ? -tanX * height : 0,
+      tanY < 0 ? -tanY * width : 0,
+    );
     ctx.drawImage(tempCanvas, 0, 0);
     ctx.restore();
   }

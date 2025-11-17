@@ -7,9 +7,9 @@
   <div class="flex flex-col gap-4 p-4">
     <div class="grid grid-cols-2 gap-4" id="skew-dialog-preview-section">
       <div id="skew-dialog-original-preview">
-        <label class="block text-sm mb-2" id="skew-dialog-original-label">{{
-          "skew.original" | transloco
-        }}</label>
+        <label class="block text-sm mb-2" id="skew-dialog-original-label"
+          >{{ "skew.original" | transloco }}</label
+        >
         <canvas
           id="skew-preview-original-canvas"
           class="border border-neutral-300 dark:border-neutral-700"
@@ -17,9 +17,9 @@
         ></canvas>
       </div>
       <div id="skew-dialog-skewed-preview">
-        <label class="block text-sm mb-2" id="skew-dialog-skewed-label">{{
-          "skew.skewed" | transloco
-        }}</label>
+        <label class="block text-sm mb-2" id="skew-dialog-skewed-label"
+          >{{ "skew.skewed" | transloco }}</label
+        >
         <canvas
           id="skew-preview-skewed-canvas"
           class="border border-neutral-300 dark:border-neutral-700"
@@ -30,18 +30,24 @@
 
     <div class="grid grid-cols-2 gap-4" id="skew-dialog-info-section">
       <div id="skew-dialog-original-size">
-        <label class="block text-sm mb-1" id="skew-dialog-original-size-label">{{
-          "skew.originalSize" | transloco
-        }}</label>
-        <div class="text-sm text-neutral-600 dark:text-neutral-400" id="skew-dialog-original-size-value">
+        <label class="block text-sm mb-1" id="skew-dialog-original-size-label"
+          >{{ "skew.originalSize" | transloco }}</label
+        >
+        <div
+          class="text-sm text-neutral-600 dark:text-neutral-400"
+          id="skew-dialog-original-size-value"
+        >
           {{ originalWidth() }} × {{ originalHeight() }}
         </div>
       </div>
       <div id="skew-dialog-result-size">
-        <label class="block text-sm mb-1" id="skew-dialog-result-size-label">{{
-          "skew.resultSize" | transloco
-        }}</label>
-        <div class="text-sm text-neutral-600 dark:text-neutral-400" id="skew-dialog-result-size-value">
+        <label class="block text-sm mb-1" id="skew-dialog-result-size-label"
+          >{{ "skew.resultSize" | transloco }}</label
+        >
+        <div
+          class="text-sm text-neutral-600 dark:text-neutral-400"
+          id="skew-dialog-result-size-value"
+        >
           {{ previewDimensions() }}
         </div>
       </div>
