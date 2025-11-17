@@ -556,6 +556,18 @@
     "apply": "Apply",
     "cancel": "Cancel"
   },
+  "skew": {
+    "title": "Skew",
+    "originalSize": "Original size",
+    "resultSize": "Result size",
+    "skewX": "Horizontal skew",
+    "skewY": "Vertical skew",
+    "original": "Original",
+    "skewed": "Skewed",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "modal": {
     "close": "Close"
   }

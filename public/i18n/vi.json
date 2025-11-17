@@ -558,5 +558,17 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "skew": {
+    "title": "Méo nghiêng",
+    "originalSize": "Kích thước gốc",
+    "resultSize": "Kích thước kết quả",
+    "skewX": "Nghiêng ngang",
+    "skewY": "Nghiêng dọc",
+    "original": "Bản gốc",
+    "skewed": "Đã méo",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }
