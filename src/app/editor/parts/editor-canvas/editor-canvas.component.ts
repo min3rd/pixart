@@ -1822,6 +1822,17 @@ export class EditorCanvas implements OnDestroy {
       originalLayerBuffer[i] = this.distortFullLayerBackup[i];
     }
 
+    for (let y = 0; y < this.distortOriginalRect.height; y++) {
+      for (let x = 0; x < this.distortOriginalRect.width; x++) {
+        const destX: number = this.distortOriginalRect.x + x;
+        const destY: number = this.distortOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          originalLayerBuffer[destIdx] = '';
+        }
+      }
+    }
+
     const originalSelectionLayer = this.document.addLayer('Original Selection');
     const origSelLayerBuf = this.document.getLayerBuffer(originalSelectionLayer.id);
     
