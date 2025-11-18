@@ -35,10 +35,6 @@ import {
   SkewDialog,
   SkewResult,
 } from '../../../shared/components/skew-dialog/skew-dialog';
-import {
-  PerspectiveDialog,
-  PerspectiveResult,
-} from '../../../shared/components/perspective-dialog/perspective-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -54,7 +50,6 @@ import {
     ScaleDialog,
     RotateDialog,
     SkewDialog,
-    PerspectiveDialog,
   ],
   host: {
     class:
@@ -83,7 +78,6 @@ export class EditorHeader {
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
-  readonly perspectiveDialog = viewChild(PerspectiveDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -1005,15 +999,8 @@ export class EditorHeader {
       return;
     }
 
-    const dialog = this.perspectiveDialog();
-    if (dialog) {
-      dialog.open(sel.x, sel.y, sel.width, sel.height);
-    }
+    this.perspective.startPerspective(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
-  }
-
-  handlePerspectiveApply(result: PerspectiveResult) {
-    this.document.applyPerspectiveTransform(result.corners);
   }
 
   onWarp() {
