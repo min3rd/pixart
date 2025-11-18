@@ -27,7 +27,7 @@
           <button
             type="button"
             id="layers-list-item-expand-{{ entry.item.id }}"
-            class="w-4 h-4 flex items-center justify-center mr-1"
+            class="w-4 h-4 flex-shrink-0 flex items-center justify-center mr-1"
             (click)="onToggleExpand(entry.item.id, $event)"
           >
             <ng-icon
@@ -41,11 +41,11 @@
             ></ng-icon>
           </button>
         } @else {
-          <div class="w-4 h-4 mr-1"></div>
+          <div class="w-4 h-4 flex-shrink-0 mr-1"></div>
         }
         <div
           id="layers-list-item-handle-{{ entry.item.id }}"
-          class="w-4 h-6 flex items-center justify-center cursor-grab mr-2"
+          class="w-4 h-6 flex-shrink-0 flex items-center justify-center cursor-grab mr-2"
         >
           <ng-icon
             id="layers-list-item-handle-icon-{{ entry.item.id }}"
@@ -56,7 +56,7 @@
         <button
           type="button"
           id="layers-list-item-visibility-{{ entry.item.id }}"
-          class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center"
+          class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center"
           (click)="document.toggleLayerVisibility(entry.item.id)"
           [title]="
             entry.item.visible
@@ -73,7 +73,7 @@
         <button
           type="button"
           id="layers-list-item-lock-{{ entry.item.id }}"
-          class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center ml-1"
+          class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center ml-1"
           (click)="document.toggleLayerLock(entry.item.id)"
           [title]="
             entry.item.locked
@@ -93,7 +93,7 @@
           <input
             type="text"
             id="layers-list-item-rename-{{ entry.item.id }}"
-            class="flex-1 ml-2 px-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-sm"
+            class="flex-1 min-w-0 ml-2 px-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-sm"
             [(ngModel)]="editingLayerName"
             (blur)="onRenameBlur()"
             (keydown)="onRenameKeydown($event)"
@@ -103,13 +103,13 @@
           <button
             type="button"
             id="layers-list-item-select-{{ entry.item.id }}"
-            class="flex-1 text-left ml-2"
+            class="flex-1 min-w-0 text-left ml-2 overflow-hidden"
             (click)="select(entry.item.id, $event)"
             (dblclick)="onDoubleClick(entry.item)"
           >
             <span
               id="layers-list-item-name-{{ entry.item.id }}"
-              class="truncate opacity-90"
+              class="block truncate opacity-90"
               >{{ entry.item.name }}</span
             >
           </button>
@@ -118,7 +118,7 @@
           <button
             type="button"
             id="layers-list-item-ungroup-{{ entry.item.id }}"
-            class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
+            class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
             (click)="document.ungroupLayers(entry.item.id)"
             [title]="'editor.layers.ungroup' | transloco"
             [disabled]="entry.item.locked"
@@ -133,7 +133,7 @@
           <button
             type="button"
             id="layers-list-item-delete-{{ entry.item.id }}"
-            class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
+            class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
             (click)="document.removeLayer(entry.item.id)"
             [title]="'editor.layers.delete' | transloco"
             [disabled]="entry.item.locked"
