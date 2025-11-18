@@ -582,5 +582,18 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "perspective": {
+    "title": "Phối cảnh",
+    "originalSize": "Kích thước gốc",
+    "topLeft": "Góc trên trái",
+    "topRight": "Góc trên phải",
+    "bottomLeft": "Góc dưới trái",
+    "bottomRight": "Góc dưới phải",
+    "preserveAspectRatio": "Giữ tỷ lệ khung hình",
+    "keepParallelEdges": "Giữ các cạnh song song",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }
