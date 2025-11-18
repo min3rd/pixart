@@ -593,6 +593,31 @@
     "apply": "Apply",
     "cancel": "Cancel"
   },
+  "warp": {
+    "title": "Warp",
+    "originalSize": "Original size",
+    "gridSize": "Grid size",
+    "smoothing": "Smoothing",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "puppetWarp": {
+    "title": "Puppet Warp",
+    "originalSize": "Original size",
+    "addPin": "Add Pin",
+    "removePin": "Remove Pin",
+    "lockPin": "Lock Pin",
+    "unlockPin": "Unlock Pin",
+    "pinRadius": "Pin Radius",
+    "defaultRadius": "Default Radius",
+    "selectedPin": "Selected Pin",
+    "noPinSelected": "No pin selected",
+    "pinCount": "Pins",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "modal": {
     "close": "Close"
   }
