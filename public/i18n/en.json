@@ -580,6 +580,19 @@
     "apply": "Apply",
     "cancel": "Cancel"
   },
+  "perspective": {
+    "title": "Perspective",
+    "originalSize": "Original size",
+    "topLeft": "Top Left",
+    "topRight": "Top Right",
+    "bottomLeft": "Bottom Left",
+    "bottomRight": "Bottom Right",
+    "preserveAspectRatio": "Preserve aspect ratio",
+    "keepParallelEdges": "Keep parallel edges",
+    "reset": "Reset",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "modal": {
     "close": "Close"
   }

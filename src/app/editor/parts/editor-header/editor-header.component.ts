@@ -22,6 +22,7 @@ import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { EditorTransformService } from '../../../services/editor/editor-transform.service';
 import { EditorFreeTransformService } from '../../../services/editor/editor-free-transform.service';
 import { EditorDistortService } from '../../../services/editor/editor-distort.service';
+import { EditorPerspectiveService } from '../../../services/editor/editor-perspective.service';
 import {
   ScaleDialog,
   ScaleResult,
@@ -34,6 +35,10 @@ import {
   SkewDialog,
   SkewResult,
 } from '../../../shared/components/skew-dialog/skew-dialog';
+import {
+  PerspectiveDialog,
+  PerspectiveResult,
+} from '../../../shared/components/perspective-dialog/perspective-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -49,6 +54,7 @@ import {
     ScaleDialog,
     RotateDialog,
     SkewDialog,
+    PerspectiveDialog,
   ],
   host: {
     class:
@@ -65,6 +71,7 @@ export class EditorHeader {
   readonly transform = inject(EditorTransformService);
   readonly freeTransform = inject(EditorFreeTransformService);
   readonly distort = inject(EditorDistortService);
+  readonly perspective = inject(EditorPerspectiveService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -76,6 +83,7 @@ export class EditorHeader {
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
+  readonly perspectiveDialog = viewChild(PerspectiveDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -517,6 +525,18 @@ export class EditorHeader {
         const sel = this.document.selectionRect();
         if (sel) {
           this.onDistort();
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'transform.perspective',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+p',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onPerspective();
         }
       },
     });
@@ -979,7 +999,21 @@ export class EditorHeader {
   }
 
   onPerspective() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.perspectiveDialog();
+    if (dialog) {
+      dialog.open(sel.x, sel.y, sel.width, sel.height);
+    }
     this.showTransformMenu.set(false);
+  }
+
+  handlePerspectiveApply(result: PerspectiveResult) {
+    this.document.applyPerspectiveTransform(result.corners);
   }
 
   onWarp() {
