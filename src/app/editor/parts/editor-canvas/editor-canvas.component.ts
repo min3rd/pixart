@@ -1806,10 +1806,40 @@ export class EditorCanvas implements OnDestroy {
     if (
       !this.distortOriginalBuffer ||
       !this.distortOriginalRect ||
-      !this.distortLayerId
+      !this.distortLayerId ||
+      !this.distortFullLayerBackup
     ) {
       return;
     }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.distortFullLayerBackup[i];
+    }
+
+    const originalSelectionLayer = this.document.addLayer('Original Selection');
+    const origSelLayerBuf = this.document.getLayerBuffer(originalSelectionLayer.id);
+    
+    if (origSelLayerBuf) {
+      for (let y = 0; y < this.distortOriginalRect.height; y++) {
+        for (let x = 0; x < this.distortOriginalRect.width; x++) {
+          const srcIdx = y * this.distortOriginalRect.width + x;
+          const destX: number = this.distortOriginalRect.x + x;
+          const destY: number = this.distortOriginalRect.y + y;
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            origSelLayerBuf[destIdx] = this.distortOriginalBuffer[srcIdx] || '';
+          }
+        }
+      }
+    }
+
+    this.document.toggleLayerVisibility(originalSelectionLayer.id);
 
     const srcCorners = [
       { x: 0, y: 0 },
@@ -1833,31 +1863,32 @@ export class EditorCanvas implements OnDestroy {
       dstCorners,
     );
 
-    const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
-    if (!layerBuffer) return;
+    const distortedLayer = this.document.addLayer('Distorted Layer');
+    const distortedLayerBuf = this.document.getLayerBuffer(distortedLayer.id);
 
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    for (let y = 0; y < result.height; y++) {
-      for (let x = 0; x < result.width; x++) {
-        const srcIdx = y * result.width + x;
-        const color = result.buffer[srcIdx];
-        if (color) {
-          const destX = Math.floor(result.minX + x);
-          const destY = Math.floor(result.minY + y);
-          if (
-            destX >= 0 &&
-            destX < canvasW &&
-            destY >= 0 &&
-            destY < canvasH
-          ) {
-            const destIdx = destY * canvasW + destX;
-            layerBuffer[destIdx] = color;
+    if (distortedLayerBuf) {
+      for (let y = 0; y < result.height; y++) {
+        for (let x = 0; x < result.width; x++) {
+          const srcIdx = y * result.width + x;
+          const color = result.buffer[srcIdx];
+          if (color) {
+            const destX = Math.floor(result.minX + x);
+            const destY = Math.floor(result.minY + y);
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              distortedLayerBuf[destIdx] = color;
+            }
           }
         }
       }
     }
+
+    this.document.selectLayer(distortedLayer.id);
 
     this.document.layerPixelsVersion.update((v) => v + 1);
     this.document.setCanvasSaved(false);
