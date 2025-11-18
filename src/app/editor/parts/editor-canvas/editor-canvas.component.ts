@@ -1844,8 +1844,8 @@ export class EditorCanvas implements OnDestroy {
         const srcIdx = y * result.width + x;
         const color = result.buffer[srcIdx];
         if (color) {
-          const destX = x;
-          const destY = y;
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
           if (
             destX >= 0 &&
             destX < canvasW &&
@@ -1937,8 +1937,8 @@ export class EditorCanvas implements OnDestroy {
         const srcIdx = y * result.width + x;
         const color = result.buffer[srcIdx];
         if (color) {
-          const destX = x;
-          const destY = y;
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
           if (
             destX >= 0 &&
             destX < canvasW &&
