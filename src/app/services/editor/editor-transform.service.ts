@@ -595,10 +595,10 @@ export class EditorTransformService {
     height: number,
     srcCorners: { x: number; y: number }[],
     dstCorners: { x: number; y: number }[],
-  ): { buffer: string[]; width: number; height: number } {
+  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
     const matrix = this.computeHomographyMatrix(srcCorners, dstCorners);
     if (!matrix) {
-      return { buffer, width, height };
+      return { buffer, width, height, minX: 0, minY: 0 };
     }
 
     let minX = Infinity;
@@ -619,7 +619,7 @@ export class EditorTransformService {
 
     const inverseMatrix = this.invertHomographyMatrix(matrix);
     if (!inverseMatrix) {
-      return { buffer, width, height };
+      return { buffer, width, height, minX: 0, minY: 0 };
     }
 
     for (let y = 0; y < newHeight; y++) {
@@ -684,7 +684,7 @@ export class EditorTransformService {
       }
     }
 
-    return { buffer: result, width: newWidth, height: newHeight };
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
   }
 
   private computeHomographyMatrix(
