@@ -613,6 +613,7 @@ export class EditorCanvas implements OnDestroy {
 
     if (this.distort.isDraggingHandle()) {
       this.distort.updateHandleDrag(logicalX, logicalY);
+      this.renderLiveDistortPreview();
       return;
     }
 
@@ -815,6 +816,32 @@ export class EditorCanvas implements OnDestroy {
           3,
           Math.round(5 / Math.max(0.001, this.scale())),
         );
+
+        const buttonPositions = this.computeDistortButtonPositions(
+          distortState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitDistort();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelDistort();
+          return;
+        }
 
         const handles: DistortHandle[] = [
           'top-left',
@@ -1765,6 +1792,7 @@ export class EditorCanvas implements OnDestroy {
       height: sel.height,
     };
     this.distortLayerId = layer.id;
+    this.renderLiveDistortPreview();
   }
 
   private commitDistort(): void {
@@ -1868,6 +1896,72 @@ export class EditorCanvas implements OnDestroy {
     this.distortOriginalBuffer = null;
     this.distortOriginalRect = null;
     this.distortLayerId = null;
+  }
+
+  private renderLiveDistortPreview(): void {
+    const state = this.distort.distortState();
+    if (
+      !state ||
+      !this.distortOriginalBuffer ||
+      !this.distortOriginalRect ||
+      !this.distortLayerId
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = '';
+    }
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.distortOriginalBuffer,
+      this.distortOriginalRect.width,
+      this.distortOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = x;
+          const destY = y;
+          if (
+            destX >= 0 &&
+            destX < canvasW &&
+            destY >= 0 &&
+            destY < canvasH
+          ) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
   }
 
   private applyTransformToSelection(
@@ -2742,11 +2836,12 @@ export class EditorCanvas implements OnDestroy {
       }
     }
 
-    // Draw active selection if present (but hide when Free Transform is active)
+    // Draw active selection if present (but hide when Free Transform or Distort is active)
     const sel = this.document.selectionRect();
     const selShape = this.document.selectionShape();
     const isFreeTransformActive = this.freeTransform.isActive();
-    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive) {
+    const isDistortActive = this.distort.isActive();
+    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive) {
       ctx.save();
 
       // Check if we have a mask-based selection
@@ -3110,6 +3205,31 @@ export class EditorCanvas implements OnDestroy {
         }
       }
 
+      const buttonPositions = this.computeDistortButtonPositions(
+        distortState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
       ctx.restore();
     }
   }
@@ -3237,6 +3357,87 @@ export class EditorCanvas implements OnDestroy {
       mirrorXY,
       mirrorYX,
       mirrorYY,
+    };
+  }
+
+  private computeDistortButtonPositions(
+    distortState: { corners: any; sourceX: number; sourceY: number; sourceWidth: number; sourceHeight: number },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const corners = distortState.corners;
+    const minX = Math.min(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const maxX = Math.max(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const minY = Math.min(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+    const maxY = Math.max(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+    const spaceRight = canvasW - maxX;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
     };
   }
 
