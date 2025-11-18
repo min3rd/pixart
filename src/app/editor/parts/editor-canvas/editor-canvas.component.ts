@@ -45,6 +45,8 @@ import {
   EditorPerspectiveService,
   PerspectiveHandle,
 } from '../../../services/editor/editor-perspective.service';
+import { EditorWarpService } from '../../../services/editor/editor-warp.service';
+import { EditorPuppetWarpService } from '../../../services/editor/editor-puppet-warp.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -107,6 +109,8 @@ export class EditorCanvas implements OnDestroy {
   readonly freeTransform = inject(EditorFreeTransformService);
   readonly distort = inject(EditorDistortService);
   readonly perspective = inject(EditorPerspectiveService);
+  readonly warp = inject(EditorWarpService);
+  readonly puppetWarp = inject(EditorPuppetWarpService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -661,6 +665,16 @@ export class EditorCanvas implements OnDestroy {
       return;
     }
 
+    if (this.warp.isDraggingNode()) {
+      this.warp.updateNodeDrag(logicalX, logicalY);
+      return;
+    }
+
+    if (this.puppetWarp.isDraggingPin()) {
+      this.puppetWarp.updatePinDrag(logicalX, logicalY);
+      return;
+    }
+
     if (this.selectionMoving && this.selectionMoveStart) {
       if (logicalX < 0 || logicalX >= w || logicalY < 0 || logicalY >= h) {
         return;
@@ -961,6 +975,101 @@ export class EditorCanvas implements OnDestroy {
               return;
             }
           }
+        }
+
+        return;
+      }
+
+      const warpState = this.warp.warpState();
+      if (warpState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computeWarpButtonPositions(
+          warpState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitWarp();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelWarp();
+          return;
+        }
+
+        for (const node of warpState.nodes) {
+          const dx = logicalX - node.x;
+          const dy = logicalY - node.y;
+          if (dx * dx + dy * dy <= handleSize * handleSize) {
+            this.capturePointer(ev);
+            this.warp.startNodeDrag(node, logicalX, logicalY);
+            return;
+          }
+        }
+
+        return;
+      }
+
+      const puppetWarpState = this.puppetWarp.puppetWarpState();
+      if (puppetWarpState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computePuppetWarpButtonPositions(
+          puppetWarpState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitPuppetWarp();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelPuppetWarp();
+          return;
+        }
+
+        const clickedPin = this.puppetWarp.findPinAtPosition(logicalX, logicalY, handleSize);
+        if (clickedPin) {
+          this.capturePointer(ev);
+          this.puppetWarp.startPinDrag(clickedPin, logicalX, logicalY);
+          this.puppetWarp.selectedPin.set(clickedPin);
+          return;
+        }
+
+        if (insideCanvas) {
+          this.puppetWarp.addPin(logicalX, logicalY);
+          return;
         }
 
         return;
@@ -1494,6 +1603,16 @@ export class EditorCanvas implements OnDestroy {
 
     if (this.perspective.isDraggingHandle()) {
       this.perspective.endHandleDrag();
+      return;
+    }
+
+    if (this.warp.isDraggingNode()) {
+      this.warp.endNodeDrag();
+      return;
+    }
+
+    if (this.puppetWarp.isDraggingPin()) {
+      this.puppetWarp.endPinDrag();
       return;
     }
 
@@ -2277,6 +2396,22 @@ export class EditorCanvas implements OnDestroy {
     this.perspectiveOriginalRect = null;
     this.perspectiveLayerId = null;
     this.perspectiveFullLayerBackup = null;
+  }
+
+  private commitWarp(): void {
+    this.warp.commitWarp();
+  }
+
+  private cancelWarp(): void {
+    this.warp.cancelWarp();
+  }
+
+  private commitPuppetWarp(): void {
+    this.puppetWarp.commitPuppetWarp();
+  }
+
+  private cancelPuppetWarp(): void {
+    this.puppetWarp.cancelPuppetWarp();
   }
 
   private renderLivePerspectivePreview(): void {
@@ -3228,13 +3363,15 @@ export class EditorCanvas implements OnDestroy {
       }
     }
 
-    // Draw active selection if present (but hide when Free Transform, Distort, or Perspective is active)
+    // Draw active selection if present (but hide when Free Transform, Distort, Perspective, Warp, or Puppet Warp is active)
     const sel = this.document.selectionRect();
     const selShape = this.document.selectionShape();
     const isFreeTransformActive = this.freeTransform.isActive();
     const isDistortActive = this.distort.isActive();
     const isPerspectiveActive = this.perspective.isActive();
-    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive && !isPerspectiveActive) {
+    const isWarpActive = this.warp.isActive();
+    const isPuppetWarpActive = this.puppetWarp.isActive();
+    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive && !isPerspectiveActive && !isWarpActive && !isPuppetWarpActive) {
       ctx.save();
 
       // Check if we have a mask-based selection
@@ -3730,6 +3867,148 @@ export class EditorCanvas implements OnDestroy {
 
       ctx.restore();
     }
+
+    const warpState = this.warp.warpState();
+    if (warpState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(34,197,94,0.9)' : 'rgba(22,163,74,0.9)';
+
+      const dims = this.warp.getGridDimensions();
+      if (dims) {
+        const { rows, cols } = dims;
+        
+        for (let row = 0; row <= rows; row++) {
+          for (let col = 0; col <= cols; col++) {
+            const node = this.warp.getNode(row, col);
+            if (!node) continue;
+            
+            if (col < cols) {
+              const nextNode = this.warp.getNode(row, col + 1);
+              if (nextNode) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(nextNode.x, nextNode.y);
+                ctx.stroke();
+              }
+            }
+            
+            if (row < rows) {
+              const nextNode = this.warp.getNode(row + 1, col);
+              if (nextNode) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(nextNode.x, nextNode.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        for (const node of warpState.nodes) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#22c55e' : '#16a34a';
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      const buttonPositions = this.computeWarpButtonPositions(
+        warpState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const puppetWarpState = this.puppetWarp.puppetWarpState();
+    if (puppetWarpState) {
+      ctx.save();
+
+      for (const pin of puppetWarpState.pins) {
+        ctx.fillStyle = isDark ? 'rgba(236,72,153,0.2)' : 'rgba(219,39,119,0.2)';
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = isDark ? 'rgba(236,72,153,0.4)' : 'rgba(219,39,119,0.4)';
+        ctx.lineWidth = pxLineWidth;
+        ctx.setLineDash([4 / Math.max(0.001, scale), 4 / Math.max(0.001, scale)]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const rOuter = Math.max(1.5, 2 / Math.max(0.001, scale));
+        ctx.fillStyle = pin.locked
+          ? (isDark ? '#ef4444' : '#dc2626')
+          : (isDark ? '#ec4899' : '#db2777');
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, rOuter, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+        ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, rOuter, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (pin.locked) {
+          const lockSize = rOuter * 0.8;
+          ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+          ctx.fillRect(pin.x - lockSize * 0.3, pin.y - lockSize * 0.5, lockSize * 0.6, lockSize);
+        }
+      }
+
+      const buttonPositions = this.computePuppetWarpButtonPositions(
+        puppetWarpState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
   }
 
   private computeTransformButtonPositions(
@@ -3989,6 +4268,151 @@ export class EditorCanvas implements OnDestroy {
     const spaceAbove = minY;
     const spaceBelow = canvasH - maxY;
     const spaceRight = canvasW - maxX;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computeWarpButtonPositions(
+    warpState: {
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+      nodes: any[];
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const minX = Math.min(...warpState.nodes.map(n => n.x));
+    const maxX = Math.max(...warpState.nodes.map(n => n.x));
+    const minY = Math.min(...warpState.nodes.map(n => n.y));
+    const maxY = Math.max(...warpState.nodes.map(n => n.y));
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computePuppetWarpButtonPositions(
+    puppetWarpState: {
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+      pins: any[];
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    if (puppetWarpState.pins.length === 0) {
+      const minX = puppetWarpState.sourceX;
+      const maxX = puppetWarpState.sourceX + puppetWarpState.sourceWidth;
+      const minY = puppetWarpState.sourceY;
+      const maxY = puppetWarpState.sourceY + puppetWarpState.sourceHeight;
+
+      return {
+        btnSize,
+        commitX: maxX - 2 * btnSize - margin,
+        commitY: maxY + margin,
+        cancelX: maxX - btnSize,
+        cancelY: maxY + margin,
+      };
+    }
+
+    const minX = Math.min(...puppetWarpState.pins.map(p => p.x));
+    const maxX = Math.max(...puppetWarpState.pins.map(p => p.x));
+    const minY = Math.min(...puppetWarpState.pins.map(p => p.y));
+    const maxY = Math.max(...puppetWarpState.pins.map(p => p.y));
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
 
     let commitX: number, commitY: number;
     let cancelX: number, cancelY: number;
