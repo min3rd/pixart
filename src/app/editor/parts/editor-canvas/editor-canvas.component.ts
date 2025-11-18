@@ -183,6 +183,24 @@ export class EditorCanvas implements OnDestroy {
   } | null = null;
   private perspectiveLayerId: string | null = null;
   private perspectiveFullLayerBackup: string[] | null = null;
+  private warpOriginalBuffer: string[] | null = null;
+  private warpOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private warpLayerId: string | null = null;
+  private warpFullLayerBackup: string[] | null = null;
+  private puppetWarpOriginalBuffer: string[] | null = null;
+  private puppetWarpOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private puppetWarpLayerId: string | null = null;
+  private puppetWarpFullLayerBackup: string[] | null = null;
   private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
@@ -296,6 +314,36 @@ export class EditorCanvas implements OnDestroy {
       const active = this.perspective.isActive();
       if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
         this.cancelPerspective();
+      }
+    });
+
+    effect(() => {
+      const active = this.warp.isActive();
+      if (active && !this.warpOriginalBuffer) {
+        this.activateWarp();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.warp.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelWarp();
+      }
+    });
+
+    effect(() => {
+      const active = this.puppetWarp.isActive();
+      if (active && !this.puppetWarpOriginalBuffer) {
+        this.activatePuppetWarp();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.puppetWarp.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelPuppetWarp();
       }
     });
 
@@ -667,11 +715,13 @@ export class EditorCanvas implements OnDestroy {
 
     if (this.warp.isDraggingNode()) {
       this.warp.updateNodeDrag(logicalX, logicalY);
+      this.renderLiveWarpPreview();
       return;
     }
 
     if (this.puppetWarp.isDraggingPin()) {
       this.puppetWarp.updatePinDrag(logicalX, logicalY);
+      this.renderLivePuppetWarpPreview();
       return;
     }
 
@@ -2398,20 +2448,319 @@ export class EditorCanvas implements OnDestroy {
     this.perspectiveFullLayerBackup = null;
   }
 
+  private activateWarp(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Warp');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+    
+    this.warpFullLayerBackup = [...layerBuf];
+    
+    const original: string[] = new Array<string>(sel.width * sel.height).fill('');
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.warpOriginalBuffer = original;
+    this.warpOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.warpLayerId = layer.id;
+    this.renderLiveWarpPreview();
+  }
+
+  private activatePuppetWarp(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Puppet Warp');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+    
+    this.puppetWarpFullLayerBackup = [...layerBuf];
+    
+    const original: string[] = new Array<string>(sel.width * sel.height).fill('');
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.puppetWarpOriginalBuffer = original;
+    this.puppetWarpOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.puppetWarpLayerId = layer.id;
+  }
+
   private commitWarp(): void {
-    this.warp.commitWarp();
+    const state = this.warp.commitWarp();
+    if (!state) return;
+
+    if (
+      !this.warpOriginalBuffer ||
+      !this.warpOriginalRect ||
+      !this.warpLayerId ||
+      !this.warpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.warpFullLayerBackup[i];
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.warpOriginalBuffer = null;
+    this.warpOriginalRect = null;
+    this.warpLayerId = null;
+    this.warpFullLayerBackup = null;
   }
 
   private cancelWarp(): void {
+    if (this.warpFullLayerBackup && this.warpLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.warpFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
     this.warp.cancelWarp();
+    this.warpOriginalBuffer = null;
+    this.warpOriginalRect = null;
+    this.warpLayerId = null;
+    this.warpFullLayerBackup = null;
   }
 
   private commitPuppetWarp(): void {
-    this.puppetWarp.commitPuppetWarp();
+    const state = this.puppetWarp.commitPuppetWarp();
+    if (!state) return;
+
+    if (
+      !this.puppetWarpOriginalBuffer ||
+      !this.puppetWarpOriginalRect ||
+      !this.puppetWarpLayerId ||
+      !this.puppetWarpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.puppetWarpOriginalBuffer = null;
+    this.puppetWarpOriginalRect = null;
+    this.puppetWarpLayerId = null;
+    this.puppetWarpFullLayerBackup = null;
   }
 
   private cancelPuppetWarp(): void {
+    if (this.puppetWarpFullLayerBackup && this.puppetWarpLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
     this.puppetWarp.cancelPuppetWarp();
+    this.puppetWarpOriginalBuffer = null;
+    this.puppetWarpOriginalRect = null;
+    this.puppetWarpLayerId = null;
+    this.puppetWarpFullLayerBackup = null;
+  }
+
+  private renderLiveWarpPreview(): void {
+    const state = this.warp.warpState();
+    if (
+      !state ||
+      !this.warpOriginalBuffer ||
+      !this.warpOriginalRect ||
+      !this.warpLayerId ||
+      !this.warpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.warpFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.warpOriginalRect.height; y++) {
+      for (let x = 0; x < this.warpOriginalRect.width; x++) {
+        const destX: number = this.warpOriginalRect.x + x;
+        const destY: number = this.warpOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const dims = this.warp.getGridDimensions();
+    if (!dims) return;
+
+    const result = this.transformService.applyWarp(
+      this.warpOriginalBuffer,
+      this.warpOriginalRect.width,
+      this.warpOriginalRect.height,
+      state.nodes,
+      dims.rows,
+      dims.cols,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (
+            destX >= 0 &&
+            destX < canvasW &&
+            destY >= 0 &&
+            destY < canvasH
+          ) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private renderLivePuppetWarpPreview(): void {
+    const state = this.puppetWarp.puppetWarpState();
+    if (
+      !state ||
+      !this.puppetWarpOriginalBuffer ||
+      !this.puppetWarpOriginalRect ||
+      !this.puppetWarpLayerId ||
+      !this.puppetWarpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.puppetWarpOriginalRect.height; y++) {
+      for (let x = 0; x < this.puppetWarpOriginalRect.width; x++) {
+        const destX: number = this.puppetWarpOriginalRect.x + x;
+        const destY: number = this.puppetWarpOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    if (state.pins.length === 0) {
+      this.document.layerPixelsVersion.update((v) => v + 1);
+      return;
+    }
+
+    const result = this.transformService.applyPuppetWarp(
+      this.puppetWarpOriginalBuffer,
+      this.puppetWarpOriginalRect.width,
+      this.puppetWarpOriginalRect.height,
+      state.pins,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (
+            destX >= 0 &&
+            destX < canvasW &&
+            destY >= 0 &&
+            destY < canvasH
+          ) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
   }
 
   private renderLivePerspectivePreview(): void {
