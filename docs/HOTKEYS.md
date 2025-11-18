@@ -21,6 +21,17 @@ Pixart supports customizable keyboard shortcuts to help you work faster. You can
 | Redo | `Ctrl + Y` |
 | Move Selection Pixels | `Shift + V` |
 
+### Transform Operations
+
+| Action | Default Shortcut |
+|--------|-----------------|
+| Free Transform | `Ctrl + T` |
+| Skew | `Ctrl + Shift + K` |
+| Distort | `Ctrl + Shift + D` |
+| Perspective | `Ctrl + Shift + P` |
+| Warp | `Ctrl + Shift + W` |
+| Puppet Warp | `Ctrl + Shift + Alt + W` |
+
 ### Tool Selection
 
 | Tool | Default Shortcut |
