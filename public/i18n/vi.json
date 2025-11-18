@@ -595,5 +595,30 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "warp": {
+    "title": "Uốn cong",
+    "originalSize": "Kích thước gốc",
+    "gridSize": "Kích thước lưới",
+    "smoothing": "Độ mượt",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
+  },
+  "puppetWarp": {
+    "title": "Biến dạng điểm neo",
+    "originalSize": "Kích thước gốc",
+    "addPin": "Thêm điểm neo",
+    "removePin": "Xóa điểm neo",
+    "lockPin": "Khóa điểm neo",
+    "unlockPin": "Mở khóa điểm neo",
+    "pinRadius": "Bán kính điểm neo",
+    "defaultRadius": "Bán kính mặc định",
+    "selectedPin": "Điểm neo đã chọn",
+    "noPinSelected": "Chưa chọn điểm neo",
+    "pinCount": "Số điểm neo",
+    "reset": "Đặt lại",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }

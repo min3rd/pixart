@@ -23,6 +23,8 @@ import { EditorTransformService } from '../../../services/editor/editor-transfor
 import { EditorFreeTransformService } from '../../../services/editor/editor-free-transform.service';
 import { EditorDistortService } from '../../../services/editor/editor-distort.service';
 import { EditorPerspectiveService } from '../../../services/editor/editor-perspective.service';
+import { EditorWarpService } from '../../../services/editor/editor-warp.service';
+import { EditorPuppetWarpService } from '../../../services/editor/editor-puppet-warp.service';
 import {
   ScaleDialog,
   ScaleResult,
@@ -35,6 +37,8 @@ import {
   SkewDialog,
   SkewResult,
 } from '../../../shared/components/skew-dialog/skew-dialog';
+import { WarpDialog } from '../../../shared/components/warp-dialog/warp-dialog';
+import { PuppetWarpDialog } from '../../../shared/components/puppet-warp-dialog/puppet-warp-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -50,6 +54,8 @@ import {
     ScaleDialog,
     RotateDialog,
     SkewDialog,
+    WarpDialog,
+    PuppetWarpDialog,
   ],
   host: {
     class:
@@ -67,6 +73,8 @@ export class EditorHeader {
   readonly freeTransform = inject(EditorFreeTransformService);
   readonly distort = inject(EditorDistortService);
   readonly perspective = inject(EditorPerspectiveService);
+  readonly warp = inject(EditorWarpService);
+  readonly puppetWarp = inject(EditorPuppetWarpService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -78,6 +86,8 @@ export class EditorHeader {
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
+  readonly warpDialog = viewChild(WarpDialog);
+  readonly puppetWarpDialog = viewChild(PuppetWarpDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -531,6 +541,30 @@ export class EditorHeader {
         const sel = this.document.selectionRect();
         if (sel) {
           this.onPerspective();
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'transform.warp',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+w',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onWarp();
+        }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'transform.puppetWarp',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+alt+w',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (sel) {
+          this.onPuppetWarp();
         }
       },
     });
@@ -1004,10 +1038,24 @@ export class EditorHeader {
   }
 
   onWarp() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    this.warp.startWarp(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
   }
 
   onPuppetWarp() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    this.puppetWarp.startPuppetWarp(sel.x, sel.y, sel.width, sel.height);
     this.showTransformMenu.set(false);
   }
 

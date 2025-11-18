@@ -1,0 +1,87 @@
+<pa-modal
+  [isOpen]="visible()"
+  (onClose)="close()"
+  [modalId]="'warp-dialog-modal'"
+>
+  <div class="flex flex-col gap-4 p-4 w-[400px]">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold" id="warp-dialog-title">
+        {{ 'warp.title' | transloco }}
+      </h2>
+      <button
+        (click)="close()"
+        class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+        id="warp-dialog-close-btn"
+        aria-label="{{ 'modal.close' | transloco }}"
+      >
+        <ng-icon name="heroXMark" size="20"></ng-icon>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="text-sm text-gray-600 dark:text-gray-400" id="warp-dialog-original-size">
+        {{ 'warp.originalSize' | transloco }}: {{ originalWidth() }} x
+        {{ originalHeight() }} px
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" id="warp-dialog-grid-size-label">
+        {{ 'warp.gridSize' | transloco }}
+      </label>
+      <select
+        [value]="gridSize()"
+        (change)="updateGridSize($any($event.target).value)"
+        class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+        id="warp-dialog-grid-size"
+        aria-label="Grid size"
+      >
+        <option value="3x3">3x3</option>
+        <option value="4x4">4x4</option>
+        <option value="5x5">5x5</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" id="warp-dialog-smoothing-label">
+        {{ 'warp.smoothing' | transloco }}: {{ (smoothing() * 100).toFixed(0) }}%
+      </label>
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        [value]="smoothing()"
+        (input)="updateSmoothing($any($event.target).value)"
+        class="w-full"
+        id="warp-dialog-smoothing"
+        aria-label="Smoothing"
+      />
+    </div>
+
+    <div class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+      <button
+        (click)="reset()"
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+        id="warp-dialog-reset-btn"
+      >
+        {{ 'warp.reset' | transloco }}
+      </button>
+      <button
+        (click)="close()"
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+        id="warp-dialog-cancel-btn"
+      >
+        {{ 'warp.cancel' | transloco }}
+      </button>
+      <button
+        (click)="apply()"
+        [disabled]="!canApply()"
+        class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        id="warp-dialog-apply-btn"
+      >
+        {{ 'warp.apply' | transloco }}
+      </button>
+    </div>
+  </div>
+</pa-modal>
