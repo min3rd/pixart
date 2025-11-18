@@ -43,3 +43,4 @@ Thumbs.db
 
 # ONNX Models (large files - download via script)
 /public/assets/models/*.onnx
+screenshots/
