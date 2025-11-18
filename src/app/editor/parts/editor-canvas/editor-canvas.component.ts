@@ -3228,12 +3228,13 @@ export class EditorCanvas implements OnDestroy {
       }
     }
 
-    // Draw active selection if present (but hide when Free Transform or Distort is active)
+    // Draw active selection if present (but hide when Free Transform, Distort, or Perspective is active)
     const sel = this.document.selectionRect();
     const selShape = this.document.selectionShape();
     const isFreeTransformActive = this.freeTransform.isActive();
     const isDistortActive = this.distort.isActive();
-    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive) {
+    const isPerspectiveActive = this.perspective.isActive();
+    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive && !isPerspectiveActive) {
       ctx.save();
 
       // Check if we have a mask-based selection
