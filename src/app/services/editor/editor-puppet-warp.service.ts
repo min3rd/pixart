@@ -49,8 +49,8 @@ export class EditorPuppetWarpService {
       id: `pin-${Date.now()}-${Math.random()}`,
       x,
       y,
-      originalX: x,
-      originalY: y,
+      originalX: x - state.sourceX,
+      originalY: y - state.sourceY,
       radius: radius || state.defaultRadius,
       locked: false,
     };

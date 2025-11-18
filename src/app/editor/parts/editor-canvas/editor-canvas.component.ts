@@ -2527,6 +2527,7 @@ export class EditorCanvas implements OnDestroy {
       height: sel.height,
     };
     this.puppetWarpLayerId = layer.id;
+    this.renderLivePuppetWarpPreview();
   }
 
   private commitWarp(): void {
@@ -2729,6 +2730,20 @@ export class EditorCanvas implements OnDestroy {
     }
 
     if (state.pins.length === 0) {
+      for (let y = 0; y < this.puppetWarpOriginalRect.height; y++) {
+        for (let x = 0; x < this.puppetWarpOriginalRect.width; x++) {
+          const srcIdx = y * this.puppetWarpOriginalRect.width + x;
+          const color = this.puppetWarpOriginalBuffer[srcIdx];
+          if (color) {
+            const destX: number = this.puppetWarpOriginalRect.x + x;
+            const destY: number = this.puppetWarpOriginalRect.y + y;
+            if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+              const destIdx = destY * canvasW + destX;
+              layerBuffer[destIdx] = color;
+            }
+          }
+        }
+      }
       this.document.layerPixelsVersion.update((v) => v + 1);
       return;
     }

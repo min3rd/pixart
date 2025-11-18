@@ -72,8 +72,8 @@ export class EditorWarpService {
           col,
           x: nodeX,
           y: nodeY,
-          originalX: nodeX,
-          originalY: nodeY,
+          originalX: (width * col) / cols,
+          originalY: (height * row) / rows,
         });
       }
     }
