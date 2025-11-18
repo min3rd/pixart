@@ -41,6 +41,10 @@ import {
   EditorDistortService,
   DistortHandle,
 } from '../../../services/editor/editor-distort.service';
+import {
+  EditorPerspectiveService,
+  PerspectiveHandle,
+} from '../../../services/editor/editor-perspective.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -102,6 +106,7 @@ export class EditorCanvas implements OnDestroy {
   readonly transformService = inject(EditorTransformService);
   readonly freeTransform = inject(EditorFreeTransformService);
   readonly distort = inject(EditorDistortService);
+  readonly perspective = inject(EditorPerspectiveService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -165,6 +170,15 @@ export class EditorCanvas implements OnDestroy {
   } | null = null;
   private distortLayerId: string | null = null;
   private distortFullLayerBackup: string[] | null = null;
+  private perspectiveOriginalBuffer: string[] | null = null;
+  private perspectiveOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private perspectiveLayerId: string | null = null;
+  private perspectiveFullLayerBackup: string[] | null = null;
   private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
@@ -263,6 +277,21 @@ export class EditorCanvas implements OnDestroy {
       const active = this.distort.isActive();
       if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
         this.cancelDistort();
+      }
+    });
+
+    effect(() => {
+      const active = this.perspective.isActive();
+      if (active && !this.perspectiveOriginalBuffer) {
+        this.activatePerspective();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.perspective.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelPerspective();
       }
     });
 
@@ -456,6 +485,10 @@ export class EditorCanvas implements OnDestroy {
             this.cancelDistort();
             return;
           }
+          if (this.perspective.isActive()) {
+            this.cancelPerspective();
+            return;
+          }
           if (this.contextMenuVisible()) {
             this.closeContextMenu();
             return;
@@ -482,6 +515,10 @@ export class EditorCanvas implements OnDestroy {
           }
           if (this.distort.isActive()) {
             this.commitDistort();
+            return;
+          }
+          if (this.perspective.isActive()) {
+            this.commitPerspective();
             return;
           }
         }
@@ -615,6 +652,12 @@ export class EditorCanvas implements OnDestroy {
     if (this.distort.isDraggingHandle()) {
       this.distort.updateHandleDrag(logicalX, logicalY);
       this.renderLiveDistortPreview();
+      return;
+    }
+
+    if (this.perspective.isDraggingHandle()) {
+      this.perspective.updateHandleDrag(logicalX, logicalY);
+      this.renderLivePerspectivePreview();
       return;
     }
 
@@ -859,6 +902,62 @@ export class EditorCanvas implements OnDestroy {
             if (dx * dx + dy * dy <= handleSize * handleSize) {
               this.capturePointer(ev);
               this.distort.startHandleDrag(handle, logicalX, logicalY);
+              return;
+            }
+          }
+        }
+
+        return;
+      }
+
+      const perspectiveState = this.perspective.perspectiveState();
+      if (perspectiveState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computePerspectiveButtonPositions(
+          perspectiveState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitPerspective();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelPerspective();
+          return;
+        }
+
+        const handles: PerspectiveHandle[] = [
+          'top-left',
+          'top-right',
+          'bottom-right',
+          'bottom-left',
+        ];
+
+        for (const handle of handles) {
+          const pos = this.perspective.getHandlePosition(handle);
+          if (pos) {
+            const dx = logicalX - pos.x;
+            const dy = logicalY - pos.y;
+            if (dx * dx + dy * dy <= handleSize * handleSize) {
+              this.capturePointer(ev);
+              this.perspective.startHandleDrag(handle, logicalX, logicalY);
               return;
             }
           }
@@ -1393,6 +1492,11 @@ export class EditorCanvas implements OnDestroy {
       return;
     }
 
+    if (this.perspective.isDraggingHandle()) {
+      this.perspective.endHandleDrag();
+      return;
+    }
+
     if (this.shaping) {
       this.finishShape(ev.shiftKey);
     }
@@ -1799,6 +1903,49 @@ export class EditorCanvas implements OnDestroy {
     this.renderLiveDistortPreview();
   }
 
+  private activatePerspective(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Perspective');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    this.perspectiveFullLayerBackup = [...layerBuf];
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.perspectiveOriginalBuffer = original;
+    this.perspectiveOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.perspectiveLayerId = layer.id;
+    this.renderLivePerspectivePreview();
+  }
+
   private commitDistort(): void {
     const state = this.distort.commitDistort();
     if (!state) return;
@@ -1970,6 +2117,218 @@ export class EditorCanvas implements OnDestroy {
       this.distortOriginalBuffer,
       this.distortOriginalRect.width,
       this.distortOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (
+            destX >= 0 &&
+            destX < canvasW &&
+            destY >= 0 &&
+            destY < canvasH
+          ) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private commitPerspective(): void {
+    const state = this.perspective.commitPerspective();
+    if (!state) return;
+
+    if (
+      !this.perspectiveOriginalBuffer ||
+      !this.perspectiveOriginalRect ||
+      !this.perspectiveLayerId ||
+      !this.perspectiveFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.perspectiveLayerId,
+    );
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.perspectiveFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+      for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+        const destX: number = this.perspectiveOriginalRect.x + x;
+        const destY: number = this.perspectiveOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          originalLayerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const originalSelectionLayer = this.document.addLayer('Original Selection');
+    const origSelLayerBuf = this.document.getLayerBuffer(
+      originalSelectionLayer.id,
+    );
+
+    if (origSelLayerBuf) {
+      for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+        for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+          const srcIdx = y * this.perspectiveOriginalRect.width + x;
+          const destX: number = this.perspectiveOriginalRect.x + x;
+          const destY: number = this.perspectiveOriginalRect.y + y;
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            origSelLayerBuf[destIdx] =
+              this.perspectiveOriginalBuffer[srcIdx] || '';
+          }
+        }
+      }
+    }
+
+    this.document.toggleLayerVisibility(originalSelectionLayer.id);
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.perspectiveOriginalBuffer,
+      this.perspectiveOriginalRect.width,
+      this.perspectiveOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    const perspectiveLayer = this.document.addLayer('Perspective Layer');
+    const perspectiveLayerBuf = this.document.getLayerBuffer(
+      perspectiveLayer.id,
+    );
+
+    if (perspectiveLayerBuf) {
+      for (let y = 0; y < result.height; y++) {
+        for (let x = 0; x < result.width; x++) {
+          const srcIdx = y * result.width + x;
+          const color = result.buffer[srcIdx];
+          if (color) {
+            const destX = Math.floor(result.minX + x);
+            const destY = Math.floor(result.minY + y);
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              perspectiveLayerBuf[destIdx] = color;
+            }
+          }
+        }
+      }
+    }
+
+    this.document.selectLayer(perspectiveLayer.id);
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.perspectiveOriginalBuffer = null;
+    this.perspectiveOriginalRect = null;
+    this.perspectiveLayerId = null;
+    this.perspectiveFullLayerBackup = null;
+  }
+
+  private cancelPerspective(): void {
+    if (this.perspectiveFullLayerBackup && this.perspectiveLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.perspectiveLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.perspectiveFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.perspective.cancelPerspective();
+    this.perspectiveOriginalBuffer = null;
+    this.perspectiveOriginalRect = null;
+    this.perspectiveLayerId = null;
+    this.perspectiveFullLayerBackup = null;
+  }
+
+  private renderLivePerspectivePreview(): void {
+    const state = this.perspective.perspectiveState();
+    if (
+      !state ||
+      !this.perspectiveOriginalBuffer ||
+      !this.perspectiveOriginalRect ||
+      !this.perspectiveLayerId ||
+      !this.perspectiveFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.perspectiveLayerId);
+    if (!layerBuffer) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.perspectiveFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+      for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+        const destX: number = this.perspectiveOriginalRect.x + x;
+        const destY: number = this.perspectiveOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.perspectiveOriginalBuffer,
+      this.perspectiveOriginalRect.width,
+      this.perspectiveOriginalRect.height,
       srcCorners,
       dstCorners,
     );
@@ -3265,6 +3624,111 @@ export class EditorCanvas implements OnDestroy {
 
       ctx.restore();
     }
+
+    const perspectiveState = this.perspective.perspectiveState();
+    if (perspectiveState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.setLineDash([4 / Math.max(0.001, scale), 4 / Math.max(0.001, scale)]);
+      ctx.strokeStyle = isDark ? 'rgba(147,51,234,0.9)' : 'rgba(126,34,206,0.9)';
+
+      const corners = perspectiveState.corners;
+      ctx.beginPath();
+      ctx.moveTo(corners.topLeft.x, corners.topLeft.y);
+      ctx.lineTo(corners.topRight.x, corners.topRight.y);
+      ctx.lineTo(corners.bottomRight.x, corners.bottomRight.y);
+      ctx.lineTo(corners.bottomLeft.x, corners.bottomLeft.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.strokeStyle = isDark
+        ? 'rgba(147,51,234,0.5)'
+        : 'rgba(126,34,206,0.5)';
+      const gridSteps = 3;
+      for (let i = 1; i < gridSteps; i++) {
+        const t = i / gridSteps;
+        const topX =
+          corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
+        const topY =
+          corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
+        const bottomX =
+          corners.bottomLeft.x +
+          (corners.bottomRight.x - corners.bottomLeft.x) * t;
+        const bottomY =
+          corners.bottomLeft.y +
+          (corners.bottomRight.y - corners.bottomLeft.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(topX, topY);
+        ctx.lineTo(bottomX, bottomY);
+        ctx.stroke();
+
+        const leftX =
+          corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
+        const leftY =
+          corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
+        const rightX =
+          corners.topRight.x +
+          (corners.bottomRight.x - corners.topRight.x) * t;
+        const rightY =
+          corners.topRight.y +
+          (corners.bottomRight.y - corners.topRight.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(rightX, rightY);
+        ctx.stroke();
+      }
+
+      ctx.setLineDash([]);
+
+      const handles: PerspectiveHandle[] = [
+        'top-left',
+        'top-right',
+        'bottom-right',
+        'bottom-left',
+      ];
+      for (const h of handles) {
+        const pos = this.perspective.getHandlePosition(h);
+        if (pos) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#9333ea' : '#7e22ce';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      const buttonPositions = this.computePerspectiveButtonPositions(
+        perspectiveState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
   }
 
   private computeTransformButtonPositions(
@@ -3409,6 +3873,93 @@ export class EditorCanvas implements OnDestroy {
     const canvasH = this.document.canvasHeight();
 
     const corners = distortState.corners;
+    const minX = Math.min(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const maxX = Math.max(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const minY = Math.min(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+    const maxY = Math.max(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+    const spaceRight = canvasW - maxX;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computePerspectiveButtonPositions(
+    perspectiveState: {
+      corners: any;
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const corners = perspectiveState.corners;
     const minX = Math.min(
       corners.topLeft.x,
       corners.topRight.x,
