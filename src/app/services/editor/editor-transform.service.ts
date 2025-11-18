@@ -906,14 +906,17 @@ export class EditorTransformService {
 
         if (!n00 || !n10 || !n01 || !n11) continue;
 
-        const minX = Math.min(n00.x, n10.x, n01.x, n11.x);
-        const maxX = Math.max(n00.x, n10.x, n01.x, n11.x);
-        const minY = Math.min(n00.y, n10.y, n01.y, n11.y);
-        const maxY = Math.max(n00.y, n10.y, n01.y, n11.y);
+        const uv = this.inverseQuadBilinear(
+          worldX, worldY,
+          n00.x, n00.y,
+          n10.x, n10.y,
+          n11.x, n11.y,
+          n01.x, n01.y
+        );
 
-        if (worldX >= minX && worldX <= maxX && worldY >= minY && worldY <= maxY) {
-          const u = (worldX - n00.x) / (n10.x - n00.x);
-          const v = (worldY - n00.y) / (n01.y - n00.y);
+        if (uv && uv.u >= 0 && uv.u <= 1 && uv.v >= 0 && uv.v <= 1) {
+          const u = uv.u;
+          const v = uv.v;
 
           const srcX = (1 - u) * (1 - v) * n00.originalX +
                        u * (1 - v) * n10.originalX +
@@ -931,6 +934,66 @@ export class EditorTransformService {
     }
 
     return null;
+  }
+
+  private inverseQuadBilinear(
+    px: number, py: number,
+    x0: number, y0: number,
+    x1: number, y1: number,
+    x2: number, y2: number,
+    x3: number, y3: number
+  ): { u: number; v: number } | null {
+    const a = x0;
+    const b = x1 - x0;
+    const c = x3 - x0;
+    const d = x0 - x1 - x3 + x2;
+    
+    const e = y0;
+    const f = y1 - y0;
+    const g = y3 - y0;
+    const h = y0 - y1 - y3 + y2;
+
+    const A = d * f - b * h;
+    const B = d * (py - e) + c * f - b * g - a * h + (px - a) * h;
+    const C = c * (py - e) - a * g + (px - a) * g;
+
+    let u: number, v: number;
+
+    if (Math.abs(A) < 1e-10) {
+      if (Math.abs(B) < 1e-10) {
+        return null;
+      }
+      u = -C / B;
+    } else {
+      const discriminant = B * B - 4 * A * C;
+      if (discriminant < 0) {
+        return null;
+      }
+      const sqrtDisc = Math.sqrt(discriminant);
+      const u1 = (-B + sqrtDisc) / (2 * A);
+      const u2 = (-B - sqrtDisc) / (2 * A);
+      
+      if (u1 >= 0 && u1 <= 1) {
+        u = u1;
+      } else if (u2 >= 0 && u2 <= 1) {
+        u = u2;
+      } else {
+        u = u1;
+      }
+    }
+
+    const denom = c + d * u;
+    if (Math.abs(denom) < 1e-10) {
+      const denomF = b + d * u;
+      if (Math.abs(denomF) < 1e-10) {
+        return null;
+      }
+      v = (px - a - b * u) / denomF;
+    } else {
+      v = (py - e - f * u) / denom;
+    }
+
+    return { u, v };
   }
 
   applyPuppetWarp(
