@@ -164,6 +164,7 @@ export class EditorCanvas implements OnDestroy {
     height: number;
   } | null = null;
   private distortLayerId: string | null = null;
+  private distortFullLayerBackup: string[] | null = null;
   private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
@@ -1768,6 +1769,9 @@ export class EditorCanvas implements OnDestroy {
     if (!layerBuf) return;
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
+    
+    this.distortFullLayerBackup = [...layerBuf];
+    
     const original: string[] = new Array<string>(sel.width * sel.height).fill(
       '',
     );
@@ -1860,33 +1864,18 @@ export class EditorCanvas implements OnDestroy {
     this.distortOriginalBuffer = null;
     this.distortOriginalRect = null;
     this.distortLayerId = null;
+    this.distortFullLayerBackup = null;
   }
 
   private cancelDistort(): void {
     if (
-      this.distortOriginalBuffer &&
-      this.distortOriginalRect &&
+      this.distortFullLayerBackup &&
       this.distortLayerId
     ) {
       const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
       if (layerBuffer) {
-        const canvasW = this.document.canvasWidth();
-        const canvasH = this.document.canvasHeight();
-        for (let y = 0; y < this.distortOriginalRect.height; y++) {
-          for (let x = 0; x < this.distortOriginalRect.width; x++) {
-            const srcIdx = y * this.distortOriginalRect.width + x;
-            const destX: number = this.distortOriginalRect.x + x;
-            const destY: number = this.distortOriginalRect.y + y;
-            if (
-              destX >= 0 &&
-              destX < canvasW &&
-              destY >= 0 &&
-              destY < canvasH
-            ) {
-              const destIdx = destY * canvasW + destX;
-              layerBuffer[destIdx] = this.distortOriginalBuffer[srcIdx] || '';
-            }
-          }
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.distortFullLayerBackup[i];
         }
         this.document.layerPixelsVersion.update((v) => v + 1);
       }
@@ -1896,6 +1885,7 @@ export class EditorCanvas implements OnDestroy {
     this.distortOriginalBuffer = null;
     this.distortOriginalRect = null;
     this.distortLayerId = null;
+    this.distortFullLayerBackup = null;
   }
 
   private renderLiveDistortPreview(): void {
@@ -1904,7 +1894,8 @@ export class EditorCanvas implements OnDestroy {
       !state ||
       !this.distortOriginalBuffer ||
       !this.distortOriginalRect ||
-      !this.distortLayerId
+      !this.distortLayerId ||
+      !this.distortFullLayerBackup
     ) {
       return;
     }
@@ -1916,7 +1907,7 @@ export class EditorCanvas implements OnDestroy {
     const canvasH = this.document.canvasHeight();
 
     for (let i = 0; i < layerBuffer.length; i++) {
-      layerBuffer[i] = '';
+      layerBuffer[i] = this.distortFullLayerBackup[i];
     }
 
     const srcCorners = [
