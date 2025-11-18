@@ -799,4 +799,262 @@ export class EditorTransformService {
       (h11 * h22 - h12 * h21) * invDet,
     ];
   }
+
+  applyWarp(
+    buffer: string[],
+    width: number,
+    height: number,
+    gridNodes: { x: number; y: number; originalX: number; originalY: number; row: number; col: number }[],
+    gridRows: number,
+    gridCols: number,
+  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
+    const minX = Math.min(...gridNodes.map(n => n.x));
+    const maxX = Math.max(...gridNodes.map(n => n.x));
+    const minY = Math.min(...gridNodes.map(n => n.y));
+    const maxY = Math.max(...gridNodes.map(n => n.y));
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.bilinearWarpInverse(
+          worldX,
+          worldY,
+          gridNodes,
+          gridRows,
+          gridCols,
+          width,
+          height,
+        );
+
+        if (!srcPoint) continue;
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
+  }
+
+  private bilinearWarpInverse(
+    worldX: number,
+    worldY: number,
+    gridNodes: { x: number; y: number; originalX: number; originalY: number; row: number; col: number }[],
+    gridRows: number,
+    gridCols: number,
+    srcWidth: number,
+    srcHeight: number,
+  ): { x: number; y: number } | null {
+    for (let row = 0; row < gridRows; row++) {
+      for (let col = 0; col < gridCols; col++) {
+        const n00 = gridNodes.find(n => n.row === row && n.col === col);
+        const n10 = gridNodes.find(n => n.row === row && n.col === col + 1);
+        const n01 = gridNodes.find(n => n.row === row + 1 && n.col === col);
+        const n11 = gridNodes.find(n => n.row === row + 1 && n.col === col + 1);
+
+        if (!n00 || !n10 || !n01 || !n11) continue;
+
+        const minX = Math.min(n00.x, n10.x, n01.x, n11.x);
+        const maxX = Math.max(n00.x, n10.x, n01.x, n11.x);
+        const minY = Math.min(n00.y, n10.y, n01.y, n11.y);
+        const maxY = Math.max(n00.y, n10.y, n01.y, n11.y);
+
+        if (worldX >= minX && worldX <= maxX && worldY >= minY && worldY <= maxY) {
+          const u = (worldX - n00.x) / (n10.x - n00.x);
+          const v = (worldY - n00.y) / (n01.y - n00.y);
+
+          const srcX = (1 - u) * (1 - v) * n00.originalX +
+                       u * (1 - v) * n10.originalX +
+                       (1 - u) * v * n01.originalX +
+                       u * v * n11.originalX;
+
+          const srcY = (1 - u) * (1 - v) * n00.originalY +
+                       u * (1 - v) * n10.originalY +
+                       (1 - u) * v * n01.originalY +
+                       u * v * n11.originalY;
+
+          return { x: srcX, y: srcY };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  applyPuppetWarp(
+    buffer: string[],
+    width: number,
+    height: number,
+    pins: { x: number; y: number; originalX: number; originalY: number; radius: number; locked: boolean }[],
+  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
+    if (pins.length === 0) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    const movingPins = pins.filter(p => !p.locked);
+    if (movingPins.length === 0) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    const allX = pins.map(p => p.x);
+    const allY = pins.map(p => p.y);
+    const minX = Math.min(...allX, 0);
+    const maxX = Math.max(...allX, width);
+    const minY = Math.min(...allY, 0);
+    const maxY = Math.max(...allY, height);
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.tpsTransform(worldX, worldY, pins, width, height);
+
+        if (!srcPoint) continue;
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
+  }
+
+  private tpsTransform(
+    x: number,
+    y: number,
+    pins: { x: number; y: number; originalX: number; originalY: number; radius: number; locked: boolean }[],
+    srcWidth: number,
+    srcHeight: number,
+  ): { x: number; y: number } | null {
+    let totalWeight = 0;
+    let srcX = 0;
+    let srcY = 0;
+
+    for (const pin of pins) {
+      const dx = x - pin.x;
+      const dy = y - pin.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const offsetX = pin.x - pin.originalX;
+      const offsetY = pin.y - pin.originalY;
+
+      if (dist < 0.01) {
+        return { x: x - offsetX, y: y - offsetY };
+      }
+
+      const weight = 1 / (1 + dist / pin.radius);
+      totalWeight += weight;
+      srcX += weight * (x - offsetX);
+      srcY += weight * (y - offsetY);
+    }
+
+    if (totalWeight > 0) {
+      return { x: srcX / totalWeight, y: srcY / totalWeight };
+    }
+
+    return { x, y };
+  }
 }
