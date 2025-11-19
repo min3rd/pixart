@@ -914,9 +914,9 @@ export class EditorTransformService {
           n01.x, n01.y
         );
 
-        if (uv && uv.u >= 0 && uv.u <= 1 && uv.v >= 0 && uv.v <= 1) {
-          const u = uv.u;
-          const v = uv.v;
+        if (uv && uv.u >= -0.001 && uv.u <= 1.001 && uv.v >= -0.001 && uv.v <= 1.001) {
+          const u = Math.max(0, Math.min(1, uv.u));
+          const v = Math.max(0, Math.min(1, uv.v));
 
           const srcX = (1 - u) * (1 - v) * n00.originalX +
                        u * (1 - v) * n10.originalX +
