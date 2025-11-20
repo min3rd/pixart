@@ -8,20 +8,22 @@
       <h2 class="text-lg font-semibold" id="puppet-warp-dialog-title">
         {{ 'puppetWarp.title' | transloco }}
       </h2>
-      <span
-        class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
-        id="puppet-warp-dialog-dev-badge"
-      >
-        {{ 'badges.dev' | transloco }}
-      </span>
-      <button
-        (click)="close()"
-        class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
-        id="puppet-warp-dialog-close-btn"
-        aria-label="{{ 'modal.close' | transloco }}"
-      >
-        <ng-icon name="heroXMark" size="20"></ng-icon>
-      </button>
+      <div class="flex items-center gap-2">
+        <span
+          class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+          id="puppet-warp-dialog-dev-badge"
+        >
+          {{ 'badges.dev' | transloco }}
+        </span>
+        <button
+          (click)="close()"
+          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+          id="puppet-warp-dialog-close-btn"
+          aria-label="{{ 'modal.close' | transloco }}"
+        >
+          <ng-icon name="heroXMark" size="20"></ng-icon>
+        </button>
+      </div>
     </div>
 
     <div

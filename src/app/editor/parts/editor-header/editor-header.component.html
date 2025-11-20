@@ -440,15 +440,15 @@
             (click)="onWarp()"
             aria-keyshortcuts="Ctrl+Shift+W"
           >
-            <span id="menu-transform-warp-label">{{
-              "menu.warp" | transloco
-            }}</span>
-            <span
-              id="menu-transform-warp-dev-badge"
-              class="ml-2 px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
-            >
-              {{ "badges.dev" | transloco }}
-            </span>
+            <div class="w-full flex items-center justify-between">
+              <span id="menu-transform-warp-label">{{ "menu.warp" | transloco }}</span>
+              <span
+                id="menu-transform-warp-dev-badge"
+                class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+              >
+                {{ "badges.dev" | transloco }}
+              </span>
+            </div>
           </button>
           <button
             id="menu-transform-puppet-warp-action"
@@ -456,15 +456,15 @@
             (click)="onPuppetWarp()"
             aria-keyshortcuts="Ctrl+Shift+Alt+W"
           >
-            <span id="menu-transform-puppet-warp-label">{{
-              "menu.puppetWarp" | transloco
-            }}</span>
-            <span
-              id="menu-transform-puppet-warp-dev-badge"
-              class="ml-2 px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
-            >
-              {{ "badges.dev" | transloco }}
-            </span>
+            <div class="w-full flex items-center justify-between">
+              <span id="menu-transform-puppet-warp-label">{{ "menu.puppetWarp" | transloco }}</span>
+              <span
+                id="menu-transform-puppet-warp-dev-badge"
+                class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+              >
+                {{ "badges.dev" | transloco }}
+              </span>
+            </div>
           </button>
           <div
             id="menu-transform-divider-2"
