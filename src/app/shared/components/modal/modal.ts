@@ -38,6 +38,7 @@ export class Modal {
   private dragStartY = 0;
   private dialogStartX = 0;
   private dialogStartY = 0;
+  private activePointerId: number | null = null;
 
   constructor() {
     effect(() => {
@@ -63,7 +64,11 @@ export class Modal {
     });
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('mousemove', (e) => this.onDragMove(e));
+      // Use pointer events to avoid interfering with mouse/touch interactions on inputs
+      window.addEventListener('pointermove', (e) => this.onPointerMove(e as PointerEvent));
+      window.addEventListener('pointerup', () => this.onDragEnd());
+      // Fallback for older browsers that do not support pointer events
+      window.addEventListener('mousemove', (e) => this.onDragMove(e as MouseEvent));
       window.addEventListener('mouseup', () => this.onDragEnd());
     }
   }
@@ -87,18 +92,42 @@ export class Modal {
     return sizeMap[this.size()];
   }
 
-  onDragStart(event: MouseEvent): void {
+  onDragStart(event: PointerEvent | MouseEvent): void {
     if (!this.draggable()) return;
+    // If the target is an interactive element, don't start dragging
+    const target = event.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+
     this.isDragging = true;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
+    this.dragStartX = (event as PointerEvent).clientX ?? (event as MouseEvent).clientX;
+    this.dragStartY = (event as PointerEvent).clientY ?? (event as MouseEvent).clientY;
     this.dialogStartX = this.dialogX();
     this.dialogStartY = this.dialogY();
+    // Store pointerId if present so we only track that pointer
+    if ((event as PointerEvent).pointerId !== undefined) {
+      this.activePointerId = (event as PointerEvent).pointerId;
+      try {
+        (event.target as HTMLElement | null)?.setPointerCapture?.(this.activePointerId);
+      } catch {}
+    }
+    // Prevent default to avoid selection but do not stop propagation so inputs can still focus
     event.preventDefault();
   }
 
   private onDragMove(event: MouseEvent): void {
+    // Legacy mouse move handler
     if (!this.isDragging) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    this.dialogX.set(this.dialogStartX + dx);
+    this.dialogY.set(this.dialogStartY + dy);
+  }
+
+  private onPointerMove(event: PointerEvent): void {
+    if (!this.isDragging) return;
+    if (this.activePointerId !== null && event.pointerId !== this.activePointerId) return;
     const dx = event.clientX - this.dragStartX;
     const dy = event.clientY - this.dragStartY;
     this.dialogX.set(this.dialogStartX + dx);
@@ -107,6 +136,14 @@ export class Modal {
 
   private onDragEnd(): void {
     this.isDragging = false;
+    if (this.activePointerId !== null) {
+      try {
+        // Try to release pointer capture if it was set
+        const el = document.elementFromPoint(this.dialogStartX, this.dialogStartY) as HTMLElement | null;
+        el?.releasePointerCapture?.(this.activePointerId);
+      } catch {}
+    }
+    this.activePointerId = null;
   }
 
   handleBackdropClick(event: MouseEvent): void {

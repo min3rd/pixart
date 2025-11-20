@@ -18,8 +18,9 @@
     <div
       [id]="modalId() + '-header'"
       class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
-      (mousedown)="draggable() ? onDragStart($event) : null"
+      (pointerdown)="draggable() ? onDragStart($event) : null"
       [class.cursor-move]="draggable()"
+      style="touch-action: none;"
     >
       @if (title()) {
       <h2
@@ -43,7 +44,7 @@
     </div>
     }
 
-    <div [id]="modalId() + '-content'" class="flex-1 overflow-y-auto px-4 py-3">
+    <div [id]="modalId() + '-content'" class="flex-1 overflow-y-auto px-4 py-3" style="touch-action: auto;">
       <ng-content></ng-content>
     </div>
 
