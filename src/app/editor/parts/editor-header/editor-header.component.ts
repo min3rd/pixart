@@ -39,6 +39,11 @@ import {
 } from '../../../shared/components/skew-dialog/skew-dialog';
 import { WarpDialog } from '../../../shared/components/warp-dialog/warp-dialog';
 import { PuppetWarpDialog } from '../../../shared/components/puppet-warp-dialog/puppet-warp-dialog';
+import {
+  ContentAwareScaleDialog,
+  ContentAwareScaleResult,
+} from '../../../shared/components/content-aware-scale-dialog/content-aware-scale-dialog';
+import { EditorContentAwareScaleService } from '../../../services/editor/editor-content-aware-scale.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -56,6 +61,7 @@ import { PuppetWarpDialog } from '../../../shared/components/puppet-warp-dialog/
     SkewDialog,
     WarpDialog,
     PuppetWarpDialog,
+    ContentAwareScaleDialog,
   ],
   host: {
     class:
@@ -75,6 +81,7 @@ export class EditorHeader {
   readonly perspective = inject(EditorPerspectiveService);
   readonly warp = inject(EditorWarpService);
   readonly puppetWarp = inject(EditorPuppetWarpService);
+  readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -88,6 +95,7 @@ export class EditorHeader {
   readonly skewDialog = viewChild(SkewDialog);
   readonly warpDialog = viewChild(WarpDialog);
   readonly puppetWarpDialog = viewChild(PuppetWarpDialog);
+  readonly contentAwareScaleDialog = viewChild(ContentAwareScaleDialog);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -1060,8 +1068,28 @@ export class EditorHeader {
   }
 
   onContentAwareScale() {
+    const sel = this.document.selectionRect();
+    if (!sel) {
+      this.showTransformMenu.set(false);
+      return;
+    }
+
+    const dialog = this.contentAwareScaleDialog();
+    if (dialog) {
+      dialog.open(sel.width, sel.height);
+    }
     this.showTransformMenu.set(false);
   }
+
+  handleContentAwareScaleConfirm(result: ContentAwareScaleResult) {
+    this.document.applyContentAwareScale(
+      result.targetWidth,
+      result.targetHeight,
+      result.protectImportantAreas,
+    );
+  }
+
+  handleContentAwareScaleCancel() {}
 
   onAutoAlignLayers() {
     this.showTransformMenu.set(false);

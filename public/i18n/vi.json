@@ -625,5 +625,17 @@
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "contentAwareScale": {
+    "title": "Co giãn thông minh",
+    "description": "Thay đổi kích thước ảnh mà vẫn giữ nguyên nội dung quan trọng. Thích hợp để resize ảnh mà không làm méo đối tượng chính.",
+    "originalSize": "Kích thước gốc",
+    "targetWidth": "Chiều rộng mục tiêu",
+    "targetHeight": "Chiều cao mục tiêu",
+    "notice": "Lưu ý: Co giãn thông minh chỉ giảm kích thước (seam carving). Để phóng to, dùng Scale thường.",
+    "protectImportantAreas": "Tự động bảo vệ vùng quan trọng",
+    "preview": "Xem trước",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }
