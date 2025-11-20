@@ -64,7 +64,10 @@ export class EditorToolsService {
   readonly fillColor = this.fillTool.color.asReadonly();
   readonly fillMode = this.fillTool.mode.asReadonly();
   readonly fillPatternId = this.fillTool.patternId.asReadonly();
-  readonly fillContentAwareThreshold = this.fillTool.contentAwareThreshold.asReadonly();
+  readonly fillGradientStartColor = this.fillTool.gradientStartColor.asReadonly();
+  readonly fillGradientEndColor = this.fillTool.gradientEndColor.asReadonly();
+  readonly fillGradientType = this.fillTool.gradientType.asReadonly();
+  readonly fillGradientAngle = this.fillTool.gradientAngle.asReadonly();
   readonly brushSize = this.brushTool.size.asReadonly();
   readonly brushColor = this.brushTool.color.asReadonly();
   readonly eraserSize = this.eraserTool.size.asReadonly();
@@ -135,8 +138,23 @@ export class EditorToolsService {
     this.saveToStorage();
   }
 
-  setFillContentAwareThreshold(threshold: number) {
-    this.fillTool.setContentAwareThreshold(threshold);
+  setFillGradientStartColor(color: string) {
+    this.fillTool.setGradientStartColor(color);
+    this.saveToStorage();
+  }
+
+  setFillGradientEndColor(color: string) {
+    this.fillTool.setGradientEndColor(color);
+    this.saveToStorage();
+  }
+
+  setFillGradientType(type: 'linear' | 'radial') {
+    this.fillTool.setGradientType(type);
+    this.saveToStorage();
+  }
+
+  setFillGradientAngle(angle: number) {
+    this.fillTool.setGradientAngle(angle);
     this.saveToStorage();
   }
 
@@ -329,7 +347,10 @@ export class EditorToolsService {
         fillColor: this.fillTool.color(),
         fillMode: this.fillTool.mode(),
         fillPatternId: this.fillTool.patternId(),
-        fillContentAwareThreshold: this.fillTool.contentAwareThreshold(),
+        fillGradientStartColor: this.fillTool.gradientStartColor(),
+        fillGradientEndColor: this.fillTool.gradientEndColor(),
+        fillGradientType: this.fillTool.gradientType(),
+        fillGradientAngle: this.fillTool.gradientAngle(),
         brushSize: this.brushTool.size(),
         brushColor: this.brushTool.color(),
         eraserStrength: this.eraserTool.strength(),
@@ -371,7 +392,10 @@ export class EditorToolsService {
         fillColor: string;
         fillMode: FillToolMode;
         fillPatternId: string;
-        fillContentAwareThreshold: number;
+        fillGradientStartColor: string;
+        fillGradientEndColor: string;
+        fillGradientType: 'linear' | 'radial';
+        fillGradientAngle: number;
         brushSize: number;
         brushColor: string;
         eraserStrength: number;
@@ -409,14 +433,23 @@ export class EditorToolsService {
       if (typeof parsed.fillColor === 'string' && parsed.fillColor.length) {
         fillSnapshot.color = parsed.fillColor;
       }
-      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase' || parsed.fillMode === 'pattern' || parsed.fillMode === 'content-aware') {
+      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase' || parsed.fillMode === 'pattern' || parsed.fillMode === 'gradient') {
         fillSnapshot.mode = parsed.fillMode;
       }
       if (typeof parsed.fillPatternId === 'string' && parsed.fillPatternId.length) {
         fillSnapshot.patternId = parsed.fillPatternId;
       }
-      if (typeof parsed.fillContentAwareThreshold === 'number') {
-        fillSnapshot.contentAwareThreshold = parsed.fillContentAwareThreshold;
+      if (typeof parsed.fillGradientStartColor === 'string' && parsed.fillGradientStartColor.length) {
+        fillSnapshot.gradientStartColor = parsed.fillGradientStartColor;
+      }
+      if (typeof parsed.fillGradientEndColor === 'string' && parsed.fillGradientEndColor.length) {
+        fillSnapshot.gradientEndColor = parsed.fillGradientEndColor;
+      }
+      if (parsed.fillGradientType === 'linear' || parsed.fillGradientType === 'radial') {
+        fillSnapshot.gradientType = parsed.fillGradientType;
+      }
+      if (typeof parsed.fillGradientAngle === 'number') {
+        fillSnapshot.gradientAngle = parsed.fillGradientAngle;
       }
       const brushSnapshot: Partial<ToolSnapshot['brush']> = {};
       if (typeof parsed.brushSize === 'number') {

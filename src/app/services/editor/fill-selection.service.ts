@@ -8,7 +8,10 @@ export interface FillSelectionOptions {
   mode: FillToolMode;
   color?: string;
   patternId?: string;
-  contentAwareThreshold?: number;
+  gradientStartColor?: string;
+  gradientEndColor?: string;
+  gradientType?: 'linear' | 'radial';
+  gradientAngle?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -73,13 +76,15 @@ export class FillSelectionService {
         maskData,
         options.patternId
       );
-    } else if (options.mode === 'content-aware') {
-      fillImageData = this.fillWithContentAware(
-        fullImageData,
-        maskData,
+    } else if (options.mode === 'gradient') {
+      fillImageData = this.fillWithGradient(
         width,
         height,
-        options.contentAwareThreshold || 32
+        maskData,
+        options.gradientStartColor || '#000000',
+        options.gradientEndColor || '#ffffff',
+        options.gradientType || 'linear',
+        options.gradientAngle || 0
       );
     } else if (options.mode === 'erase') {
       fillImageData = this.fillWithErase(width, height, maskData);
@@ -215,17 +220,64 @@ export class FillSelectionService {
     return imageData;
   }
 
-  private fillWithContentAware(
-    sourceData: ImageData,
-    maskData: Uint8Array,
+  private fillWithGradient(
     width: number,
     height: number,
-    threshold: number
+    maskData: Uint8Array,
+    startColor: string,
+    endColor: string,
+    type: 'linear' | 'radial',
+    angle: number
   ): ImageData {
-    return this.contentAwareFill.fillSelection(sourceData, maskData, width, height, {
-      threshold,
-      sampleRadius: 5,
-    });
+    const imageData = new ImageData(width, height);
+    const data = imageData.data;
+    const startRgba = this.hexToRgba(startColor);
+    const endRgba = this.hexToRgba(endColor);
+
+    if (type === 'linear') {
+      const rad = (angle * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          if (maskData[idx] > 0) {
+            const nx = (x - width / 2) / (width / 2);
+            const ny = (y - height / 2) / (height / 2);
+            const proj = (nx * cos + ny * sin + 1) / 2;
+            const t = Math.max(0, Math.min(1, proj));
+            const dataIdx = idx * 4;
+            data[dataIdx] = Math.round(startRgba[0] + (endRgba[0] - startRgba[0]) * t);
+            data[dataIdx + 1] = Math.round(startRgba[1] + (endRgba[1] - startRgba[1]) * t);
+            data[dataIdx + 2] = Math.round(startRgba[2] + (endRgba[2] - startRgba[2]) * t);
+            data[dataIdx + 3] = Math.round(startRgba[3] + (endRgba[3] - startRgba[3]) * t);
+          }
+        }
+      }
+    } else {
+      const cx = width / 2;
+      const cy = height / 2;
+      const maxDist = Math.sqrt(cx * cx + cy * cy);
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = y * width + x;
+          if (maskData[idx] > 0) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const t = Math.max(0, Math.min(1, dist / maxDist));
+            const dataIdx = idx * 4;
+            data[dataIdx] = Math.round(startRgba[0] + (endRgba[0] - startRgba[0]) * t);
+            data[dataIdx + 1] = Math.round(startRgba[1] + (endRgba[1] - startRgba[1]) * t);
+            data[dataIdx + 2] = Math.round(startRgba[2] + (endRgba[2] - startRgba[2]) * t);
+            data[dataIdx + 3] = Math.round(startRgba[3] + (endRgba[3] - startRgba[3]) * t);
+          }
+        }
+      }
+    }
+    return imageData;
   }
 
   private fillWithErase(
