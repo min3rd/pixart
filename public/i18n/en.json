@@ -267,7 +267,12 @@
         "title": "Fill",
         "color": "Color",
         "useColor": "Paint",
-        "erase": "Erase"
+        "erase": "Erase",
+        "pattern": "Pattern",
+        "contentAware": "Content-Aware",
+        "patternLibrary": "Pattern Library",
+        "threshold": "Threshold",
+        "fillSelection": "Fill Selection"
       },
       "eraser": {
         "title": "Eraser",
@@ -457,6 +462,7 @@
       "edit.deleteLayer": "Delete Layer",
       "edit.duplicateFrame": "Duplicate Frame",
       "edit.deleteFrame": "Delete Frame",
+      "edit.fillSelection": "Fill Selection",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -637,5 +643,34 @@
   },
   "modal": {
     "close": "Close"
+  },
+  "patterns": {
+    "checker8": "Checker 8x8",
+    "checker4": "Checker 4x4",
+    "checker2": "Checker 2x2",
+    "dots8": "Dots 8x8",
+    "dots4": "Dots 4x4",
+    "stripesH8": "Horizontal Stripes 8px",
+    "stripesH4": "Horizontal Stripes 4px",
+    "stripesV8": "Vertical Stripes 8px",
+    "stripesV4": "Vertical Stripes 4px",
+    "grid8": "Grid 8x8",
+    "grid4": "Grid 4x4",
+    "noise": "Noise",
+    "diagonalLines8": "Diagonal Lines 8px",
+    "diagonalLines4": "Diagonal Lines 4px"
+  },
+  "fillSelection": {
+    "title": "Fill Selection",
+    "description": "Fill the selected area with color, pattern, or content-aware fill",
+    "fillMode": "Fill Mode",
+    "color": "Color",
+    "pattern": "Pattern",
+    "contentAware": "Content-Aware",
+    "selectPattern": "Select Pattern",
+    "threshold": "Threshold",
+    "previewEnabled": "Preview changes on canvas",
+    "apply": "Apply",
+    "cancel": "Cancel"
   }
 }

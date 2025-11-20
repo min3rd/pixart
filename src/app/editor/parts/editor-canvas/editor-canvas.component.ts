@@ -47,6 +47,11 @@ import {
 } from '../../../services/editor/editor-perspective.service';
 import { EditorWarpService } from '../../../services/editor/editor-warp.service';
 import { EditorPuppetWarpService } from '../../../services/editor/editor-puppet-warp.service';
+import {
+  FillSelectionDialog,
+  FillSelectionDialogResult,
+} from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
+import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -84,7 +89,7 @@ interface ContextMenuAction {
   selector: 'pa-editor-canvas',
   templateUrl: './editor-canvas.component.html',
   styleUrls: ['./editor-canvas.component.css'],
-  imports: [CommonModule, TranslocoPipe, NgIcon, PixelGenerationDialog],
+  imports: [CommonModule, TranslocoPipe, NgIcon, PixelGenerationDialog, FillSelectionDialog],
   host: {
     class: 'block h-full w-full',
     '(wheel)': 'onWheel($event)',
@@ -99,6 +104,8 @@ export class EditorCanvas implements OnDestroy {
   canvasWrapper!: ElementRef<HTMLDivElement>;
   @ViewChild(PixelGenerationDialog, { static: false })
   pixelGenerationDialog!: PixelGenerationDialog;
+  @ViewChild(FillSelectionDialog, { static: false })
+  fillSelectionDialog!: FillSelectionDialog;
   readonly document = inject(EditorDocumentService);
   readonly documentSvc: EditorDocumentService = this.document;
   readonly tools = inject(EditorToolsService);
@@ -111,6 +118,7 @@ export class EditorCanvas implements OnDestroy {
   readonly perspective = inject(EditorPerspectiveService);
   readonly warp = inject(EditorWarpService);
   readonly puppetWarp = inject(EditorPuppetWarpService);
+  readonly fillSelectionService = inject(FillSelectionService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -419,6 +427,41 @@ export class EditorCanvas implements OnDestroy {
         this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
       },
     });
+
+    this.hotkeys.register({
+      id: 'edit.fillSelection',
+      category: 'edit',
+      defaultKey: 'shift+f5',
+      handler: () => this.openFillSelectionDialog(),
+    });
+  }
+
+  async openFillSelectionDialog() {
+    const selectionRect = this.document.selectionRect();
+    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0) return;
+
+    const result = await this.fillSelectionDialog?.open();
+    if (!result) return;
+
+    const success = this.fillSelectionService.fillSelection({
+      mode: result.mode,
+      color: result.color,
+      patternId: result.patternId,
+      contentAwareThreshold: result.contentAwareThreshold,
+    });
+
+    if (success) {
+      this.tools.setFillMode(result.mode);
+      if (result.color) {
+        this.tools.setFillColor(result.color);
+      }
+      if (result.patternId) {
+        this.tools.setFillPatternId(result.patternId);
+      }
+      if (result.contentAwareThreshold !== undefined) {
+        this.tools.setFillContentAwareThreshold(result.contentAwareThreshold);
+      }
+    }
   }
 
   private activateMoveSelectionHotkey() {

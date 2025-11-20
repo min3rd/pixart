@@ -63,6 +63,8 @@ export class EditorToolsService {
   readonly currentTool = signal<ToolId>('select-layer');
   readonly fillColor = this.fillTool.color.asReadonly();
   readonly fillMode = this.fillTool.mode.asReadonly();
+  readonly fillPatternId = this.fillTool.patternId.asReadonly();
+  readonly fillContentAwareThreshold = this.fillTool.contentAwareThreshold.asReadonly();
   readonly brushSize = this.brushTool.size.asReadonly();
   readonly brushColor = this.brushTool.color.asReadonly();
   readonly eraserSize = this.eraserTool.size.asReadonly();
@@ -125,6 +127,16 @@ export class EditorToolsService {
 
   setFillMode(mode: FillToolMode) {
     this.fillTool.setMode(mode);
+    this.saveToStorage();
+  }
+
+  setFillPatternId(patternId: string) {
+    this.fillTool.setPatternId(patternId);
+    this.saveToStorage();
+  }
+
+  setFillContentAwareThreshold(threshold: number) {
+    this.fillTool.setContentAwareThreshold(threshold);
     this.saveToStorage();
   }
 
@@ -316,6 +328,8 @@ export class EditorToolsService {
         currentTool: this.currentTool(),
         fillColor: this.fillTool.color(),
         fillMode: this.fillTool.mode(),
+        fillPatternId: this.fillTool.patternId(),
+        fillContentAwareThreshold: this.fillTool.contentAwareThreshold(),
         brushSize: this.brushTool.size(),
         brushColor: this.brushTool.color(),
         eraserStrength: this.eraserTool.strength(),
@@ -356,6 +370,8 @@ export class EditorToolsService {
         currentTool: ToolId;
         fillColor: string;
         fillMode: FillToolMode;
+        fillPatternId: string;
+        fillContentAwareThreshold: number;
         brushSize: number;
         brushColor: string;
         eraserStrength: number;
@@ -393,8 +409,14 @@ export class EditorToolsService {
       if (typeof parsed.fillColor === 'string' && parsed.fillColor.length) {
         fillSnapshot.color = parsed.fillColor;
       }
-      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase') {
+      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase' || parsed.fillMode === 'pattern' || parsed.fillMode === 'content-aware') {
         fillSnapshot.mode = parsed.fillMode;
+      }
+      if (typeof parsed.fillPatternId === 'string' && parsed.fillPatternId.length) {
+        fillSnapshot.patternId = parsed.fillPatternId;
+      }
+      if (typeof parsed.fillContentAwareThreshold === 'number') {
+        fillSnapshot.contentAwareThreshold = parsed.fillContentAwareThreshold;
       }
       const brushSnapshot: Partial<ToolSnapshot['brush']> = {};
       if (typeof parsed.brushSize === 'number') {
