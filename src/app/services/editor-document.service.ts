@@ -1899,6 +1899,42 @@ export class EditorDocumentService {
 
       this.saveSnapshotForUndo('Content-Aware Scale (selection)');
 
+      const originalLayerId = this.selectedLayerId();
+      const canvasWidth = this.canvasWidth();
+      const canvasHeight = this.canvasHeight();
+
+      const hiddenLayer = this.layerService.addLayer('Original Selection');
+      this.layerService.toggleLayerVisibility(hiddenLayer.id);
+
+      this.canvasState.ensureLayerBuffer(
+        hiddenLayer.id,
+        canvasWidth,
+        canvasHeight,
+      );
+      const hiddenLayerBuf = this.canvasState.getLayerBuffer(hiddenLayer.id);
+      if (hiddenLayerBuf) {
+        for (let y = 0; y < selBuf.height; y++) {
+          for (let x = 0; x < selBuf.width; x++) {
+            const srcIdx = y * selBuf.width + x;
+            const color = selBuf.buffer[srcIdx];
+            if (color) {
+              const destX = selBuf.x + x;
+              const destY = selBuf.y + y;
+              if (
+                destX >= 0 &&
+                destX < canvasWidth &&
+                destY >= 0 &&
+                destY < canvasHeight
+              ) {
+                const destIdx = destY * canvasWidth + destX;
+                hiddenLayerBuf[destIdx] = color;
+              }
+            }
+          }
+        }
+        this.canvasState.setLayerBuffer(hiddenLayer.id, hiddenLayerBuf);
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = selBuf.width;
       canvas.height = selBuf.height;
@@ -1944,32 +1980,88 @@ export class EditorDocumentService {
         }
       }
 
+      const transformedLayer = this.layerService.addLayer('Content-Aware Scaled');
+      this.canvasState.ensureLayerBuffer(
+        transformedLayer.id,
+        canvasWidth,
+        canvasHeight,
+      );
+
       const centerX = selBuf.x + selBuf.width / 2;
       const centerY = selBuf.y + selBuf.height / 2;
 
       const newX = Math.max(
         0,
         Math.min(
-          this.canvasWidth() - targetWidth,
+          canvasWidth - targetWidth,
           Math.round(centerX - targetWidth / 2),
         ),
       );
       const newY = Math.max(
         0,
         Math.min(
-          this.canvasHeight() - targetHeight,
+          canvasHeight - targetHeight,
           Math.round(centerY - targetHeight / 2),
         ),
       );
 
-      this.applySelectionBuffer(
-        resultBuffer,
-        targetWidth,
-        targetHeight,
-        newX,
-        newY,
-        true,
+      const transformedLayerBuf = this.canvasState.getLayerBuffer(
+        transformedLayer.id,
       );
+      if (transformedLayerBuf) {
+        for (let y = 0; y < targetHeight; y++) {
+          for (let x = 0; x < targetWidth; x++) {
+            const srcIdx = y * targetWidth + x;
+            const color = resultBuffer[srcIdx];
+            if (color) {
+              const destX = newX + x;
+              const destY = newY + y;
+              if (
+                destX >= 0 &&
+                destX < canvasWidth &&
+                destY >= 0 &&
+                destY < canvasHeight
+              ) {
+                const destIdx = destY * canvasWidth + destX;
+                transformedLayerBuf[destIdx] = color;
+              }
+            }
+          }
+        }
+        this.canvasState.setLayerBuffer(transformedLayer.id, transformedLayerBuf);
+      }
+
+      if (originalLayerId) {
+        this.layerService.selectLayer(originalLayerId);
+        const originalBuf = this.canvasState.getLayerBuffer(originalLayerId);
+        if (originalBuf) {
+          const shape = this.selectionService.selectionShape();
+          const poly = this.selectionService.selectionPolygon();
+
+          for (let cy = 0; cy < sel.height; cy++) {
+            for (let cx = 0; cx < sel.width; cx++) {
+              const px = sel.x + cx;
+              const py = sel.y + cy;
+              if (px < 0 || px >= canvasWidth || py < 0 || py >= canvasHeight)
+                continue;
+
+              if (
+                this.selectionService.isPixelWithinSelection(
+                  px,
+                  py,
+                  sel,
+                  shape,
+                  poly,
+                )
+              ) {
+                const idx = py * canvasWidth + px;
+                originalBuf[idx] = '';
+              }
+            }
+          }
+          this.canvasState.setLayerBuffer(originalLayerId, originalBuf);
+        }
+      }
 
       this.selectionService.selectionRect.set({
         x: newX,
@@ -1978,6 +2070,8 @@ export class EditorDocumentService {
         height: targetHeight,
       });
 
+      this.canvasState.incrementPixelsVersion();
+      this.canvasState.setCanvasSaved(false);
       return true;
     }
 
