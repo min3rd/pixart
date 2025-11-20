@@ -39,6 +39,7 @@ export class Modal {
   private dialogStartX = 0;
   private dialogStartY = 0;
   private activePointerId: number | null = null;
+  private dragElement: HTMLElement | null = null;
 
   constructor() {
     effect(() => {
@@ -109,7 +110,8 @@ export class Modal {
     if ((event as PointerEvent).pointerId !== undefined) {
       this.activePointerId = (event as PointerEvent).pointerId;
       try {
-        (event.target as HTMLElement | null)?.setPointerCapture?.(this.activePointerId);
+        this.dragElement = event.target as HTMLElement;
+        this.dragElement?.setPointerCapture?.(this.activePointerId);
       } catch {}
     }
     // Prevent default to avoid selection but do not stop propagation so inputs can still focus
@@ -138,12 +140,11 @@ export class Modal {
     this.isDragging = false;
     if (this.activePointerId !== null) {
       try {
-        // Try to release pointer capture if it was set
-        const el = document.elementFromPoint(this.dialogStartX, this.dialogStartY) as HTMLElement | null;
-        el?.releasePointerCapture?.(this.activePointerId);
+        this.dragElement?.releasePointerCapture?.(this.activePointerId);
       } catch {}
     }
     this.activePointerId = null;
+    this.dragElement = null;
   }
 
   handleBackdropClick(event: MouseEvent): void {
