@@ -15,6 +15,7 @@
     "pasteInto": "Paste Into",
     "clear": "Clear",
     "transform": "Transform",
+    "fill": "Fill",
     "freeTransform": "Free Transform",
     "scale": "Scale",
     "rotate": "Rotate",
@@ -30,7 +31,8 @@
     "flipVertical": "Flip Vertical",
     "rotate90CW": "Rotate 90° CW",
     "rotate90CCW": "Rotate 90° CCW",
-    "rotate180": "Rotate 180°"
+    "rotate180": "Rotate 180°",
+    "fillSelection": "Fill Selection"
   },
   "badges": {
     "title": "2D Editor • Alpha"

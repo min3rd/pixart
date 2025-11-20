@@ -283,6 +283,44 @@
       }
     </div>
     <div
+      id="menu-fill-wrapper"
+      class="relative"
+      (mouseenter)="openFillMenuHover()"
+      (mouseleave)="closeFillMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-fill-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showFillMenu.set(!showFillMenu())"
+        [attr.aria-expanded]="showFillMenu()"
+        [paTooltip]="'tooltips.menu.fill' | transloco"
+      >
+        {{ "menu.fill" | transloco }}
+      </button>
+      @if (showFillMenu()) {
+        <div
+          id="menu-fill-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onFillMenuFocusIn()"
+          (focusout)="onFillMenuFocusOut()"
+        >
+          <button
+            id="menu-fill-selection-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onFillSelection()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.fillSelection')"
+          >
+            <span id="menu-fill-selection-label">{{ "menu.fillSelection" | transloco }}</span>
+            @if (hotkeys.getBinding('edit.fillSelection')) {
+              <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ hotkeys.keyStringToDisplay(hotkeys.getBinding('edit.fillSelection')!) }}</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
       id="menu-insert-wrapper"
       class="relative"
       (mouseenter)="openInsertMenuHover()"
@@ -988,3 +1026,4 @@
 />
 
 <pa-hotkey-config-dialog />
+<pa-fill-selection-dialog />

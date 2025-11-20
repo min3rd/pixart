@@ -15,6 +15,7 @@
     "pasteInto": "Dán vào vùng chọn",
     "clear": "Xóa",
     "transform": "Biến đổi",
+    "fill": "Đổ màu",
     "freeTransform": "Biến đổi tự do",
     "scale": "Thay đổi kích thước",
     "rotate": "Xoay",
@@ -30,7 +31,8 @@
     "flipVertical": "Lật dọc",
     "rotate90CW": "Xoay 90° phải",
     "rotate90CCW": "Xoay 90° trái",
-    "rotate180": "Xoay 180°"
+    "rotate180": "Xoay 180°",
+    "fillSelection": "Đổ màu vùng chọn"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha"

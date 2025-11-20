@@ -44,6 +44,8 @@ import {
   ContentAwareScaleResult,
 } from '../../../shared/components/content-aware-scale-dialog/content-aware-scale-dialog';
 import { EditorContentAwareScaleService } from '../../../services/editor/editor-content-aware-scale.service';
+import { FillSelectionService } from '../../../services/editor/fill-selection.service';
+import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 
 @Component({
   selector: 'pa-editor-header',
@@ -62,6 +64,7 @@ import { EditorContentAwareScaleService } from '../../../services/editor/editor-
     WarpDialog,
     PuppetWarpDialog,
     ContentAwareScaleDialog,
+    FillSelectionDialog,
   ],
   host: {
     class:
@@ -88,6 +91,7 @@ export class EditorHeader {
   readonly showToolMenu = signal(false);
   readonly showHelpMenu = signal(false);
   readonly showTransformMenu = signal(false);
+  readonly showFillMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
@@ -96,6 +100,8 @@ export class EditorHeader {
   readonly warpDialog = viewChild(WarpDialog);
   readonly puppetWarpDialog = viewChild(PuppetWarpDialog);
   readonly contentAwareScaleDialog = viewChild(ContentAwareScaleDialog);
+  readonly fillSelectionDialog = viewChild(FillSelectionDialog);
+  readonly fillSelectionService = inject(FillSelectionService);
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -108,6 +114,8 @@ export class EditorHeader {
   private helpHoverCloseTimer?: number;
   private transformHoverOpenTimer?: number;
   private transformHoverCloseTimer?: number;
+  private fillHoverOpenTimer?: number;
+  private fillHoverCloseTimer?: number;
 
   async onNewProject() {
     // Reset to a minimal new project
@@ -185,6 +193,50 @@ export class EditorHeader {
         this.hoverCloseTimer = undefined;
       }, 200);
     }
+  }
+
+  openFillMenuHover() {
+    if (this.fillHoverCloseTimer) {
+      clearTimeout(this.fillHoverCloseTimer);
+      this.fillHoverCloseTimer = undefined;
+    }
+    if (!this.showFillMenu()) {
+      this.fillHoverOpenTimer = window.setTimeout(() => {
+        this.showFillMenu.set(true);
+        this.fillHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closeFillMenuHover() {
+    if (this.fillHoverOpenTimer) {
+      clearTimeout(this.fillHoverOpenTimer);
+      this.fillHoverOpenTimer = undefined;
+    }
+    if (this.showFillMenu()) {
+      this.fillHoverCloseTimer = window.setTimeout(() => {
+        this.showFillMenu.set(false);
+        this.fillHoverCloseTimer = undefined;
+      }, 150);
+    }
+  }
+
+  onFillMenuFocusIn() {
+    if (this.fillHoverCloseTimer) {
+      clearTimeout(this.fillHoverCloseTimer);
+      this.fillHoverCloseTimer = undefined;
+    }
+  }
+
+  onFillMenuFocusOut() {
+    if (this.fillHoverOpenTimer) {
+      clearTimeout(this.fillHoverOpenTimer);
+      this.fillHoverOpenTimer = undefined;
+    }
+    this.fillHoverCloseTimer = window.setTimeout(() => {
+      this.showFillMenu.set(false);
+      this.fillHoverCloseTimer = undefined;
+    }, 150);
   }
 
   // Keep menu open if it receives focus (keyboard navigation); close when it
@@ -623,6 +675,41 @@ export class EditorHeader {
       }
     };
     input.click();
+  }
+
+  async onFillSelection() {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      this.showTransformMenu.set(false);
+      this.showToolMenu.set(false);
+      return;
+    }
+
+    const result = await this.fillSelectionDialog?.open();
+    if (!result) return;
+
+    const success = this.fillSelectionService.fillSelection({
+      mode: result.mode,
+      color: result.color,
+      patternId: result.patternId,
+      gradientStartColor: result.gradientStartColor,
+      gradientEndColor: result.gradientEndColor,
+      gradientType: result.gradientType,
+      gradientAngle: result.gradientAngle,
+    });
+
+    if (success) {
+      this.tools.setFillMode(result.mode);
+      if (result.color) this.tools.setFillColor(result.color);
+      if (result.patternId) this.tools.setFillPatternId(result.patternId);
+      if (result.gradientStartColor)
+        this.tools.setFillGradientStartColor(result.gradientStartColor);
+      if (result.gradientEndColor)
+        this.tools.setFillGradientEndColor(result.gradientEndColor);
+      if (result.gradientType) this.tools.setFillGradientType(result.gradientType);
+      if (result.gradientAngle !== undefined)
+        this.tools.setFillGradientAngle(result.gradientAngle);
+    }
   }
 
   handleInsertImageConfirm(result: InsertImageResult) {
