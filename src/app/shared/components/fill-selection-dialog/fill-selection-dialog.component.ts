@@ -4,6 +4,8 @@ import {
   signal,
   inject,
   computed,
+  effect,
+  ElementRef,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EditorToolsService } from '../../../services/editor-tools.service';
@@ -46,6 +48,32 @@ export class FillSelectionDialog {
   );
 
   private resolveCallback?: (result: FillSelectionDialogResult | null) => void;
+  private readonly elementRef = inject(ElementRef);
+
+  constructor() {
+    effect(() => {
+      const isVisible = this.visible();
+      if (isVisible) {
+        setTimeout(() => this.renderPatternPreviews(), 0);
+      }
+    });
+  }
+
+  private renderPatternPreviews(): void {
+    const patterns = this.allPatterns();
+    for (const pattern of patterns) {
+      const canvasEl = this.elementRef.nativeElement.querySelector(
+        `#fill-selection-pattern-canvas-${pattern.id}`
+      ) as HTMLCanvasElement;
+      if (canvasEl) {
+        const ctx = canvasEl.getContext('2d');
+        if (ctx) {
+          const imageData = pattern.generate(64);
+          ctx.putImageData(imageData, 0, 0);
+        }
+      }
+    }
+  }
 
   open(): Promise<FillSelectionDialogResult | null> {
     this.mode.set(this.tools.fillMode());
