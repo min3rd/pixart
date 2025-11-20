@@ -6,12 +6,12 @@ import {
   computed,
   effect,
   ElementRef,
-  viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import { PatternLibraryService, Pattern } from '../../../services/pattern-library.service';
 import { FillToolMode, GradientType } from '../../../services/tools/tool.types';
+import { Modal } from '../modal/modal';
 
 export interface FillSelectionDialogResult {
   mode: FillToolMode;
@@ -28,7 +28,7 @@ export interface FillSelectionDialogResult {
   templateUrl: './fill-selection-dialog.component.html',
   styleUrls: ['./fill-selection-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, Modal],
   host: {
     class: 'block',
   },
@@ -45,8 +45,6 @@ export class FillSelectionDialog {
   readonly gradientEndColor = signal<string>('#ffffff');
   readonly gradientType = signal<GradientType>('linear');
   readonly gradientAngle = signal<number>(0);
-  readonly dialogX = signal<number>(100);
-  readonly dialogY = signal<number>(100);
 
   readonly allPatterns = this.patternLibrary.allPatterns;
   readonly shapePatterns = computed(() =>
@@ -58,54 +56,14 @@ export class FillSelectionDialog {
 
   private resolveCallback?: (result: FillSelectionDialogResult | null) => void;
   private readonly elementRef = inject(ElementRef);
-  private isDragging = false;
-  private dragStartX = 0;
-  private dragStartY = 0;
-  private dialogStartX = 0;
-  private dialogStartY = 0;
-  readonly dialogContent = viewChild<ElementRef>('dialogContent');
 
   constructor() {
     effect(() => {
       const isVisible = this.visible();
       if (isVisible) {
         setTimeout(() => this.renderPatternPreviews(), 0);
-        this.centerDialog();
       }
     });
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('mousemove', (e) => this.onDragMove(e));
-      window.addEventListener('mouseup', () => this.onDragEnd());
-    }
-  }
-
-  private centerDialog(): void {
-    if (typeof window !== 'undefined') {
-      this.dialogX.set((window.innerWidth - 384) / 2);
-      this.dialogY.set((window.innerHeight * 0.2));
-    }
-  }
-
-  onDragStart(event: MouseEvent): void {
-    this.isDragging = true;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-    this.dialogStartX = this.dialogX();
-    this.dialogStartY = this.dialogY();
-    event.preventDefault();
-  }
-
-  private onDragMove(event: MouseEvent): void {
-    if (!this.isDragging) return;
-    const dx = event.clientX - this.dragStartX;
-    const dy = event.clientY - this.dragStartY;
-    this.dialogX.set(this.dialogStartX + dx);
-    this.dialogY.set(this.dialogStartY + dy);
-  }
-
-  private onDragEnd(): void {
-    this.isDragging = false;
   }
 
   private renderPatternPreviews(): void {

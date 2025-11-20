@@ -1,19 +1,16 @@
-@if (visible()) {
-  <div
-    id="fill-selection-dialog-overlay"
-    class="fixed inset-0 z-50 pointer-events-none"
-  >
-    <div
-      #dialogContent
-      id="fill-selection-dialog-content"
-      class="absolute bg-white dark:bg-neutral-900 rounded-none p-4 w-96 max-h-[80vh] overflow-y-auto shadow-2xl border-2 border-neutral-300 dark:border-neutral-700 pointer-events-auto cursor-move"
-      [style.left.px]="dialogX()"
-      [style.top.px]="dialogY()"
-      (mousedown)="onDragStart($event)"
-    >
-      <h2 id="fill-selection-dialog-title" class="text-lg font-semibold mb-4">
-        {{ 'fillSelection.title' | transloco }}
-      </h2>
+<pa-modal
+  [isOpen]="visible()"
+  [title]="'fillSelection.title' | transloco"
+  [size]="'sm'"
+  [draggable]="true"
+  [showBackdrop]="false"
+  [closeOnBackdrop]="false"
+  [closeOnEscape]="true"
+  [showCloseButton]="true"
+  [modalId]="'fill-selection-dialog'"
+  (onClose)="close()"
+>
+  <div id="fill-selection-dialog-content" class="space-y-4">
 
       <div id="fill-selection-mode-section" class="mb-4">
         <label id="fill-selection-mode-label" class="block text-sm font-medium mb-2">
@@ -179,34 +176,25 @@
         </div>
       }
 
-      <div id="fill-selection-actions" class="flex justify-end gap-2 mt-6">
-        <button
-          id="fill-selection-cancel-button"
-          type="button"
-          class="px-4 py-2 text-sm bg-neutral-200 dark:bg-neutral-700 rounded-none"
-          (click)="cancel()"
-        >
-          {{ 'fillSelection.cancel' | transloco }}
-        </button>
-        <button
-          id="fill-selection-apply-button"
-          type="button"
-          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-none"
-          (click)="apply()"
-        >
-          {{ 'fillSelection.apply' | transloco }}
-        </button>
-      </div>
-      
-      <button
-        id="fill-selection-close-button"
-        type="button"
-        class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
-        (click)="close()"
-        (mousedown)="$event.stopPropagation()"
-      >
-        ×
-      </button>
-    </div>
+
   </div>
-}
+
+  <div modal-footer class="flex justify-end gap-2">
+    <button
+      id="fill-selection-cancel-button"
+      type="button"
+      class="px-4 py-2 text-sm bg-neutral-200 dark:bg-neutral-700 rounded-none"
+      (click)="cancel()"
+    >
+      {{ 'fillSelection.cancel' | transloco }}
+    </button>
+    <button
+      id="fill-selection-apply-button"
+      type="button"
+      class="px-4 py-2 text-sm bg-blue-600 text-white rounded-none"
+      (click)="apply()"
+    >
+      {{ 'fillSelection.apply' | transloco }}
+    </button>
+  </div>
+</pa-modal>
