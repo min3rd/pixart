@@ -623,6 +623,18 @@
     "apply": "Apply",
     "cancel": "Cancel"
   },
+  "contentAwareScale": {
+    "title": "Content-Aware Scale",
+    "description": "Scale image while preserving important content. Ideal for resizing images without distorting key subjects.",
+    "originalSize": "Original size",
+    "targetWidth": "Target width",
+    "targetHeight": "Target height",
+    "notice": "Note: Content-Aware Scale only reduces size (seam carving). For expansion, use regular Scale.",
+    "protectImportantAreas": "Protect important areas automatically",
+    "preview": "Preview",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "modal": {
     "close": "Close"
   }

@@ -30,6 +30,7 @@ import {
   isLayer,
 } from './editor/index';
 import { EditorFreeTransformService } from './editor/editor-free-transform.service';
+import { EditorContentAwareScaleService } from './editor/editor-content-aware-scale.service';
 import { GradientType, ShapeFillMode, ToolMetaKey } from './tools/tool.types';
 import { ProjectSnapshot } from './editor/history.types';
 
@@ -77,6 +78,7 @@ export class EditorDocumentService {
   readonly keyframeService = inject(EditorKeyframeService);
   private readonly transformService = inject(EditorTransformService);
   private readonly freeTransformService = inject(EditorFreeTransformService);
+  private readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
 
   readonly layers = this.layerService.layers;
   readonly selectedLayerId = this.layerService.selectedLayerId;
@@ -1882,6 +1884,215 @@ export class EditorDocumentService {
     this.canvasState.incrementPixelsVersion();
     this.canvasState.setCanvasSaved(false);
     return true;
+  }
+
+  applyContentAwareScale(
+    targetWidth: number,
+    targetHeight: number,
+    protectImportantAreas: boolean,
+  ): boolean {
+    const sel = this.selectionService.selectionRect();
+
+    if (sel) {
+      const selBuf = this.getSelectionBuffer();
+      if (!selBuf) return false;
+
+      this.saveSnapshotForUndo('Content-Aware Scale (selection)');
+
+      const canvas = document.createElement('canvas');
+      canvas.width = selBuf.width;
+      canvas.height = selBuf.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+
+      const imgData = ctx.createImageData(selBuf.width, selBuf.height);
+      for (let i = 0; i < selBuf.buffer.length; i++) {
+        const colorStr = selBuf.buffer[i];
+        if (colorStr) {
+          const r = parseInt(colorStr.slice(1, 3), 16);
+          const g = parseInt(colorStr.slice(3, 5), 16);
+          const b = parseInt(colorStr.slice(5, 7), 16);
+          const a = parseInt(colorStr.slice(7, 9), 16);
+          imgData.data[i * 4] = r;
+          imgData.data[i * 4 + 1] = g;
+          imgData.data[i * 4 + 2] = b;
+          imgData.data[i * 4 + 3] = a;
+        }
+      }
+
+      const importanceMap = protectImportantAreas
+        ? this.detectImportantAreas(imgData)
+        : undefined;
+
+      const scaled = this.contentAwareScaleService.contentAwareScale(
+        imgData,
+        targetWidth,
+        targetHeight,
+        importanceMap,
+      );
+
+      const resultBuffer: string[] = new Array(
+        targetWidth * targetHeight,
+      ).fill('');
+      for (let i = 0; i < resultBuffer.length; i++) {
+        const r = scaled.data[i * 4];
+        const g = scaled.data[i * 4 + 1];
+        const b = scaled.data[i * 4 + 2];
+        const a = scaled.data[i * 4 + 3];
+        if (a > 0) {
+          resultBuffer[i] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+        }
+      }
+
+      const centerX = selBuf.x + selBuf.width / 2;
+      const centerY = selBuf.y + selBuf.height / 2;
+
+      const newX = Math.max(
+        0,
+        Math.min(
+          this.canvasWidth() - targetWidth,
+          Math.round(centerX - targetWidth / 2),
+        ),
+      );
+      const newY = Math.max(
+        0,
+        Math.min(
+          this.canvasHeight() - targetHeight,
+          Math.round(centerY - targetHeight / 2),
+        ),
+      );
+
+      this.applySelectionBuffer(
+        resultBuffer,
+        targetWidth,
+        targetHeight,
+        newX,
+        newY,
+        true,
+      );
+
+      this.selectionService.selectionRect.set({
+        x: newX,
+        y: newY,
+        width: targetWidth,
+        height: targetHeight,
+      });
+
+      return true;
+    }
+
+    const targetId = this.selectedLayerId();
+    if (!targetId) return false;
+
+    const buffer = this.canvasState.getLayerBuffer(targetId);
+    if (!buffer || buffer.length === 0) return false;
+
+    this.saveSnapshotForUndo('Content-Aware Scale');
+
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+
+    const imgData = ctx.createImageData(width, height);
+    for (let i = 0; i < buffer.length; i++) {
+      const colorStr = buffer[i];
+      if (colorStr) {
+        const r = parseInt(colorStr.slice(1, 3), 16);
+        const g = parseInt(colorStr.slice(3, 5), 16);
+        const b = parseInt(colorStr.slice(5, 7), 16);
+        const a = parseInt(colorStr.slice(7, 9), 16);
+        imgData.data[i * 4] = r;
+        imgData.data[i * 4 + 1] = g;
+        imgData.data[i * 4 + 2] = b;
+        imgData.data[i * 4 + 3] = a;
+      }
+    }
+
+    const importanceMap = protectImportantAreas
+      ? this.detectImportantAreas(imgData)
+      : undefined;
+
+    const scaled = this.contentAwareScaleService.contentAwareScale(
+      imgData,
+      targetWidth,
+      targetHeight,
+      importanceMap,
+    );
+
+    const resultBuffer: string[] = new Array(targetWidth * targetHeight).fill(
+      '',
+    );
+    for (let i = 0; i < resultBuffer.length; i++) {
+      const r = scaled.data[i * 4];
+      const g = scaled.data[i * 4 + 1];
+      const b = scaled.data[i * 4 + 2];
+      const a = scaled.data[i * 4 + 3];
+      if (a > 0) {
+        resultBuffer[i] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+      }
+    }
+
+    if (targetWidth !== width || targetHeight !== height) {
+      this.canvasState.setCanvasSize(targetWidth, targetHeight);
+
+      for (const layer of this.layerService.getFlattenedLayers()) {
+        if (layer.id !== targetId) {
+          this.canvasState.ensureLayerBuffer(
+            layer.id,
+            targetWidth,
+            targetHeight,
+          );
+        }
+      }
+    }
+
+    this.canvasState.setLayerBuffer(targetId, resultBuffer);
+    this.canvasState.incrementPixelsVersion();
+    this.canvasState.setCanvasSaved(false);
+    return true;
+  }
+
+  private detectImportantAreas(imageData: ImageData): Set<string> {
+    const importantAreas = new Set<string>();
+    const { width, height, data } = imageData;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = (y * width + x) * 4;
+        const alpha = data[idx + 3];
+
+        if (alpha > 128) {
+          let edgeStrength = 0;
+
+          if (x > 0 && x < width - 1) {
+            const leftIdx = (y * width + (x - 1)) * 4;
+            const rightIdx = (y * width + (x + 1)) * 4;
+            edgeStrength += Math.abs(data[rightIdx] - data[leftIdx]);
+            edgeStrength += Math.abs(data[rightIdx + 1] - data[leftIdx + 1]);
+            edgeStrength += Math.abs(data[rightIdx + 2] - data[leftIdx + 2]);
+          }
+
+          if (y > 0 && y < height - 1) {
+            const topIdx = ((y - 1) * width + x) * 4;
+            const bottomIdx = ((y + 1) * width + x) * 4;
+            edgeStrength += Math.abs(data[bottomIdx] - data[topIdx]);
+            edgeStrength += Math.abs(data[bottomIdx + 1] - data[topIdx + 1]);
+            edgeStrength += Math.abs(data[bottomIdx + 2] - data[topIdx + 2]);
+          }
+
+          if (edgeStrength > 100) {
+            importantAreas.add(`${x},${y}`);
+          }
+        }
+      }
+    }
+
+    return importantAreas;
   }
 
   distortSelectionOrLayer(
