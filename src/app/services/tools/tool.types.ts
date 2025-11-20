@@ -50,7 +50,7 @@ export type ToolMetaKey =
 
 export type ShapeFillMode = 'solid' | 'gradient';
 export type GradientType = 'linear' | 'radial';
-export type FillToolMode = 'color' | 'erase';
+export type FillToolMode = 'color' | 'erase' | 'pattern' | 'content-aware';
 
 export interface ToolRestoreContext {
   maxBrush?: number;
@@ -113,6 +113,8 @@ export interface SquareToolSnapshot {
 export interface FillToolSnapshot {
   color: string;
   mode: FillToolMode;
+  patternId?: string;
+  contentAwareThreshold?: number;
 }
 
 export interface BoneToolSnapshot {

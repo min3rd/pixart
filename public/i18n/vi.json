@@ -267,7 +267,12 @@
         "title": "Đổ màu",
         "color": "Màu sắc",
         "useColor": "Tô màu",
-        "erase": "Xóa"
+        "erase": "Xóa",
+        "pattern": "Họa tiết",
+        "contentAware": "Tự động lấp",
+        "patternLibrary": "Thư viện họa tiết",
+        "threshold": "Ngưỡng",
+        "fillSelection": "Tô vùng chọn"
       },
       "eraser": {
         "title": "Tẩy",
@@ -460,6 +465,7 @@
       "edit.deleteLayer": "Xóa layer",
       "edit.duplicateFrame": "Nhân bản khung hình",
       "edit.deleteFrame": "Xóa khung hình",
+      "edit.fillSelection": "Tô vùng chọn",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -635,6 +641,35 @@
     "notice": "Lưu ý: Co giãn thông minh chỉ giảm kích thước (seam carving). Để phóng to, dùng Scale thường.",
     "protectImportantAreas": "Tự động bảo vệ vùng quan trọng",
     "preview": "Xem trước",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
+  },
+  "patterns": {
+    "checker8": "Ô cờ 8x8",
+    "checker4": "Ô cờ 4x4",
+    "checker2": "Ô cờ 2x2",
+    "dots8": "Chấm tròn 8x8",
+    "dots4": "Chấm tròn 4x4",
+    "stripesH8": "Sọc ngang 8px",
+    "stripesH4": "Sọc ngang 4px",
+    "stripesV8": "Sọc dọc 8px",
+    "stripesV4": "Sọc dọc 4px",
+    "grid8": "Lưới 8x8",
+    "grid4": "Lưới 4x4",
+    "noise": "Nhiễu",
+    "diagonalLines8": "Sọc chéo 8px",
+    "diagonalLines4": "Sọc chéo 4px"
+  },
+  "fillSelection": {
+    "title": "Tô vùng chọn",
+    "description": "Tô vùng chọn bằng màu, họa tiết hoặc tự động lấp",
+    "fillMode": "Chế độ tô",
+    "color": "Màu",
+    "pattern": "Họa tiết",
+    "contentAware": "Tự động lấp",
+    "selectPattern": "Chọn họa tiết",
+    "threshold": "Ngưỡng",
+    "previewEnabled": "Xem trước thay đổi trên canvas",
     "apply": "Áp dụng",
     "cancel": "Hủy"
   }

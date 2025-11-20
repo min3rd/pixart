@@ -1,0 +1,141 @@
+@if (visible()) {
+  <div
+    id="fill-selection-dialog-overlay"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    (click)="close()"
+  >
+    <div
+      id="fill-selection-dialog-content"
+      class="bg-white dark:bg-neutral-900 rounded-none p-4 w-96 max-h-[80vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="fill-selection-dialog-title" class="text-lg font-semibold mb-4">
+        {{ 'fillSelection.title' | transloco }}
+      </h2>
+
+      <div id="fill-selection-mode-section" class="mb-4">
+        <label id="fill-selection-mode-label" class="block text-sm font-medium mb-2">
+          {{ 'fillSelection.fillMode' | transloco }}
+        </label>
+        <div id="fill-selection-mode-buttons" class="flex gap-2">
+          <button
+            id="fill-selection-mode-color-button"
+            type="button"
+            class="px-4 py-2 text-sm rounded-none"
+            [class.bg-blue-600]="mode() === 'color'"
+            [class.text-white]="mode() === 'color'"
+            [class.bg-neutral-200]="mode() !== 'color'"
+            [class.dark:bg-neutral-700]="mode() !== 'color'"
+            (click)="selectMode('color')"
+          >
+            {{ 'fillSelection.color' | transloco }}
+          </button>
+          <button
+            id="fill-selection-mode-pattern-button"
+            type="button"
+            class="px-4 py-2 text-sm rounded-none"
+            [class.bg-blue-600]="mode() === 'pattern'"
+            [class.text-white]="mode() === 'pattern'"
+            [class.bg-neutral-200]="mode() !== 'pattern'"
+            [class.dark:bg-neutral-700]="mode() !== 'pattern'"
+            (click)="selectMode('pattern')"
+          >
+            {{ 'fillSelection.pattern' | transloco }}
+          </button>
+          <button
+            id="fill-selection-mode-content-aware-button"
+            type="button"
+            class="px-4 py-2 text-sm rounded-none"
+            [class.bg-blue-600]="mode() === 'content-aware'"
+            [class.text-white]="mode() === 'content-aware'"
+            [class.bg-neutral-200]="mode() !== 'content-aware'"
+            [class.dark:bg-neutral-700]="mode() !== 'content-aware'"
+            (click)="selectMode('content-aware')"
+          >
+            {{ 'fillSelection.contentAware' | transloco }}
+          </button>
+        </div>
+      </div>
+
+      @if (mode() === 'color') {
+        <div id="fill-selection-color-section" class="mb-4">
+          <label id="fill-selection-color-label" for="fill-selection-color-input" class="block text-sm font-medium mb-2">
+            {{ 'fillSelection.color' | transloco }}
+          </label>
+          <input
+            id="fill-selection-color-input"
+            type="color"
+            [value]="color()"
+            (input)="updateColor($event)"
+            class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+          />
+        </div>
+      }
+
+      @if (mode() === 'pattern') {
+        <div id="fill-selection-pattern-section" class="mb-4">
+          <label id="fill-selection-pattern-label" class="block text-sm font-medium mb-2">
+            {{ 'fillSelection.selectPattern' | transloco }}
+          </label>
+          <div id="fill-selection-pattern-grid" class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+            @for (pattern of allPatterns(); track pattern.id) {
+              <button
+                [id]="'fill-selection-pattern-' + pattern.id"
+                type="button"
+                class="w-full h-16 border-2 rounded-none overflow-hidden"
+                [class.border-blue-600]="patternId() === pattern.id"
+                [class.border-neutral-300]="patternId() !== pattern.id"
+                [class.dark:border-neutral-600]="patternId() !== pattern.id"
+                (click)="selectPattern(pattern.id)"
+                [title]="pattern.nameKey | transloco"
+              >
+                <canvas
+                  [id]="'fill-selection-pattern-canvas-' + pattern.id"
+                  class="w-full h-full"
+                  width="64"
+                  height="64"
+                ></canvas>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (mode() === 'content-aware') {
+        <div id="fill-selection-threshold-section" class="mb-4">
+          <label id="fill-selection-threshold-label" for="fill-selection-threshold-input" class="block text-sm font-medium mb-2">
+            {{ 'fillSelection.threshold' | transloco }}: {{ contentAwareThreshold() }}
+          </label>
+          <input
+            id="fill-selection-threshold-input"
+            type="range"
+            min="0"
+            max="255"
+            [value]="contentAwareThreshold()"
+            (input)="updateThreshold($event)"
+            class="w-full"
+          />
+        </div>
+      }
+
+      <div id="fill-selection-actions" class="flex justify-end gap-2 mt-6">
+        <button
+          id="fill-selection-cancel-button"
+          type="button"
+          class="px-4 py-2 text-sm bg-neutral-200 dark:bg-neutral-700 rounded-none"
+          (click)="cancel()"
+        >
+          {{ 'fillSelection.cancel' | transloco }}
+        </button>
+        <button
+          id="fill-selection-apply-button"
+          type="button"
+          class="px-4 py-2 text-sm bg-blue-600 text-white rounded-none"
+          (click)="apply()"
+        >
+          {{ 'fillSelection.apply' | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
