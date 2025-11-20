@@ -6,17 +6,21 @@ import {
   computed,
   effect,
   ElementRef,
+  viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import { PatternLibraryService, Pattern } from '../../../services/pattern-library.service';
-import { FillToolMode } from '../../../services/tools/tool.types';
+import { FillToolMode, GradientType } from '../../../services/tools/tool.types';
 
 export interface FillSelectionDialogResult {
   mode: FillToolMode;
   color?: string;
   patternId?: string;
-  contentAwareThreshold?: number;
+  gradientStartColor?: string;
+  gradientEndColor?: string;
+  gradientType?: GradientType;
+  gradientAngle?: number;
 }
 
 @Component({
@@ -37,7 +41,12 @@ export class FillSelectionDialog {
   readonly mode = signal<FillToolMode>('color');
   readonly color = signal<string>('#000000');
   readonly patternId = signal<string>('checker-8');
-  readonly contentAwareThreshold = signal<number>(32);
+  readonly gradientStartColor = signal<string>('#000000');
+  readonly gradientEndColor = signal<string>('#ffffff');
+  readonly gradientType = signal<GradientType>('linear');
+  readonly gradientAngle = signal<number>(0);
+  readonly dialogX = signal<number>(100);
+  readonly dialogY = signal<number>(100);
 
   readonly allPatterns = this.patternLibrary.allPatterns;
   readonly shapePatterns = computed(() =>
@@ -49,14 +58,54 @@ export class FillSelectionDialog {
 
   private resolveCallback?: (result: FillSelectionDialogResult | null) => void;
   private readonly elementRef = inject(ElementRef);
+  private isDragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dialogStartX = 0;
+  private dialogStartY = 0;
+  readonly dialogContent = viewChild<ElementRef>('dialogContent');
 
   constructor() {
     effect(() => {
       const isVisible = this.visible();
       if (isVisible) {
         setTimeout(() => this.renderPatternPreviews(), 0);
+        this.centerDialog();
       }
     });
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mousemove', (e) => this.onDragMove(e));
+      window.addEventListener('mouseup', () => this.onDragEnd());
+    }
+  }
+
+  private centerDialog(): void {
+    if (typeof window !== 'undefined') {
+      this.dialogX.set((window.innerWidth - 384) / 2);
+      this.dialogY.set((window.innerHeight * 0.2));
+    }
+  }
+
+  onDragStart(event: MouseEvent): void {
+    this.isDragging = true;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dialogStartX = this.dialogX();
+    this.dialogStartY = this.dialogY();
+    event.preventDefault();
+  }
+
+  private onDragMove(event: MouseEvent): void {
+    if (!this.isDragging) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    this.dialogX.set(this.dialogStartX + dx);
+    this.dialogY.set(this.dialogStartY + dy);
+  }
+
+  private onDragEnd(): void {
+    this.isDragging = false;
   }
 
   private renderPatternPreviews(): void {
@@ -79,7 +128,10 @@ export class FillSelectionDialog {
     this.mode.set(this.tools.fillMode());
     this.color.set(this.tools.fillColor());
     this.patternId.set(this.tools.fillPatternId());
-    this.contentAwareThreshold.set(this.tools.fillContentAwareThreshold());
+    this.gradientStartColor.set(this.tools.fillGradientStartColor());
+    this.gradientEndColor.set(this.tools.fillGradientEndColor());
+    this.gradientType.set(this.tools.fillGradientType());
+    this.gradientAngle.set(this.tools.fillGradientAngle());
     this.visible.set(true);
 
     return new Promise((resolve) => {
@@ -108,9 +160,23 @@ export class FillSelectionDialog {
     this.patternId.set(patternId);
   }
 
-  updateThreshold(event: Event) {
+  updateGradientStartColor(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.contentAwareThreshold.set(parseInt(input.value, 10));
+    this.gradientStartColor.set(input.value);
+  }
+
+  updateGradientEndColor(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.gradientEndColor.set(input.value);
+  }
+
+  selectGradientType(type: GradientType) {
+    this.gradientType.set(type);
+  }
+
+  updateGradientAngle(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.gradientAngle.set(parseInt(input.value, 10));
   }
 
   apply() {
@@ -118,7 +184,10 @@ export class FillSelectionDialog {
       mode: this.mode(),
       color: this.color(),
       patternId: this.patternId(),
-      contentAwareThreshold: this.contentAwareThreshold(),
+      gradientStartColor: this.gradientStartColor(),
+      gradientEndColor: this.gradientEndColor(),
+      gradientType: this.gradientType(),
+      gradientAngle: this.gradientAngle(),
     };
     this.visible.set(false);
     if (this.resolveCallback) {

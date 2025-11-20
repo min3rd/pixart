@@ -447,7 +447,10 @@ export class EditorCanvas implements OnDestroy {
       mode: result.mode,
       color: result.color,
       patternId: result.patternId,
-      contentAwareThreshold: result.contentAwareThreshold,
+      gradientStartColor: result.gradientStartColor,
+      gradientEndColor: result.gradientEndColor,
+      gradientType: result.gradientType,
+      gradientAngle: result.gradientAngle,
     });
 
     if (success) {
@@ -458,8 +461,17 @@ export class EditorCanvas implements OnDestroy {
       if (result.patternId) {
         this.tools.setFillPatternId(result.patternId);
       }
-      if (result.contentAwareThreshold !== undefined) {
-        this.tools.setFillContentAwareThreshold(result.contentAwareThreshold);
+      if (result.gradientStartColor) {
+        this.tools.setFillGradientStartColor(result.gradientStartColor);
+      }
+      if (result.gradientEndColor) {
+        this.tools.setFillGradientEndColor(result.gradientEndColor);
+      }
+      if (result.gradientType) {
+        this.tools.setFillGradientType(result.gradientType);
+      }
+      if (result.gradientAngle !== undefined) {
+        this.tools.setFillGradientAngle(result.gradientAngle);
       }
     }
   }

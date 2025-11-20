@@ -1,13 +1,15 @@
 @if (visible()) {
   <div
     id="fill-selection-dialog-overlay"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-    (click)="close()"
+    class="fixed inset-0 z-50 pointer-events-none"
   >
     <div
+      #dialogContent
       id="fill-selection-dialog-content"
-      class="bg-white dark:bg-neutral-900 rounded-none p-4 w-96 max-h-[80vh] overflow-y-auto"
-      (click)="$event.stopPropagation()"
+      class="absolute bg-white dark:bg-neutral-900 rounded-none p-4 w-96 max-h-[80vh] overflow-y-auto shadow-2xl border-2 border-neutral-300 dark:border-neutral-700 pointer-events-auto cursor-move"
+      [style.left.px]="dialogX()"
+      [style.top.px]="dialogY()"
+      (mousedown)="onDragStart($event)"
     >
       <h2 id="fill-selection-dialog-title" class="text-lg font-semibold mb-4">
         {{ 'fillSelection.title' | transloco }}
@@ -43,16 +45,16 @@
             {{ 'fillSelection.pattern' | transloco }}
           </button>
           <button
-            id="fill-selection-mode-content-aware-button"
+            id="fill-selection-mode-gradient-button"
             type="button"
             class="px-4 py-2 text-sm rounded-none"
-            [class.bg-blue-600]="mode() === 'content-aware'"
-            [class.text-white]="mode() === 'content-aware'"
-            [class.bg-neutral-200]="mode() !== 'content-aware'"
-            [class.dark:bg-neutral-700]="mode() !== 'content-aware'"
-            (click)="selectMode('content-aware')"
+            [class.bg-blue-600]="mode() === 'gradient'"
+            [class.text-white]="mode() === 'gradient'"
+            [class.bg-neutral-200]="mode() !== 'gradient'"
+            [class.dark:bg-neutral-700]="mode() !== 'gradient'"
+            (click)="selectMode('gradient')"
           >
-            {{ 'fillSelection.contentAware' | transloco }}
+            {{ 'fillSelection.gradient' | transloco }}
           </button>
         </div>
       </div>
@@ -101,20 +103,79 @@
         </div>
       }
 
-      @if (mode() === 'content-aware') {
-        <div id="fill-selection-threshold-section" class="mb-4">
-          <label id="fill-selection-threshold-label" for="fill-selection-threshold-input" class="block text-sm font-medium mb-2">
-            {{ 'fillSelection.threshold' | transloco }}: {{ contentAwareThreshold() }}
-          </label>
-          <input
-            id="fill-selection-threshold-input"
-            type="range"
-            min="0"
-            max="255"
-            [value]="contentAwareThreshold()"
-            (input)="updateThreshold($event)"
-            class="w-full"
-          />
+      @if (mode() === 'gradient') {
+        <div id="fill-selection-gradient-section" class="mb-4">
+          <div class="mb-3">
+            <label id="fill-selection-gradient-start-label" for="fill-selection-gradient-start-input" class="block text-sm font-medium mb-2">
+              {{ 'fillSelection.gradientStart' | transloco }}
+            </label>
+            <input
+              id="fill-selection-gradient-start-input"
+              type="color"
+              [value]="gradientStartColor()"
+              (input)="updateGradientStartColor($event)"
+              class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+            />
+          </div>
+          <div class="mb-3">
+            <label id="fill-selection-gradient-end-label" for="fill-selection-gradient-end-input" class="block text-sm font-medium mb-2">
+              {{ 'fillSelection.gradientEnd' | transloco }}
+            </label>
+            <input
+              id="fill-selection-gradient-end-input"
+              type="color"
+              [value]="gradientEndColor()"
+              (input)="updateGradientEndColor($event)"
+              class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+            />
+          </div>
+          <div class="mb-3">
+            <label id="fill-selection-gradient-type-label" class="block text-sm font-medium mb-2">
+              {{ 'fillSelection.gradientType' | transloco }}
+            </label>
+            <div id="fill-selection-gradient-type-buttons" class="flex gap-2">
+              <button
+                id="fill-selection-gradient-type-linear-button"
+                type="button"
+                class="flex-1 px-4 py-2 text-sm rounded-none"
+                [class.bg-blue-600]="gradientType() === 'linear'"
+                [class.text-white]="gradientType() === 'linear'"
+                [class.bg-neutral-200]="gradientType() !== 'linear'"
+                [class.dark:bg-neutral-700]="gradientType() !== 'linear'"
+                (click)="selectGradientType('linear')"
+              >
+                {{ 'fillSelection.gradientTypeLinear' | transloco }}
+              </button>
+              <button
+                id="fill-selection-gradient-type-radial-button"
+                type="button"
+                class="flex-1 px-4 py-2 text-sm rounded-none"
+                [class.bg-blue-600]="gradientType() === 'radial'"
+                [class.text-white]="gradientType() === 'radial'"
+                [class.bg-neutral-200]="gradientType() !== 'radial'"
+                [class.dark:bg-neutral-700]="gradientType() !== 'radial'"
+                (click)="selectGradientType('radial')"
+              >
+                {{ 'fillSelection.gradientTypeRadial' | transloco }}
+              </button>
+            </div>
+          </div>
+          @if (gradientType() === 'linear') {
+            <div>
+              <label id="fill-selection-gradient-angle-label" for="fill-selection-gradient-angle-input" class="block text-sm font-medium mb-2">
+                {{ 'fillSelection.gradientAngle' | transloco }}: {{ gradientAngle() }}°
+              </label>
+              <input
+                id="fill-selection-gradient-angle-input"
+                type="range"
+                min="0"
+                max="360"
+                [value]="gradientAngle()"
+                (input)="updateGradientAngle($event)"
+                class="w-full"
+              />
+            </div>
+          }
         </div>
       }
 
@@ -136,6 +197,16 @@
           {{ 'fillSelection.apply' | transloco }}
         </button>
       </div>
+      
+      <button
+        id="fill-selection-close-button"
+        type="button"
+        class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+        (click)="close()"
+        (mousedown)="$event.stopPropagation()"
+      >
+        ×
+      </button>
     </div>
   </div>
 }
