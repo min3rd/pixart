@@ -34,6 +34,7 @@
   },
   "badges": {
     "title": "2D Editor • Alpha"
+    ,"dev": "In Development"
   },
   "tools": {
     "selectLayer": "Select layer",
@@ -595,6 +596,8 @@
   },
   "warp": {
     "title": "Warp",
+    "inDevelopment": "In Development",
+    "devNotice": "⚠️ Warp is currently under development and may produce unexpected results.",
     "originalSize": "Original size",
     "gridSize": "Grid size",
     "smoothing": "Smoothing",
@@ -604,6 +607,8 @@
   },
   "puppetWarp": {
     "title": "Puppet Warp",
+    "inDevelopment": "In Development",
+    "devNotice": "⚠️ Puppet Warp is currently under development and may produce unexpected results.",
     "originalSize": "Original size",
     "addPin": "Add Pin",
     "removePin": "Remove Pin",

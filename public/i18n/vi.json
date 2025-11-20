@@ -34,6 +34,7 @@
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha"
+    ,"dev": "Đang Phát Triển"
   },
   "tools": {
     "selectLayer": "Chọn layer",
@@ -601,6 +602,8 @@
     "originalSize": "Kích thước gốc",
     "gridSize": "Kích thước lưới",
     "smoothing": "Độ mượt",
+    "inDevelopment": "Đang Phát Triển",
+    "devNotice": "⚠️ Tính năng Warp đang được phát triển và có thể chưa hoàn chỉnh.",
     "reset": "Đặt lại",
     "apply": "Áp dụng",
     "cancel": "Hủy"
@@ -610,6 +613,8 @@
     "originalSize": "Kích thước gốc",
     "addPin": "Thêm điểm neo",
     "removePin": "Xóa điểm neo",
+    "inDevelopment": "Đang Phát Triển",
+    "devNotice": "⚠️ Tính năng Puppet Warp đang được phát triển và có thể chưa hoàn chỉnh.",
     "lockPin": "Khóa điểm neo",
     "unlockPin": "Mở khóa điểm neo",
     "pinRadius": "Bán kính điểm neo",
