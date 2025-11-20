@@ -8,6 +8,12 @@
       <h2 class="text-lg font-semibold" id="warp-dialog-title">
         {{ 'warp.title' | transloco }}
       </h2>
+      <span
+        class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+        id="warp-dialog-dev-badge"
+      >
+        {{ 'badges.dev' | transloco }}
+      </span>
       <button
         (click)="close()"
         class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
@@ -16,6 +22,15 @@
       >
         <ng-icon name="heroXMark" size="20"></ng-icon>
       </button>
+    </div>
+
+    <div
+      class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm"
+      id="warp-dialog-dev-notice"
+    >
+      <p class="text-xs text-amber-900 dark:text-amber-200" id="warp-dialog-dev-notice-text">
+        {{ 'warp.devNotice' | transloco }}
+      </p>
     </div>
 
     <div class="flex flex-col gap-2">
