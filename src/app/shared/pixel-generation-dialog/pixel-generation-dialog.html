@@ -1,13 +1,14 @@
-@if (visible()) {
-<div
-  id="pixel-generation-dialog-overlay"
-  class="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 flex items-center justify-center"
-  (click)="handleCancel()"
+<pa-modal
+  [isOpen]="visible()"
+  [title]="'pixelGeneration.title' | transloco"
+  [size]="'md'"
+  [modalId]="'pixel-generation-dialog'"
+  [showCloseButton]="false"
+  (onClose)="handleCancel()"
 >
   <div
     id="pixel-generation-dialog-container"
     class="bg-white dark:bg-neutral-900 rounded-sm border border-neutral-200 dark:border-neutral-700 shadow-lg w-full max-w-2xl mx-4"
-    (click)="$event.stopPropagation()"
   >
     <div
       id="pixel-generation-dialog-header"
@@ -163,5 +164,4 @@
       </button>
     </div>
   </div>
-</div>
-}
+</pa-modal>

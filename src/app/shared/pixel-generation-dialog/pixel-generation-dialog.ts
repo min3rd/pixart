@@ -1,5 +1,6 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Modal } from '../components/modal/modal';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 
@@ -12,7 +13,7 @@ export interface GeneratePixelArtRequest {
 
 @Component({
   selector: 'pa-pixel-generation-dialog',
-  imports: [FormsModule, TranslocoPipe, NgIcon],
+  imports: [FormsModule, TranslocoPipe, NgIcon, Modal],
   templateUrl: './pixel-generation-dialog.html',
   styleUrl: './pixel-generation-dialog.css',
   host: {

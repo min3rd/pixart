@@ -26,8 +26,8 @@ export class Modal {
   readonly closeOnBackdrop = input<boolean>(true);
   readonly closeOnEscape = input<boolean>(true);
   readonly modalId = input<string>('modal');
-  readonly draggable = input<boolean>(false);
-  readonly showBackdrop = input<boolean>(true);
+  readonly draggable = input<boolean>(true);
+  readonly showBackdrop = input<boolean>(false);
 
   readonly onClose = output<void>();
 

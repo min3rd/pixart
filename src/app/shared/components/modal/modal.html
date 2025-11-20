@@ -1,7 +1,7 @@
 @if (isOpen()) {
 <div
   [id]="modalId() + '-backdrop'"
-  [class]="'fixed inset-0 z-50 ' + (draggable() ? 'pointer-events-none' : 'bg-black bg-opacity-50 flex items-center justify-center')"
+  [class]="'fixed inset-0 z-50 flex items-center justify-center ' + (showBackdrop() ? 'bg-black bg-opacity-50' : '')"
   (click)="handleBackdropClick($event)"
   role="dialog"
   [attr.aria-modal]="true"
@@ -13,12 +13,13 @@
     [style.left.px]="draggable() ? dialogX() : null"
     [style.top.px]="draggable() ? dialogY() : null"
     (click)="$event.stopPropagation()"
-    (mousedown)="draggable() ? onDragStart($event) : null"
   >
     @if (title() || showCloseButton()) {
     <div
       [id]="modalId() + '-header'"
       class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
+      (mousedown)="draggable() ? onDragStart($event) : null"
+      [class.cursor-move]="draggable()"
     >
       @if (title()) {
       <h2
