@@ -207,7 +207,7 @@ export class EditorStrokeService {
   ): { px: number; py: number }[] {
     const pixels: { px: number; py: number }[] = [];
 
-    if (selectionShape === 'rect' || !selectionMask) {
+    if (selectionShape === 'rect') {
       return this.calculateRectStrokePixels(
         x,
         y,
@@ -227,7 +227,7 @@ export class EditorStrokeService {
         position,
         style,
       );
-    } else if (selectionShape === 'lasso' && selectionPolygon) {
+    } else if (selectionShape === 'lasso' && selectionPolygon && selectionMask) {
       return this.calculateLassoStrokePixels(
         x,
         y,
@@ -238,6 +238,16 @@ export class EditorStrokeService {
         style,
         selectionMask,
         selectionPolygon,
+      );
+    } else if (selectionShape === 'lasso' && selectionPolygon) {
+      return this.calculateRectStrokePixels(
+        x,
+        y,
+        width,
+        height,
+        strokeWidth,
+        position,
+        style,
       );
     }
 
