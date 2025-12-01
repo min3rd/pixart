@@ -100,14 +100,16 @@
       "square": "Draw squares and rectangles",
       "brush": "Paint with a brush",
       "bone": "Create and edit bone points for animation",
-      "contentAwareFill": "Content-aware fill for selection"
+      "contentAwareFill": "Content-aware fill for selection",
+      "definePattern": "Create a repeatable pattern from selection"
     },
     "panels": {
       "layers": "Manage layers and their properties",
       "bones": "Manage bones and skeletal animation",
       "timeline": "Manage animation timeline and frames",
       "animationCreator": "Create and edit keyframe animations",
-      "contentAwareFill": "Configure content-aware fill settings"
+      "contentAwareFill": "Configure content-aware fill settings",
+      "definePattern": "Create and save pattern from selection"
     },
     "file": {
       "new": "Create a new project",
@@ -469,6 +471,7 @@
       "edit.deleteFrame": "Delete Frame",
       "edit.fillSelection": "Fill Selection",
       "edit.contentAwareFill": "Content-Aware Fill",
+      "edit.definePattern": "Define Pattern",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -694,5 +697,19 @@
     "previewToggle": "Live preview",
     "apply": "Apply",
     "cancel": "Cancel"
+  },
+  "definePattern": {
+    "title": "Define Pattern",
+    "name": "Pattern Name",
+    "scale": "Scale",
+    "opacity": "Opacity",
+    "preview": "Preview",
+    "livePreview": "Live Preview on Canvas",
+    "save": "Save Pattern",
+    "cancel": "Cancel",
+    "thumbnail": "Thumbnail",
+    "tilePreview": "Tile Preview",
+    "noSelection": "Select an area on canvas first",
+    "createFromSelection": "Create Pattern from Selection"
   }
 }

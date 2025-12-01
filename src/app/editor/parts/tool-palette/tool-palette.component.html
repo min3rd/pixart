@@ -35,7 +35,7 @@
 
   <div
     id="tool-palette-actions"
-    class="px-2 pb-2 border-b border-neutral-200/60 dark:border-neutral-700/60"
+    class="px-2 pb-2 border-b border-neutral-200/60 dark:border-neutral-700/60 space-y-2"
   >
     <button
       id="tool-palette-content-aware-fill-button"
@@ -49,6 +49,20 @@
     >
       <ng-icon id="tool-palette-content-aware-fill-icon" name="heroSparkles" class="h-4 w-4"></ng-icon>
       <span id="tool-palette-content-aware-fill-label">{{ "contentAwareFill.title" | transloco }}</span>
+    </button>
+
+    <button
+      id="tool-palette-define-pattern-button"
+      type="button"
+      (click)="activateDefinePattern()"
+      class="w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded border border-neutral-200/70 bg-neutral-50/60 text-neutral-700 hover:bg-neutral-200/70 dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-300 dark:hover:bg-neutral-700/70 disabled:opacity-50 disabled:cursor-not-allowed"
+      [disabled]="!document.selectionRect() || document.selectionRect()?.width === 0 || document.selectionRect()?.height === 0"
+      [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.definePattern')"
+      [paTooltip]="'tooltips.tools.definePattern' | transloco"
+      [paTooltipHotkeyId]="'edit.definePattern'"
+    >
+      <ng-icon id="tool-palette-define-pattern-icon" name="heroSquare2Stack" class="h-4 w-4"></ng-icon>
+      <span id="tool-palette-define-pattern-label">{{ "definePattern.title" | transloco }}</span>
     </button>
   </div>
 

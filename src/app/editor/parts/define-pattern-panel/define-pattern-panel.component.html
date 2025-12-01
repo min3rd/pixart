@@ -1,0 +1,174 @@
+<div
+  id="define-pattern-panel-container"
+  class="p-3 space-y-3 bg-neutral-50/60 dark:bg-neutral-900/60 rounded-md"
+>
+  @if (!isActive()) {
+    <button
+      id="define-pattern-create-button"
+      type="button"
+      (click)="onCreatePattern()"
+      [disabled]="!hasSelection()"
+      class="w-full flex items-center gap-2 px-3 py-2 text-xs rounded border border-neutral-200/70 bg-neutral-50/60 text-neutral-700 hover:bg-neutral-200/70 dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-300 dark:hover:bg-neutral-700/70 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <ng-icon id="define-pattern-create-icon" name="heroSquare2Stack" class="h-4 w-4"></ng-icon>
+      <span id="define-pattern-create-label">{{ "definePattern.createFromSelection" | transloco }}</span>
+    </button>
+
+    @if (!hasSelection()) {
+      <div
+        id="define-pattern-no-selection-hint"
+        class="text-xs text-neutral-500 dark:text-neutral-400 text-center py-2"
+      >
+        {{ "definePattern.noSelection" | transloco }}
+      </div>
+    }
+  } @else {
+    <div id="define-pattern-preview-section" class="space-y-2">
+      <div
+        id="define-pattern-thumbnail-row"
+        class="flex items-start gap-3"
+      >
+        <div id="define-pattern-thumbnail-wrapper" class="space-y-1">
+          <label
+            id="define-pattern-thumbnail-label"
+            class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+          >
+            {{ "definePattern.thumbnail" | transloco }}
+          </label>
+          <div
+            id="define-pattern-thumbnail-container"
+            class="w-16 h-16 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 overflow-hidden"
+          >
+            @if (thumbnailSrc()) {
+              <img
+                id="define-pattern-thumbnail-img"
+                [src]="thumbnailSrc()"
+                alt="Pattern thumbnail"
+                class="w-full h-full object-contain"
+              />
+            }
+          </div>
+        </div>
+
+        <div id="define-pattern-tile-preview-wrapper" class="space-y-1 flex-1">
+          <label
+            id="define-pattern-tile-preview-label"
+            class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+          >
+            {{ "definePattern.tilePreview" | transloco }}
+          </label>
+          <div
+            id="define-pattern-tile-preview-container"
+            class="w-full h-16 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 overflow-hidden"
+          >
+            @if (tilePreviewSrc()) {
+              <img
+                id="define-pattern-tile-preview-img"
+                [src]="tilePreviewSrc()"
+                alt="Pattern tile preview"
+                class="w-full h-full object-cover"
+              />
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="define-pattern-name-row" class="space-y-1">
+      <label
+        id="define-pattern-name-label"
+        for="define-pattern-name-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "definePattern.name" | transloco }}
+      </label>
+      <input
+        id="define-pattern-name-input"
+        type="text"
+        [value]="patternName()"
+        (input)="onNameChange($event)"
+        class="w-full px-2 py-1.5 text-xs border border-neutral-300/70 rounded bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+      />
+    </div>
+
+    <div id="define-pattern-scale-row" class="space-y-1">
+      <label
+        id="define-pattern-scale-label"
+        for="define-pattern-scale-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "definePattern.scale" | transloco }}: {{ patternScale() }}x
+      </label>
+      <input
+        id="define-pattern-scale-input"
+        type="range"
+        min="0.1"
+        max="4"
+        step="0.1"
+        [value]="patternScale()"
+        (input)="onScaleChange($event)"
+        class="w-full accent-blue-500"
+      />
+    </div>
+
+    <div id="define-pattern-opacity-row" class="space-y-1">
+      <label
+        id="define-pattern-opacity-label"
+        for="define-pattern-opacity-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "definePattern.opacity" | transloco }}: {{ opacityPercent }}%
+      </label>
+      <input
+        id="define-pattern-opacity-input"
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        [value]="opacityPercent"
+        (input)="onOpacityChange($event)"
+        class="w-full accent-blue-500"
+      />
+    </div>
+
+    <div id="define-pattern-live-preview-row" class="flex items-center gap-2">
+      <input
+        id="define-pattern-live-preview-checkbox"
+        type="checkbox"
+        [checked]="livePreviewEnabled()"
+        (change)="onLivePreviewChange($event)"
+        class="rounded-sm"
+        aria-describedby="define-pattern-live-preview-description"
+      />
+      <label
+        id="define-pattern-live-preview-label"
+        for="define-pattern-live-preview-checkbox"
+        class="text-xs text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "definePattern.livePreview" | transloco }}
+      </label>
+      <span id="define-pattern-live-preview-description" class="sr-only">
+        {{ "definePattern.livePreview" | transloco }}
+      </span>
+    </div>
+
+    <div id="define-pattern-actions-row" class="flex gap-2 pt-2">
+      <button
+        id="define-pattern-save-button"
+        type="button"
+        (click)="onSave()"
+        class="flex-1 px-3 py-1.5 text-xs rounded bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      >
+        {{ "definePattern.save" | transloco }}
+      </button>
+      <button
+        id="define-pattern-cancel-button"
+        type="button"
+        (click)="onCancel()"
+        class="flex-1 px-3 py-1.5 text-xs rounded border border-neutral-300/70 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700/70 dark:text-neutral-300 dark:hover:bg-neutral-700/70"
+      >
+        {{ "definePattern.cancel" | transloco }}
+      </button>
+    </div>
+  }
+</div>
