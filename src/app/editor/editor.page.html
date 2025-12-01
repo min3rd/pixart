@@ -7,12 +7,14 @@
     class="row-start-1 col-start-1 -col-end-1"
     (onContentAwareFillToggle)="onContentAwareFillToggle()"
     (onDefinePatternToggle)="onDefinePatternToggle()"
+    (onStrokeToggle)="onStrokeToggle()"
   />
 
   <pa-tool-palette
     class="row-start-2 col-start-1 overflow-auto border-r border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-800/40"
     (onContentAwareFillActivate)="onContentAwareFillToggle()"
     (onDefinePatternActivate)="onDefinePatternToggle()"
+    (onStrokeActivate)="onStrokeToggle()"
   />
 
   <div
@@ -68,52 +70,72 @@
         {{ "bones.title" | transloco }}
       </button>
       @if (contentAwareFillState.isActive()) {
-        <button
-          type="button"
-          (click)="rightPanelTab.set('contentAwareFill')"
-          class="flex-1 px-4 py-2 text-sm font-medium"
-          [class.bg-white]="rightPanelTab() === 'contentAwareFill'"
-          [class.dark\:bg-neutral-900]="rightPanelTab() === 'contentAwareFill'"
-          [class.text-blue-600]="rightPanelTab() === 'contentAwareFill'"
-          [class.dark\:text-blue-400]="rightPanelTab() === 'contentAwareFill'"
-          [class.text-neutral-600]="rightPanelTab() !== 'contentAwareFill'"
-          [class.dark\:text-neutral-400]="rightPanelTab() !== 'contentAwareFill'"
-          id="content-aware-fill-tab-button"
-          [paTooltip]="'tooltips.panels.contentAwareFill' | transloco"
-        >
-          {{ "contentAwareFill.title" | transloco }}
-        </button>
-      }
-      @if (definePatternState.isActive()) {
-        <button
-          type="button"
-          (click)="rightPanelTab.set('definePattern')"
-          class="flex-1 px-4 py-2 text-sm font-medium"
-          [class.bg-white]="rightPanelTab() === 'definePattern'"
-          [class.dark\:bg-neutral-900]="rightPanelTab() === 'definePattern'"
-          [class.text-blue-600]="rightPanelTab() === 'definePattern'"
-          [class.dark\:text-blue-400]="rightPanelTab() === 'definePattern'"
-          [class.text-neutral-600]="rightPanelTab() !== 'definePattern'"
-          [class.dark\:text-neutral-400]="rightPanelTab() !== 'definePattern'"
-          id="define-pattern-tab-button"
-          [paTooltip]="'tooltips.tools.definePattern' | transloco"
-        >
-          {{ "definePattern.title" | transloco }}
-        </button>
+      <button
+        type="button"
+        (click)="rightPanelTab.set('contentAwareFill')"
+        class="flex-1 px-4 py-2 text-sm font-medium"
+        [class.bg-white]="rightPanelTab() === 'contentAwareFill'"
+        [class.dark\:bg-neutral-900]="rightPanelTab() === 'contentAwareFill'"
+        [class.text-blue-600]="rightPanelTab() === 'contentAwareFill'"
+        [class.dark\:text-blue-400]="rightPanelTab() === 'contentAwareFill'"
+        [class.text-neutral-600]="rightPanelTab() !== 'contentAwareFill'"
+        [class.dark\:text-neutral-400]="rightPanelTab() !== 'contentAwareFill'"
+        id="content-aware-fill-tab-button"
+        [paTooltip]="'tooltips.panels.contentAwareFill' | transloco"
+      >
+        {{ "contentAwareFill.title" | transloco }}
+      </button>
+      } @if (definePatternState.isActive()) {
+      <button
+        type="button"
+        (click)="rightPanelTab.set('definePattern')"
+        class="flex-1 px-4 py-2 text-sm font-medium"
+        [class.bg-white]="rightPanelTab() === 'definePattern'"
+        [class.dark\:bg-neutral-900]="rightPanelTab() === 'definePattern'"
+        [class.text-blue-600]="rightPanelTab() === 'definePattern'"
+        [class.dark\:text-blue-400]="rightPanelTab() === 'definePattern'"
+        [class.text-neutral-600]="rightPanelTab() !== 'definePattern'"
+        [class.dark\:text-neutral-400]="rightPanelTab() !== 'definePattern'"
+        id="define-pattern-tab-button"
+        [paTooltip]="'tooltips.tools.definePattern' | transloco"
+      >
+        {{ "definePattern.title" | transloco }}
+      </button>
+      } @if (strokeState.isActive()) {
+      <button
+        type="button"
+        (click)="rightPanelTab.set('stroke')"
+        class="flex-1 px-4 py-2 text-sm font-medium"
+        [class.bg-white]="rightPanelTab() === 'stroke'"
+        [class.dark\:bg-neutral-900]="rightPanelTab() === 'stroke'"
+        [class.text-blue-600]="rightPanelTab() === 'stroke'"
+        [class.dark\:text-blue-400]="rightPanelTab() === 'stroke'"
+        [class.text-neutral-600]="rightPanelTab() !== 'stroke'"
+        [class.dark\:text-neutral-400]="rightPanelTab() !== 'stroke'"
+        id="stroke-tab-button"
+        [paTooltip]="'tooltips.panels.stroke' | transloco"
+      >
+        {{ "stroke.title" | transloco }}
+      </button>
       }
     </div>
     <div class="flex-1 overflow-auto">
       @if (rightPanelTab() === 'layers') {
-        <pa-layers-panel />
+      <pa-layers-panel />
       } @else if (rightPanelTab() === 'bones') {
-        <pa-bones-panel />
+      <pa-bones-panel />
       } @else if (rightPanelTab() === 'contentAwareFill') {
-        <pa-content-aware-fill-panel
-          (onApply)="onContentAwareFillApply()"
-          (onCancel)="onContentAwareFillCancel()"
-        />
+      <pa-content-aware-fill-panel
+        (onApply)="onContentAwareFillApply()"
+        (onCancel)="onContentAwareFillCancel()"
+      />
       } @else if (rightPanelTab() === 'definePattern') {
-        <pa-define-pattern-panel />
+      <pa-define-pattern-panel />
+      } @else if (rightPanelTab() === 'stroke') {
+      <pa-stroke-panel
+        (onApply)="onStrokeApply()"
+        (onCancel)="onStrokeCancel()"
+      />
       }
     </div>
   </div>

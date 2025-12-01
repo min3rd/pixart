@@ -30,15 +30,21 @@
       class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm"
       id="warp-dialog-dev-notice"
     >
-      <p class="text-xs text-amber-900 dark:text-amber-200" id="warp-dialog-dev-notice-text">
+      <p
+        class="text-xs text-amber-900 dark:text-amber-200"
+        id="warp-dialog-dev-notice-text"
+      >
         {{ 'warp.devNotice' | transloco }}
       </p>
     </div>
 
     <div class="flex flex-col gap-2">
-      <div class="text-sm text-gray-600 dark:text-gray-400" id="warp-dialog-original-size">
-        {{ 'warp.originalSize' | transloco }}: {{ originalWidth() }} x
-        {{ originalHeight() }} px
+      <div
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="warp-dialog-original-size"
+      >
+        {{ 'warp.originalSize' | transloco }}: {{ originalWidth() }} x {{
+        originalHeight() }} px
       </div>
     </div>
 
@@ -61,7 +67,8 @@
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium" id="warp-dialog-smoothing-label">
-        {{ 'warp.smoothing' | transloco }}: {{ (smoothing() * 100).toFixed(0) }}%
+        {{ 'warp.smoothing' | transloco }}: {{ (smoothing() * 100).toFixed(0)
+        }}%
       </label>
       <input
         type="range"
@@ -76,7 +83,9 @@
       />
     </div>
 
-    <div class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+    <div
+      class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700"
+    >
       <button
         (click)="reset()"
         class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"

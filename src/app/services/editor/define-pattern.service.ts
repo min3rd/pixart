@@ -1,5 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { PatternLibraryService, CustomPattern } from '../pattern-library.service';
+import {
+  PatternLibraryService,
+  CustomPattern,
+} from '../pattern-library.service';
 import { EditorCanvasStateService } from './editor-canvas-state.service';
 import { EditorSelectionService } from './editor-selection.service';
 import { EditorLayerService } from './editor-layer.service';
@@ -60,7 +63,11 @@ export class DefinePatternService {
       return false;
     }
 
-    const base64 = this.imageDataToBase64(imageData.data, imageData.width, imageData.height);
+    const base64 = this.imageDataToBase64(
+      imageData.data,
+      imageData.width,
+      imageData.height,
+    );
     const pixelData = Array.from(imageData.data.data);
 
     this.state.set({
@@ -93,21 +100,21 @@ export class DefinePatternService {
   }
 
   setName(name: string): void {
-    this.state.update(s => ({ ...s, name }));
+    this.state.update((s) => ({ ...s, name }));
   }
 
   setScale(scale: number): void {
     const clampedScale = Math.max(0.1, Math.min(4, scale));
-    this.state.update(s => ({ ...s, scale: clampedScale }));
+    this.state.update((s) => ({ ...s, scale: clampedScale }));
   }
 
   setOpacity(opacity: number): void {
     const clampedOpacity = Math.max(0, Math.min(1, opacity));
-    this.state.update(s => ({ ...s, opacity: clampedOpacity }));
+    this.state.update((s) => ({ ...s, opacity: clampedOpacity }));
   }
 
   setLivePreview(enabled: boolean): void {
-    this.state.update(s => ({ ...s, livePreview: enabled }));
+    this.state.update((s) => ({ ...s, livePreview: enabled }));
   }
 
   savePattern(): CustomPattern | null {
@@ -130,7 +137,11 @@ export class DefinePatternService {
     return pattern;
   }
 
-  private extractSelectionImageData(): { data: ImageData; width: number; height: number } | null {
+  private extractSelectionImageData(): {
+    data: ImageData;
+    width: number;
+    height: number;
+  } | null {
     const sel = this.selectionService.selectionRect();
     if (!sel || sel.width <= 0 || sel.height <= 0) {
       return null;
@@ -152,11 +163,24 @@ export class DefinePatternService {
       for (let x = 0; x < sel.width; x++) {
         const srcX = sel.x + x;
         const srcY = sel.y + y;
-        if (srcX < 0 || srcX >= canvasWidth || srcY < 0 || srcY >= canvasHeight) {
+        if (
+          srcX < 0 ||
+          srcX >= canvasWidth ||
+          srcY < 0 ||
+          srcY >= canvasHeight
+        ) {
           continue;
         }
 
-        if (!this.selectionService.isPixelWithinSelection(srcX, srcY, sel, shape, poly)) {
+        if (
+          !this.selectionService.isPixelWithinSelection(
+            srcX,
+            srcY,
+            sel,
+            shape,
+            poly,
+          )
+        ) {
           continue;
         }
 
@@ -176,9 +200,16 @@ export class DefinePatternService {
     return { data: imageData, width: sel.width, height: sel.height };
   }
 
-  private parseColor(colorStr: string): { r: number; g: number; b: number; a: number } {
+  private parseColor(colorStr: string): {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  } {
     if (colorStr.startsWith('rgba(')) {
-      const match = colorStr.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+      const match = colorStr.match(
+        /rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/,
+      );
       if (match) {
         return {
           r: parseInt(match[1], 10),
@@ -188,7 +219,9 @@ export class DefinePatternService {
         };
       }
     } else if (colorStr.startsWith('rgb(')) {
-      const match = colorStr.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      const match = colorStr.match(
+        /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/,
+      );
       if (match) {
         return {
           r: parseInt(match[1], 10),
@@ -221,7 +254,11 @@ export class DefinePatternService {
     return { r: 0, g: 0, b: 0, a: 255 };
   }
 
-  private imageDataToBase64(imageData: ImageData, width: number, height: number): string {
+  private imageDataToBase64(
+    imageData: ImageData,
+    width: number,
+    height: number,
+  ): string {
     if (typeof document === 'undefined') return '';
 
     const canvas = document.createElement('canvas');
@@ -277,7 +314,10 @@ export class DefinePatternService {
     return canvas.toDataURL('image/png');
   }
 
-  generateTilePreview(tileSize: number = 128, repeatCount: number = 3): string | null {
+  generateTilePreview(
+    tileSize: number = 128,
+    repeatCount: number = 3,
+  ): string | null {
     const s = this.state();
     if (typeof document === 'undefined') return null;
     if (!s.imageDataBase64 && !s.pixelData) return null;

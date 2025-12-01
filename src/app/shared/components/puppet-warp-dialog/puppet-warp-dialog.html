@@ -30,84 +30,102 @@
       class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-sm"
       id="puppet-warp-dialog-dev-notice"
     >
-      <p class="text-xs text-amber-900 dark:text-amber-200" id="puppet-warp-dialog-dev-notice-text">
+      <p
+        class="text-xs text-amber-900 dark:text-amber-200"
+        id="puppet-warp-dialog-dev-notice-text"
+      >
         {{ 'puppetWarp.devNotice' | transloco }}
       </p>
     </div>
 
     <div class="flex flex-col gap-2">
-      <div class="text-sm text-gray-600 dark:text-gray-400" id="puppet-warp-dialog-original-size">
-        {{ 'puppetWarp.originalSize' | transloco }}: {{ originalWidth() }} x
-        {{ originalHeight() }} px
+      <div
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="puppet-warp-dialog-original-size"
+      >
+        {{ 'puppetWarp.originalSize' | transloco }}: {{ originalWidth() }} x {{
+        originalHeight() }} px
       </div>
-      <div class="text-sm text-gray-600 dark:text-gray-400" id="puppet-warp-dialog-pin-count">
+      <div
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="puppet-warp-dialog-pin-count"
+      >
         {{ 'puppetWarp.pinCount' | transloco }}: {{ pins().length }}
       </div>
     </div>
 
     @if (pins().length > 0) {
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="puppet-warp-dialog-pins-label">
-          {{ 'puppetWarp.title' | transloco }}
-        </label>
-        <div class="max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded">
-          @for (pin of pins(); track pin.id) {
-            <div
-              class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-              [class.bg-blue-100]="selectedPin()?.id === pin.id"
-              [class.dark:bg-blue-900]="selectedPin()?.id === pin.id"
-              (click)="selectPin(pin)"
-              [id]="'puppet-warp-pin-' + pin.id"
-            >
-              <span class="flex-1 text-sm">
-                Pin ({{ pin.x.toFixed(0) }}, {{ pin.y.toFixed(0) }})
-              </span>
-              <button
-                (click)="toggleLock(pin.id); $event.stopPropagation()"
-                class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
-                [id]="'puppet-warp-lock-' + pin.id"
-                [aria-label]="pin.locked ? ('puppetWarp.unlockPin' | transloco) : ('puppetWarp.lockPin' | transloco)"
-              >
-                <ng-icon [name]="pin.locked ? 'heroLockClosed' : 'heroLockOpen'" size="16"></ng-icon>
-              </button>
-              <button
-                (click)="removePin(pin.id); $event.stopPropagation()"
-                class="p-1 hover:bg-red-200 dark:hover:bg-red-800 rounded"
-                [id]="'puppet-warp-remove-' + pin.id"
-                [aria-label]="'puppetWarp.removePin' | transloco"
-              >
-                <ng-icon name="heroTrash" size="16"></ng-icon>
-              </button>
-            </div>
-          }
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" id="puppet-warp-dialog-pins-label">
+        {{ 'puppetWarp.title' | transloco }}
+      </label>
+      <div
+        class="max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded"
+      >
+        @for (pin of pins(); track pin.id) {
+        <div
+          class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+          [class.bg-blue-100]="selectedPin()?.id === pin.id"
+          [class.dark:bg-blue-900]="selectedPin()?.id === pin.id"
+          (click)="selectPin(pin)"
+          [id]="'puppet-warp-pin-' + pin.id"
+        >
+          <span class="flex-1 text-sm">
+            Pin ({{ pin.x.toFixed(0) }}, {{ pin.y.toFixed(0) }})
+          </span>
+          <button
+            (click)="toggleLock(pin.id); $event.stopPropagation()"
+            class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+            [id]="'puppet-warp-lock-' + pin.id"
+            [aria-label]="pin.locked ? ('puppetWarp.unlockPin' | transloco) : ('puppetWarp.lockPin' | transloco)"
+          >
+            <ng-icon
+              [name]="pin.locked ? 'heroLockClosed' : 'heroLockOpen'"
+              size="16"
+            ></ng-icon>
+          </button>
+          <button
+            (click)="removePin(pin.id); $event.stopPropagation()"
+            class="p-1 hover:bg-red-200 dark:hover:bg-red-800 rounded"
+            [id]="'puppet-warp-remove-' + pin.id"
+            [aria-label]="'puppetWarp.removePin' | transloco"
+          >
+            <ng-icon name="heroTrash" size="16"></ng-icon>
+          </button>
         </div>
+        }
       </div>
-    }
-
-    @if (selectedPin()) {
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="puppet-warp-dialog-radius-label">
-          {{ 'puppetWarp.pinRadius' | transloco }}: {{ selectedPinRadius().toFixed(0) }} px
-        </label>
-        <input
-          type="range"
-          min="10"
-          max="200"
-          step="5"
-          [value]="selectedPinRadius()"
-          (input)="updatePinRadius($any($event.target).value)"
-          class="w-full"
-          id="puppet-warp-dialog-radius"
-          aria-label="Pin radius"
-        />
-      </div>
+    </div>
+    } @if (selectedPin()) {
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium" id="puppet-warp-dialog-radius-label">
+        {{ 'puppetWarp.pinRadius' | transloco }}: {{
+        selectedPinRadius().toFixed(0) }} px
+      </label>
+      <input
+        type="range"
+        min="10"
+        max="200"
+        step="5"
+        [value]="selectedPinRadius()"
+        (input)="updatePinRadius($any($event.target).value)"
+        class="w-full"
+        id="puppet-warp-dialog-radius"
+        aria-label="Pin radius"
+      />
+    </div>
     } @else {
-      <div class="text-sm text-gray-500 dark:text-gray-400 text-center py-2" id="puppet-warp-no-pin-selected">
-        {{ 'puppetWarp.noPinSelected' | transloco }}
-      </div>
+    <div
+      class="text-sm text-gray-500 dark:text-gray-400 text-center py-2"
+      id="puppet-warp-no-pin-selected"
+    >
+      {{ 'puppetWarp.noPinSelected' | transloco }}
+    </div>
     }
 
-    <div class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+    <div
+      class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700"
+    >
       <button
         (click)="reset()"
         class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"

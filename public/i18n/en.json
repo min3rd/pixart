@@ -33,11 +33,12 @@
     "rotate90CCW": "Rotate 90° CCW",
     "rotate180": "Rotate 180°",
     "fillSelection": "Fill Selection",
-    "contentAwareFill": "Content-Aware Fill"
+    "contentAwareFill": "Content-Aware Fill",
+    "stroke": "Stroke"
   },
   "badges": {
-    "title": "2D Editor • Alpha"
-    ,"dev": "In Development"
+    "title": "2D Editor • Alpha",
+    "dev": "In Development"
   },
   "tools": {
     "selectLayer": "Select layer",
@@ -85,7 +86,8 @@
       "flipVertical": "Flip vertically",
       "rotate90CW": "Rotate 90 degrees clockwise",
       "rotate90CCW": "Rotate 90 degrees counter-clockwise",
-      "rotate180": "Rotate 180 degrees"
+      "rotate180": "Rotate 180 degrees",
+      "stroke": "Add stroke to selection"
     },
     "tools": {
       "selectLayer": "Select and move layers",
@@ -101,7 +103,8 @@
       "brush": "Paint with a brush",
       "bone": "Create and edit bone points for animation",
       "contentAwareFill": "Content-aware fill for selection",
-      "definePattern": "Create a repeatable pattern from selection"
+      "definePattern": "Create a repeatable pattern from selection",
+      "stroke": "Add stroke border to selection"
     },
     "panels": {
       "layers": "Manage layers and their properties",
@@ -109,7 +112,8 @@
       "timeline": "Manage animation timeline and frames",
       "animationCreator": "Create and edit keyframe animations",
       "contentAwareFill": "Configure content-aware fill settings",
-      "definePattern": "Create and save pattern from selection"
+      "definePattern": "Create and save pattern from selection",
+      "stroke": "Add stroke border to selection"
     },
     "file": {
       "new": "Create a new project",
@@ -472,6 +476,7 @@
       "edit.fillSelection": "Fill Selection",
       "edit.contentAwareFill": "Content-Aware Fill",
       "edit.definePattern": "Define Pattern",
+      "edit.stroke": "Stroke",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -711,5 +716,22 @@
     "tilePreview": "Tile Preview",
     "noSelection": "Select an area on canvas first",
     "createFromSelection": "Create Pattern from Selection"
+  },
+  "stroke": {
+    "title": "Stroke",
+    "description": "Add a border stroke around the selection or layer.",
+    "color": "Stroke Color",
+    "width": "Stroke Width",
+    "style": "Stroke Style",
+    "styleSolid": "Solid",
+    "styleDashed": "Dashed",
+    "styleDotted": "Dotted",
+    "position": "Stroke Position",
+    "positionInside": "Inside",
+    "positionCenter": "Center",
+    "positionOutside": "Outside",
+    "previewToggle": "Live preview",
+    "apply": "Apply",
+    "cancel": "Cancel"
   }
 }

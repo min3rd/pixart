@@ -286,11 +286,19 @@
           <button
             id="menu-edit-define-pattern-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="!document.selectionRect() || document.selectionRect()?.width === 0 || document.selectionRect()?.height === 0"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
             (click)="onDefinePattern()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.definePattern')"
           >
-            <ng-icon id="menu-edit-define-pattern-icon" name="heroSquare2Stack" class="w-4 h-4 mr-2"></ng-icon>
+            <ng-icon
+              id="menu-edit-define-pattern-icon"
+              name="heroSquare2Stack"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
             <span id="menu-edit-define-pattern-label" class="flex-1">{{
               "definePattern.title" | transloco
             }}</span>
@@ -300,7 +308,39 @@
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
-                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.definePattern")!)
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.definePattern")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-stroke-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onStroke()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.stroke')"
+          >
+            <ng-icon
+              id="menu-edit-stroke-icon"
+              name="heroSquare2Stack"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-stroke-label" class="flex-1">{{
+              "menu.stroke" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.stroke")) {
+              <span
+                id="menu-edit-stroke-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.stroke")!)
                 }}
               </span>
             }
@@ -338,21 +378,45 @@
             (click)="onFillSelection()"
             [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.fillSelection')"
           >
-            <span id="menu-fill-selection-label">{{ "menu.fillSelection" | transloco }}</span>
-            @if (hotkeys.getBinding('edit.fillSelection')) {
-              <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ hotkeys.keyStringToDisplay(hotkeys.getBinding('edit.fillSelection')!) }}</span>
+            <span id="menu-fill-selection-label">{{
+              "menu.fillSelection" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.fillSelection")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.fillSelection")!
+                  )
+                }}</span
+              >
             }
           </button>
           <button
             id="menu-content-aware-fill-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onContentAwareFill()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.contentAwareFill')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('edit.contentAwareFill')
+            "
           >
-            <ng-icon id="menu-content-aware-fill-icon" name="heroSparkles" class="w-4 h-4 mr-2"></ng-icon>
-            <span id="menu-content-aware-fill-label" class="flex-1">{{ "menu.contentAwareFill" | transloco }}</span>
-            @if (hotkeys.getBinding('edit.contentAwareFill')) {
-              <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ hotkeys.keyStringToDisplay(hotkeys.getBinding('edit.contentAwareFill')!) }}</span>
+            <ng-icon
+              id="menu-content-aware-fill-icon"
+              name="heroSparkles"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-content-aware-fill-label" class="flex-1">{{
+              "menu.contentAwareFill" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.contentAwareFill")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.contentAwareFill")!
+                  )
+                }}</span
+              >
             }
           </button>
         </div>
@@ -517,7 +581,9 @@
             aria-keyshortcuts="Ctrl+Shift+W"
           >
             <div class="w-full flex items-center justify-between">
-              <span id="menu-transform-warp-label">{{ "menu.warp" | transloco }}</span>
+              <span id="menu-transform-warp-label">{{
+                "menu.warp" | transloco
+              }}</span>
               <span
                 id="menu-transform-warp-dev-badge"
                 class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
@@ -533,7 +599,9 @@
             aria-keyshortcuts="Ctrl+Shift+Alt+W"
           >
             <div class="w-full flex items-center justify-between">
-              <span id="menu-transform-puppet-warp-label">{{ "menu.puppetWarp" | transloco }}</span>
+              <span id="menu-transform-puppet-warp-label">{{
+                "menu.puppetWarp" | transloco
+              }}</span>
               <span
                 id="menu-transform-puppet-warp-dev-badge"
                 class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"

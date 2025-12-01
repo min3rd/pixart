@@ -19,15 +19,21 @@
     </div>
 
     <div class="flex flex-col gap-2">
-      <div class="text-sm text-gray-600 dark:text-gray-400" id="perspective-dialog-original-size">
-        {{ 'perspective.originalSize' | transloco }}: {{ originalWidth() }} x
-        {{ originalHeight() }} px
+      <div
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="perspective-dialog-original-size"
+      >
+        {{ 'perspective.originalSize' | transloco }}: {{ originalWidth() }} x {{
+        originalHeight() }} px
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="perspective-dialog-top-left-label">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-top-left-label"
+        >
           {{ 'perspective.topLeft' | transloco }}
         </label>
         <div class="flex gap-2">
@@ -51,7 +57,10 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="perspective-dialog-top-right-label">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-top-right-label"
+        >
           {{ 'perspective.topRight' | transloco }}
         </label>
         <div class="flex gap-2">
@@ -75,7 +84,10 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="perspective-dialog-bottom-left-label">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-bottom-left-label"
+        >
           {{ 'perspective.bottomLeft' | transloco }}
         </label>
         <div class="flex gap-2">
@@ -99,7 +111,10 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium" id="perspective-dialog-bottom-right-label">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-bottom-right-label"
+        >
           {{ 'perspective.bottomRight' | transloco }}
         </label>
         <div class="flex gap-2">
@@ -132,7 +147,9 @@
           class="w-4 h-4"
           id="perspective-dialog-preserve-aspect"
         />
-        <span class="text-sm">{{ 'perspective.preserveAspectRatio' | transloco }}</span>
+        <span class="text-sm"
+          >{{ 'perspective.preserveAspectRatio' | transloco }}</span
+        >
       </label>
 
       <label class="flex items-center gap-2 cursor-pointer">
@@ -143,11 +160,15 @@
           class="w-4 h-4"
           id="perspective-dialog-keep-parallel"
         />
-        <span class="text-sm">{{ 'perspective.keepParallelEdges' | transloco }}</span>
+        <span class="text-sm"
+          >{{ 'perspective.keepParallelEdges' | transloco }}</span
+        >
       </label>
     </div>
 
-    <div class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+    <div
+      class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700"
+    >
       <button
         (click)="reset()"
         class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"

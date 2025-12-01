@@ -14,9 +14,11 @@ import { AnimationCreatorPanel } from './parts/animation-creator-panel/animation
 import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { ContentAwareFillPanelComponent } from './parts/content-aware-fill-panel/content-aware-fill-panel.component';
 import { DefinePatternPanelComponent } from './parts/define-pattern-panel/define-pattern-panel.component';
+import { StrokePanelComponent } from './parts/stroke-panel/stroke-panel.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { ContentAwareFillStateService } from '../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../services/editor/define-pattern.service';
+import { EditorStrokeService } from '../services/editor/editor-stroke.service';
 import { EditorDocumentService } from '../services/editor-document.service';
 import { ContentAwareFillService } from '../services/content-aware-fill.service';
 import { CommonModule } from '@angular/common';
@@ -40,6 +42,7 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
     EditorCanvas,
     ContentAwareFillPanelComponent,
     DefinePatternPanelComponent,
+    StrokePanelComponent,
     TooltipDirective,
   ],
   host: {
@@ -52,10 +55,13 @@ export class EditorPage {
   private readonly settings = inject(UserSettingsService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternState = inject(DefinePatternService);
+  readonly strokeState = inject(EditorStrokeService);
   private readonly document = inject(EditorDocumentService);
   private readonly contentAwareFillService = inject(ContentAwareFillService);
 
-  readonly rightPanelTab = signal<'layers' | 'bones' | 'contentAwareFill' | 'definePattern'>('layers');
+  readonly rightPanelTab = signal<
+    'layers' | 'bones' | 'contentAwareFill' | 'definePattern' | 'stroke'
+  >('layers');
   readonly bottomPanelTab = signal<'timeline' | 'animationCreator'>('timeline');
 
   readonly leftWidth = signal(this.settings.settings.panels.left);
@@ -170,7 +176,12 @@ export class EditorPage {
       for (let px = 0; px < width; px++) {
         const srcX = x + px;
         const srcY = y + py;
-        if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
+        if (
+          srcX >= 0 &&
+          srcX < canvasWidth &&
+          srcY >= 0 &&
+          srcY < canvasHeight
+        ) {
           const srcIdx = srcY * canvasWidth + srcX;
           const hex = layerBuffer[srcIdx];
           if (hex) {
@@ -186,20 +197,27 @@ export class EditorPage {
     }
 
     const maskData = this.buildMaskData(
-      x, y, width, height,
+      x,
+      y,
+      width,
+      height,
       selectionShape,
       selectionMask,
-      selectionPolygon
+      selectionPolygon,
     );
 
     const filledImageData = this.contentAwareFillState.applyFill(
-      imageData, maskData, width, height
+      imageData,
+      maskData,
+      width,
+      height,
     );
 
     const hiddenLayerName = `${currentLayer.name} (original)`;
     const hiddenLayer = this.document.addLayer(hiddenLayerName);
     const hiddenLayerTreeItem = this.document.findItemById(
-      this.document.layers(), hiddenLayer.id
+      this.document.layers(),
+      hiddenLayer.id,
     );
     if (hiddenLayerTreeItem) {
       hiddenLayerTreeItem.visible = false;
@@ -212,7 +230,12 @@ export class EditorPage {
         if (maskData[idx] > 0) {
           const srcX = x + px;
           const srcY = y + py;
-          if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
+          if (
+            srcX >= 0 &&
+            srcX < canvasWidth &&
+            srcY >= 0 &&
+            srcY < canvasHeight
+          ) {
             const layerIdx = srcY * canvasWidth + srcX;
             hiddenBuffer[layerIdx] = layerBuffer[layerIdx] || '';
           }
@@ -231,7 +254,12 @@ export class EditorPage {
         if (maskData[idx] > 0) {
           const srcX = x + px;
           const srcY = y + py;
-          if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
+          if (
+            srcX >= 0 &&
+            srcX < canvasWidth &&
+            srcY >= 0 &&
+            srcY < canvasHeight
+          ) {
             const dataIdx = idx * 4;
             const r = filledData[dataIdx];
             const g = filledData[dataIdx + 1];
@@ -252,7 +280,12 @@ export class EditorPage {
         if (maskData[idx] > 0) {
           const srcX = x + px;
           const srcY = y + py;
-          if (srcX >= 0 && srcX < canvasWidth && srcY >= 0 && srcY < canvasHeight) {
+          if (
+            srcX >= 0 &&
+            srcX < canvasWidth &&
+            srcY >= 0 &&
+            srcY < canvasHeight
+          ) {
             const layerIdx = srcY * canvasWidth + srcX;
             layerBuffer[layerIdx] = '';
           }
@@ -305,7 +338,7 @@ export class EditorPage {
     height: number,
     shape: 'rect' | 'ellipse' | 'lasso',
     mask: Set<string> | null,
-    polygon: { x: number; y: number }[] | null
+    polygon: { x: number; y: number }[] | null,
   ): Uint8Array {
     const maskData = new Uint8Array(width * height);
 
@@ -347,7 +380,7 @@ export class EditorPage {
   private pointInPolygon(
     x: number,
     y: number,
-    polygon: { x: number; y: number }[]
+    polygon: { x: number; y: number }[],
   ): boolean {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -368,6 +401,23 @@ export class EditorPage {
 
   onDefinePatternCancel(): void {
     this.definePatternState.deactivate();
+    this.rightPanelTab.set('layers');
+  }
+
+  onStrokeToggle(): void {
+    this.rightPanelTab.set('stroke');
+  }
+
+  onStrokeApply(): void {
+    const success = this.strokeState.applyStroke();
+    if (success) {
+      this.strokeState.deactivate();
+      this.rightPanelTab.set('layers');
+    }
+  }
+
+  onStrokeCancel(): void {
+    this.strokeState.deactivate();
     this.rightPanelTab.set('layers');
   }
 }

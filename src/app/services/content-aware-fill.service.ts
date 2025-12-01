@@ -12,12 +12,12 @@ export class ContentAwareFillService {
     maskData: Uint8Array,
     width: number,
     height: number,
-    options: ContentAwareFillOptions = { threshold: 32, sampleRadius: 5 }
+    options: ContentAwareFillOptions = { threshold: 32, sampleRadius: 5 },
   ): ImageData {
     const result = new ImageData(
       new Uint8ClampedArray(sourceData.data),
       width,
-      height
+      height,
     );
     const data = result.data;
 
@@ -45,7 +45,7 @@ export class ContentAwareFillService {
         y,
         width,
         height,
-        options.sampleRadius
+        options.sampleRadius,
       );
 
       if (samples.length > 0) {
@@ -68,7 +68,7 @@ export class ContentAwareFillService {
     y: number,
     maskData: Uint8Array,
     width: number,
-    height: number
+    height: number,
   ): number {
     let minDist = Infinity;
     const searchRadius = 10;
@@ -95,7 +95,7 @@ export class ContentAwareFillService {
     y: number,
     width: number,
     height: number,
-    radius: number
+    radius: number,
   ): number[][] {
     const samples: number[][] = [];
 

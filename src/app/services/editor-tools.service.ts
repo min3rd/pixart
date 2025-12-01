@@ -64,7 +64,8 @@ export class EditorToolsService {
   readonly fillColor = this.fillTool.color.asReadonly();
   readonly fillMode = this.fillTool.mode.asReadonly();
   readonly fillPatternId = this.fillTool.patternId.asReadonly();
-  readonly fillGradientStartColor = this.fillTool.gradientStartColor.asReadonly();
+  readonly fillGradientStartColor =
+    this.fillTool.gradientStartColor.asReadonly();
   readonly fillGradientEndColor = this.fillTool.gradientEndColor.asReadonly();
   readonly fillGradientType = this.fillTool.gradientType.asReadonly();
   readonly fillGradientAngle = this.fillTool.gradientAngle.asReadonly();
@@ -433,19 +434,36 @@ export class EditorToolsService {
       if (typeof parsed.fillColor === 'string' && parsed.fillColor.length) {
         fillSnapshot.color = parsed.fillColor;
       }
-      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase' || parsed.fillMode === 'pattern' || parsed.fillMode === 'gradient') {
+      if (
+        parsed.fillMode === 'color' ||
+        parsed.fillMode === 'erase' ||
+        parsed.fillMode === 'pattern' ||
+        parsed.fillMode === 'gradient'
+      ) {
         fillSnapshot.mode = parsed.fillMode;
       }
-      if (typeof parsed.fillPatternId === 'string' && parsed.fillPatternId.length) {
+      if (
+        typeof parsed.fillPatternId === 'string' &&
+        parsed.fillPatternId.length
+      ) {
         fillSnapshot.patternId = parsed.fillPatternId;
       }
-      if (typeof parsed.fillGradientStartColor === 'string' && parsed.fillGradientStartColor.length) {
+      if (
+        typeof parsed.fillGradientStartColor === 'string' &&
+        parsed.fillGradientStartColor.length
+      ) {
         fillSnapshot.gradientStartColor = parsed.fillGradientStartColor;
       }
-      if (typeof parsed.fillGradientEndColor === 'string' && parsed.fillGradientEndColor.length) {
+      if (
+        typeof parsed.fillGradientEndColor === 'string' &&
+        parsed.fillGradientEndColor.length
+      ) {
         fillSnapshot.gradientEndColor = parsed.fillGradientEndColor;
       }
-      if (parsed.fillGradientType === 'linear' || parsed.fillGradientType === 'radial') {
+      if (
+        parsed.fillGradientType === 'linear' ||
+        parsed.fillGradientType === 'radial'
+      ) {
         fillSnapshot.gradientType = parsed.fillGradientType;
       }
       if (typeof parsed.fillGradientAngle === 'number') {

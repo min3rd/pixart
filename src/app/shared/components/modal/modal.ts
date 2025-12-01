@@ -66,10 +66,14 @@ export class Modal {
 
     if (typeof window !== 'undefined') {
       // Use pointer events to avoid interfering with mouse/touch interactions on inputs
-      window.addEventListener('pointermove', (e) => this.onPointerMove(e as PointerEvent));
+      window.addEventListener('pointermove', (e) =>
+        this.onPointerMove(e as PointerEvent),
+      );
       window.addEventListener('pointerup', () => this.onDragEnd());
       // Fallback for older browsers that do not support pointer events
-      window.addEventListener('mousemove', (e) => this.onDragMove(e as MouseEvent));
+      window.addEventListener('mousemove', (e) =>
+        this.onDragMove(e as MouseEvent),
+      );
       window.addEventListener('mouseup', () => this.onDragEnd());
     }
   }
@@ -97,13 +101,20 @@ export class Modal {
     if (!this.draggable()) return;
     // If the target is an interactive element, don't start dragging
     const target = event.target as HTMLElement | null;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
       return;
     }
 
     this.isDragging = true;
-    this.dragStartX = (event as PointerEvent).clientX ?? (event as MouseEvent).clientX;
-    this.dragStartY = (event as PointerEvent).clientY ?? (event as MouseEvent).clientY;
+    this.dragStartX =
+      (event as PointerEvent).clientX ?? (event as MouseEvent).clientX;
+    this.dragStartY =
+      (event as PointerEvent).clientY ?? (event as MouseEvent).clientY;
     this.dialogStartX = this.dialogX();
     this.dialogStartY = this.dialogY();
     // Store pointerId if present so we only track that pointer
@@ -129,7 +140,11 @@ export class Modal {
 
   private onPointerMove(event: PointerEvent): void {
     if (!this.isDragging) return;
-    if (this.activePointerId !== null && event.pointerId !== this.activePointerId) return;
+    if (
+      this.activePointerId !== null &&
+      event.pointerId !== this.activePointerId
+    )
+      return;
     const dx = event.clientX - this.dragStartX;
     const dy = event.clientY - this.dragStartY;
     this.dialogX.set(this.dialogStartX + dx);

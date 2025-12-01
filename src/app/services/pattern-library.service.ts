@@ -132,7 +132,9 @@ export class PatternLibraryService {
 
   readonly allPatternsIncludingCustom = computed(() => {
     const builtIn = this.patterns();
-    const custom = this.customPatternsData().map(cp => this.customPatternToPattern(cp));
+    const custom = this.customPatternsData().map((cp) =>
+      this.customPatternToPattern(cp),
+    );
     return [...builtIn, ...custom];
   });
 
@@ -145,43 +147,51 @@ export class PatternLibraryService {
   }
 
   getPatternsByCategory(category: 'shape' | 'texture' | 'custom'): Pattern[] {
-    return this.allPatternsIncludingCustom().filter((p) => p.category === category);
+    return this.allPatternsIncludingCustom().filter(
+      (p) => p.category === category,
+    );
   }
 
-  addCustomPattern(customPattern: Omit<CustomPattern, 'id' | 'createdAt'>): CustomPattern {
-    const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  addCustomPattern(
+    customPattern: Omit<CustomPattern, 'id' | 'createdAt'>,
+  ): CustomPattern {
+    const uniqueId =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const newPattern: CustomPattern = {
       ...customPattern,
       id: `custom_${uniqueId}`,
       createdAt: Date.now(),
     };
-    this.customPatternsData.update(list => [...list, newPattern]);
+    this.customPatternsData.update((list) => [...list, newPattern]);
     this.saveCustomPatterns();
     return newPattern;
   }
 
   removeCustomPattern(id: string): boolean {
     const current = this.customPatternsData();
-    const idx = current.findIndex(p => p.id === id);
+    const idx = current.findIndex((p) => p.id === id);
     if (idx === -1) return false;
-    this.customPatternsData.update(list => list.filter(p => p.id !== id));
+    this.customPatternsData.update((list) => list.filter((p) => p.id !== id));
     this.saveCustomPatterns();
     return true;
   }
 
   getCustomPattern(id: string): CustomPattern | undefined {
-    return this.customPatternsData().find(p => p.id === id);
+    return this.customPatternsData().find((p) => p.id === id);
   }
 
-  updateCustomPattern(id: string, updates: Partial<Omit<CustomPattern, 'id' | 'createdAt'>>): boolean {
+  updateCustomPattern(
+    id: string,
+    updates: Partial<Omit<CustomPattern, 'id' | 'createdAt'>>,
+  ): boolean {
     const current = this.customPatternsData();
-    const idx = current.findIndex(p => p.id === id);
+    const idx = current.findIndex((p) => p.id === id);
     if (idx === -1) return false;
-    this.customPatternsData.update(list => list.map(p =>
-      p.id === id ? { ...p, ...updates } : p
-    ));
+    this.customPatternsData.update((list) =>
+      list.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+    );
     this.saveCustomPatterns();
     return true;
   }
@@ -196,7 +206,10 @@ export class PatternLibraryService {
     };
   }
 
-  private generateFromCustomPattern(cp: CustomPattern, size: number): ImageData {
+  private generateFromCustomPattern(
+    cp: CustomPattern,
+    size: number,
+  ): ImageData {
     const imageData = new ImageData(size, size);
     const data = imageData.data;
 
@@ -205,7 +218,10 @@ export class PatternLibraryService {
     if (cp.pixelData && cp.pixelData.length === cp.width * cp.height * 4) {
       srcPixels = cp.pixelData;
     } else {
-      const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+      const canvas =
+        typeof document !== 'undefined'
+          ? document.createElement('canvas')
+          : null;
       if (!canvas) {
         return imageData;
       }
@@ -216,7 +232,12 @@ export class PatternLibraryService {
       canvas.width = cp.width;
       canvas.height = cp.height;
 
-      const srcData = this.decodeBase64ToImageData(cp.imageDataBase64, cp.width, cp.height, ctx);
+      const srcData = this.decodeBase64ToImageData(
+        cp.imageDataBase64,
+        cp.width,
+        cp.height,
+        ctx,
+      );
       if (!srcData) return imageData;
       srcPixels = srcData.data;
     }
@@ -243,7 +264,12 @@ export class PatternLibraryService {
     return imageData;
   }
 
-  private decodeBase64ToImageData(base64: string, width: number, height: number, ctx: CanvasRenderingContext2D): ImageData | null {
+  private decodeBase64ToImageData(
+    base64: string,
+    width: number,
+    height: number,
+    ctx: CanvasRenderingContext2D,
+  ): ImageData | null {
     try {
       const img = new Image();
       img.src = base64;
@@ -276,7 +302,10 @@ export class PatternLibraryService {
   private saveCustomPatterns(): void {
     try {
       if (typeof window === 'undefined' || !window.localStorage) return;
-      window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.customPatternsData()));
+      window.localStorage.setItem(
+        this.STORAGE_KEY,
+        JSON.stringify(this.customPatternsData()),
+      );
     } catch (error) {
       console.error('Failed to save custom patterns', error);
     }
@@ -322,7 +351,10 @@ export class PatternLibraryService {
     return imageData;
   }
 
-  private generateHorizontalStripes(size: number, stripeHeight: number): ImageData {
+  private generateHorizontalStripes(
+    size: number,
+    stripeHeight: number,
+  ): ImageData {
     const imageData = new ImageData(size, size);
     const data = imageData.data;
 
@@ -340,7 +372,10 @@ export class PatternLibraryService {
     return imageData;
   }
 
-  private generateVerticalStripes(size: number, stripeWidth: number): ImageData {
+  private generateVerticalStripes(
+    size: number,
+    stripeWidth: number,
+  ): ImageData {
     const imageData = new ImageData(size, size);
     const data = imageData.data;
 
