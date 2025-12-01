@@ -32,7 +32,8 @@
     "rotate90CW": "Rotate 90° CW",
     "rotate90CCW": "Rotate 90° CCW",
     "rotate180": "Rotate 180°",
-    "fillSelection": "Fill Selection"
+    "fillSelection": "Fill Selection",
+    "contentAwareFill": "Content-Aware Fill"
   },
   "badges": {
     "title": "2D Editor • Alpha"
@@ -98,13 +99,15 @@
       "circle": "Draw circles",
       "square": "Draw squares and rectangles",
       "brush": "Paint with a brush",
-      "bone": "Create and edit bone points for animation"
+      "bone": "Create and edit bone points for animation",
+      "contentAwareFill": "Content-aware fill for selection"
     },
     "panels": {
       "layers": "Manage layers and their properties",
       "bones": "Manage bones and skeletal animation",
       "timeline": "Manage animation timeline and frames",
-      "animationCreator": "Create and edit keyframe animations"
+      "animationCreator": "Create and edit keyframe animations",
+      "contentAwareFill": "Configure content-aware fill settings"
     },
     "file": {
       "new": "Create a new project",
@@ -465,6 +468,7 @@
       "edit.duplicateFrame": "Duplicate Frame",
       "edit.deleteFrame": "Delete Frame",
       "edit.fillSelection": "Fill Selection",
+      "edit.contentAwareFill": "Content-Aware Fill",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -677,6 +681,17 @@
     "gradientTypeRadial": "Radial",
     "gradientAngle": "Angle",
     "previewEnabled": "Preview changes on canvas",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
+  "contentAwareFill": {
+    "title": "Content-Aware Fill",
+    "description": "Intelligently fill selected area using surrounding content patterns.",
+    "detailLevel": "Detail Level",
+    "sampleRadius": "Sample Radius",
+    "exclusionMask": "Enable exclusion mask",
+    "clearExclusion": "Clear Exclusion Areas",
+    "previewToggle": "Live preview",
     "apply": "Apply",
     "cancel": "Cancel"
   }

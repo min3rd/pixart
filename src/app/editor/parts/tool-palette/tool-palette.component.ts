@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  output,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
@@ -8,6 +13,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
+import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
 
 @Component({
   selector: 'pa-tool-palette',
@@ -23,9 +29,20 @@ export class ToolPalette {
   readonly document = inject(EditorDocumentService);
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
+  readonly contentAwareFillState = inject(ContentAwareFillStateService);
+  readonly onContentAwareFillActivate = output<void>();
 
   select(id: ToolId) {
     this.tools.selectTool(id);
+  }
+
+  activateContentAwareFill(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+    this.contentAwareFillState.activate();
+    this.onContentAwareFillActivate.emit();
   }
 
   getToolHotkeyId(toolId: ToolId): string {

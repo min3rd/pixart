@@ -32,7 +32,8 @@
     "rotate90CW": "Xoay 90° phải",
     "rotate90CCW": "Xoay 90° trái",
     "rotate180": "Xoay 180°",
-    "fillSelection": "Đổ màu vùng chọn"
+    "fillSelection": "Đổ màu vùng chọn",
+    "contentAwareFill": "Tô thông minh"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha"
@@ -98,13 +99,15 @@
       "circle": "Vẽ hình tròn",
       "square": "Vẽ hình vuông và chữ nhật",
       "brush": "Vẽ bằng cọ",
-      "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh"
+      "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh",
+      "contentAwareFill": "Tô thông minh cho vùng chọn"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
       "bones": "Quản lý xương và hoạt ảnh khung xương",
       "timeline": "Quản lý timeline và các khung hình",
-      "animationCreator": "Tạo và chỉnh sửa animation keyframe"
+      "animationCreator": "Tạo và chỉnh sửa animation keyframe",
+      "contentAwareFill": "Cấu hình tô thông minh"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -468,6 +471,7 @@
       "edit.duplicateFrame": "Nhân bản khung hình",
       "edit.deleteFrame": "Xóa khung hình",
       "edit.fillSelection": "Tô vùng chọn",
+      "edit.contentAwareFill": "Tô thông minh",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -677,6 +681,17 @@
     "gradientTypeRadial": "Hướng tâm",
     "gradientAngle": "Góc",
     "previewEnabled": "Xem trước thay đổi trên canvas",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
+  },
+  "contentAwareFill": {
+    "title": "Tô thông minh",
+    "description": "Tự động tô vùng chọn dựa trên họa tiết xung quanh.",
+    "detailLevel": "Mức độ chi tiết",
+    "sampleRadius": "Bán kính lấy mẫu",
+    "exclusionMask": "Bật vùng loại trừ",
+    "clearExclusion": "Xóa vùng loại trừ",
+    "previewToggle": "Xem trước trực tiếp",
     "apply": "Áp dụng",
     "cancel": "Hủy"
   }
