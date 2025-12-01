@@ -279,6 +279,32 @@
               </span>
             }
           </button>
+          <div
+            id="menu-edit-divider-3"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-define-pattern-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="!document.selectionRect() || document.selectionRect()?.width === 0 || document.selectionRect()?.height === 0"
+            (click)="onDefinePattern()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.definePattern')"
+          >
+            <ng-icon id="menu-edit-define-pattern-icon" name="heroSquare2Stack" class="w-4 h-4 mr-2"></ng-icon>
+            <span id="menu-edit-define-pattern-label" class="flex-1">{{
+              "definePattern.title" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.definePattern")) {
+              <span
+                id="menu-edit-define-pattern-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.definePattern")!)
+                }}
+              </span>
+            }
+          </button>
         </div>
       }
     </div>

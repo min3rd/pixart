@@ -48,6 +48,7 @@ import { EditorContentAwareScaleService } from '../../../services/editor/editor-
 import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
+import { DefinePatternService } from '../../../services/editor/define-pattern.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -88,6 +89,7 @@ export class EditorHeader {
   readonly puppetWarp = inject(EditorPuppetWarpService);
   readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
+  readonly definePatternService = inject(DefinePatternService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -106,6 +108,7 @@ export class EditorHeader {
   readonly fillSelectionDialog = viewChild(FillSelectionDialog);
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
+  readonly onDefinePatternToggle = output<void>();
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -668,6 +671,25 @@ export class EditorHeader {
       defaultKey: 'shift+f5',
       handler: () => this.onContentAwareFill(),
     });
+
+    this.hotkeys.register({
+      id: 'edit.definePattern',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+p',
+      handler: () => this.onDefinePattern(),
+    });
+  }
+
+  onDefinePattern(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      this.showEditMenu.set(false);
+      return;
+    }
+
+    this.definePatternService.activate();
+    this.onDefinePatternToggle.emit();
+    this.showEditMenu.set(false);
   }
 
   onContentAwareFill(): void {

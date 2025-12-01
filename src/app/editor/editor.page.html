@@ -6,11 +6,13 @@
   <pa-editor-header
     class="row-start-1 col-start-1 -col-end-1"
     (onContentAwareFillToggle)="onContentAwareFillToggle()"
+    (onDefinePatternToggle)="onDefinePatternToggle()"
   />
 
   <pa-tool-palette
     class="row-start-2 col-start-1 overflow-auto border-r border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-800/40"
     (onContentAwareFillActivate)="onContentAwareFillToggle()"
+    (onDefinePatternActivate)="onDefinePatternToggle()"
   />
 
   <div
@@ -82,6 +84,23 @@
           {{ "contentAwareFill.title" | transloco }}
         </button>
       }
+      @if (definePatternState.isActive()) {
+        <button
+          type="button"
+          (click)="rightPanelTab.set('definePattern')"
+          class="flex-1 px-4 py-2 text-sm font-medium"
+          [class.bg-white]="rightPanelTab() === 'definePattern'"
+          [class.dark\:bg-neutral-900]="rightPanelTab() === 'definePattern'"
+          [class.text-blue-600]="rightPanelTab() === 'definePattern'"
+          [class.dark\:text-blue-400]="rightPanelTab() === 'definePattern'"
+          [class.text-neutral-600]="rightPanelTab() !== 'definePattern'"
+          [class.dark\:text-neutral-400]="rightPanelTab() !== 'definePattern'"
+          id="define-pattern-tab-button"
+          [paTooltip]="'tooltips.tools.definePattern' | transloco"
+        >
+          {{ "definePattern.title" | transloco }}
+        </button>
+      }
     </div>
     <div class="flex-1 overflow-auto">
       @if (rightPanelTab() === 'layers') {
@@ -93,6 +112,8 @@
           (onApply)="onContentAwareFillApply()"
           (onCancel)="onContentAwareFillCancel()"
         />
+      } @else if (rightPanelTab() === 'definePattern') {
+        <pa-define-pattern-panel />
       }
     </div>
   </div>

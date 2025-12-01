@@ -100,14 +100,16 @@
       "square": "Vẽ hình vuông và chữ nhật",
       "brush": "Vẽ bằng cọ",
       "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh",
-      "contentAwareFill": "Tô thông minh cho vùng chọn"
+      "contentAwareFill": "Tô thông minh cho vùng chọn",
+      "definePattern": "Tạo pattern lặp từ vùng chọn"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
       "bones": "Quản lý xương và hoạt ảnh khung xương",
       "timeline": "Quản lý timeline và các khung hình",
       "animationCreator": "Tạo và chỉnh sửa animation keyframe",
-      "contentAwareFill": "Cấu hình tô thông minh"
+      "contentAwareFill": "Cấu hình tô thông minh",
+      "definePattern": "Tạo và lưu pattern từ vùng chọn"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -472,6 +474,7 @@
       "edit.deleteFrame": "Xóa khung hình",
       "edit.fillSelection": "Tô vùng chọn",
       "edit.contentAwareFill": "Tô thông minh",
+      "edit.definePattern": "Tạo Pattern",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -694,5 +697,19 @@
     "previewToggle": "Xem trước trực tiếp",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "definePattern": {
+    "title": "Tạo Pattern",
+    "name": "Tên pattern",
+    "scale": "Tỉ lệ",
+    "opacity": "Độ trong suốt",
+    "preview": "Xem trước",
+    "livePreview": "Xem trước trực tiếp",
+    "save": "Lưu Pattern",
+    "cancel": "Hủy",
+    "thumbnail": "Hình thu nhỏ",
+    "tilePreview": "Xem mẫu lặp",
+    "noSelection": "Chọn vùng trên canvas trước",
+    "createFromSelection": "Tạo pattern từ vùng chọn"
   }
 }

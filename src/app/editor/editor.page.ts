@@ -13,8 +13,10 @@ import { BonesPanel } from './parts/bones-panel/bones-panel.component';
 import { AnimationCreatorPanel } from './parts/animation-creator-panel/animation-creator-panel.component';
 import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { ContentAwareFillPanelComponent } from './parts/content-aware-fill-panel/content-aware-fill-panel.component';
+import { DefinePatternPanelComponent } from './parts/define-pattern-panel/define-pattern-panel.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { ContentAwareFillStateService } from '../services/editor/content-aware-fill-state.service';
+import { DefinePatternService } from '../services/editor/define-pattern.service';
 import { EditorDocumentService } from '../services/editor-document.service';
 import { ContentAwareFillService } from '../services/content-aware-fill.service';
 import { CommonModule } from '@angular/common';
@@ -37,6 +39,7 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
     AnimationCreatorPanel,
     EditorCanvas,
     ContentAwareFillPanelComponent,
+    DefinePatternPanelComponent,
     TooltipDirective,
   ],
   host: {
@@ -48,10 +51,11 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
 export class EditorPage {
   private readonly settings = inject(UserSettingsService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
+  readonly definePatternState = inject(DefinePatternService);
   private readonly document = inject(EditorDocumentService);
   private readonly contentAwareFillService = inject(ContentAwareFillService);
 
-  readonly rightPanelTab = signal<'layers' | 'bones' | 'contentAwareFill'>('layers');
+  readonly rightPanelTab = signal<'layers' | 'bones' | 'contentAwareFill' | 'definePattern'>('layers');
   readonly bottomPanelTab = signal<'timeline' | 'animationCreator'>('timeline');
 
   readonly leftWidth = signal(this.settings.settings.panels.left);
@@ -356,5 +360,14 @@ export class EditorPage {
       if (intersect) inside = !inside;
     }
     return inside;
+  }
+
+  onDefinePatternToggle(): void {
+    this.rightPanelTab.set('definePattern');
+  }
+
+  onDefinePatternCancel(): void {
+    this.definePatternState.deactivate();
+    this.rightPanelTab.set('layers');
   }
 }
