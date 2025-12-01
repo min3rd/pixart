@@ -317,6 +317,18 @@
               <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ hotkeys.keyStringToDisplay(hotkeys.getBinding('edit.fillSelection')!) }}</span>
             }
           </button>
+          <button
+            id="menu-content-aware-fill-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onContentAwareFill()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.contentAwareFill')"
+          >
+            <ng-icon id="menu-content-aware-fill-icon" name="heroSparkles" class="w-4 h-4 mr-2"></ng-icon>
+            <span id="menu-content-aware-fill-label" class="flex-1">{{ "menu.contentAwareFill" | transloco }}</span>
+            @if (hotkeys.getBinding('edit.contentAwareFill')) {
+              <span class="text-xs text-neutral-500 dark:text-neutral-400 font-mono">{{ hotkeys.keyStringToDisplay(hotkeys.getBinding('edit.contentAwareFill')!) }}</span>
+            }
+          </button>
         </div>
       }
     </div>

@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   OnDestroy,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -46,6 +47,7 @@ import {
 import { EditorContentAwareScaleService } from '../../../services/editor/editor-content-aware-scale.service';
 import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
+import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -85,6 +87,7 @@ export class EditorHeader {
   readonly warp = inject(EditorWarpService);
   readonly puppetWarp = inject(EditorPuppetWarpService);
   readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
+  readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -102,6 +105,7 @@ export class EditorHeader {
   readonly contentAwareScaleDialog = viewChild(ContentAwareScaleDialog);
   readonly fillSelectionDialog = viewChild(FillSelectionDialog);
   readonly fillSelectionService = inject(FillSelectionService);
+  readonly onContentAwareFillToggle = output<void>();
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -118,14 +122,12 @@ export class EditorHeader {
   private fillHoverCloseTimer?: number;
 
   async onNewProject() {
-    // Reset to a minimal new project
     this.document.resetToNewProject();
     this.showFileMenu.set(false);
   }
   async onOpen() {
     const parsed = await this.fileService.openProjectFromPicker();
     if (parsed) {
-      // try to restore using editor snapshot shape; fallback to raw project
       try {
         this.document.restoreProjectSnapshot(parsed as any);
       } catch (e) {
@@ -659,6 +661,25 @@ export class EditorHeader {
         }
       },
     });
+
+    this.hotkeys.register({
+      id: 'edit.contentAwareFill',
+      category: 'edit',
+      defaultKey: 'shift+f5',
+      handler: () => this.onContentAwareFill(),
+    });
+  }
+
+  onContentAwareFill(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      this.showFillMenu.set(false);
+      return;
+    }
+
+    this.contentAwareFillState.activate();
+    this.onContentAwareFillToggle.emit();
+    this.showFillMenu.set(false);
   }
 
   async onInsertImage() {
