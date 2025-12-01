@@ -68,27 +68,33 @@ export class DefinePatternPanelComponent implements OnInit, OnDestroy {
   }
 
   onNameChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.definePatternService.setName(value);
+    const target = event.target as HTMLInputElement | null;
+    if (!target) return;
+    this.definePatternService.setName(target.value);
   }
 
   onScaleChange(event: Event): void {
-    const value = parseFloat((event.target as HTMLInputElement).value);
+    const target = event.target as HTMLInputElement | null;
+    if (!target) return;
+    const value = parseFloat(target.value);
     if (!isNaN(value)) {
       this.definePatternService.setScale(value);
     }
   }
 
   onOpacityChange(event: Event): void {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    const target = event.target as HTMLInputElement | null;
+    if (!target) return;
+    const value = parseInt(target.value, 10);
     if (!isNaN(value)) {
       this.definePatternService.setOpacity(value / 100);
     }
   }
 
   onLivePreviewChange(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.definePatternService.setLivePreview(checked);
+    const target = event.target as HTMLInputElement | null;
+    if (!target) return;
+    this.definePatternService.setLivePreview(target.checked);
   }
 
   get opacityPercent(): number {
