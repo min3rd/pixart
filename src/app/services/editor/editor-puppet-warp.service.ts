@@ -166,7 +166,11 @@ export class EditorPuppetWarpService {
     this.puppetWarpState.set({ ...state, pins });
   }
 
-  findPinAtPosition(x: number, y: number, threshold = 10): PuppetWarpPinData | null {
+  findPinAtPosition(
+    x: number,
+    y: number,
+    threshold = 10,
+  ): PuppetWarpPinData | null {
     const state = this.puppetWarpState();
     if (!state) return null;
 

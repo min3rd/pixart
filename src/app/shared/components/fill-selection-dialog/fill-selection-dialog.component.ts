@@ -9,7 +9,10 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EditorToolsService } from '../../../services/editor-tools.service';
-import { PatternLibraryService, Pattern } from '../../../services/pattern-library.service';
+import {
+  PatternLibraryService,
+  Pattern,
+} from '../../../services/pattern-library.service';
 import { FillToolMode, GradientType } from '../../../services/tools/tool.types';
 import { Modal } from '../modal/modal';
 
@@ -48,10 +51,10 @@ export class FillSelectionDialog {
 
   readonly allPatterns = this.patternLibrary.allPatterns;
   readonly shapePatterns = computed(() =>
-    this.allPatterns().filter((p) => p.category === 'shape')
+    this.allPatterns().filter((p) => p.category === 'shape'),
   );
   readonly texturePatterns = computed(() =>
-    this.allPatterns().filter((p) => p.category === 'texture')
+    this.allPatterns().filter((p) => p.category === 'texture'),
   );
 
   private resolveCallback?: (result: FillSelectionDialogResult | null) => void;
@@ -70,7 +73,7 @@ export class FillSelectionDialog {
     const patterns = this.allPatterns();
     for (const pattern of patterns) {
       const canvasEl = this.elementRef.nativeElement.querySelector(
-        `#fill-selection-pattern-canvas-${pattern.id}`
+        `#fill-selection-pattern-canvas-${pattern.id}`,
       ) as HTMLCanvasElement;
       if (canvasEl) {
         const ctx = canvasEl.getContext('2d');

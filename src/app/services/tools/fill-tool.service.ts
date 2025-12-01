@@ -40,7 +40,13 @@ export class FillToolService implements ToolService<FillToolSnapshot> {
   }
 
   setMode(mode: FillToolMode) {
-    if (mode !== 'color' && mode !== 'erase' && mode !== 'pattern' && mode !== 'gradient') return;
+    if (
+      mode !== 'color' &&
+      mode !== 'erase' &&
+      mode !== 'pattern' &&
+      mode !== 'gradient'
+    )
+      return;
     const prev = this.mode();
     if (prev === mode) return;
     this.historyAdapter?.('fillMode', prev, mode);
@@ -90,19 +96,33 @@ export class FillToolService implements ToolService<FillToolSnapshot> {
     if (typeof snapshot.color === 'string' && snapshot.color.length) {
       this.color.set(snapshot.color);
     }
-    if (snapshot.mode === 'color' || snapshot.mode === 'erase' || snapshot.mode === 'pattern' || snapshot.mode === 'gradient') {
+    if (
+      snapshot.mode === 'color' ||
+      snapshot.mode === 'erase' ||
+      snapshot.mode === 'pattern' ||
+      snapshot.mode === 'gradient'
+    ) {
       this.mode.set(snapshot.mode);
     }
     if (typeof snapshot.patternId === 'string' && snapshot.patternId.length) {
       this.patternId.set(snapshot.patternId);
     }
-    if (typeof snapshot.gradientStartColor === 'string' && snapshot.gradientStartColor.length) {
+    if (
+      typeof snapshot.gradientStartColor === 'string' &&
+      snapshot.gradientStartColor.length
+    ) {
       this.gradientStartColor.set(snapshot.gradientStartColor);
     }
-    if (typeof snapshot.gradientEndColor === 'string' && snapshot.gradientEndColor.length) {
+    if (
+      typeof snapshot.gradientEndColor === 'string' &&
+      snapshot.gradientEndColor.length
+    ) {
       this.gradientEndColor.set(snapshot.gradientEndColor);
     }
-    if (snapshot.gradientType === 'linear' || snapshot.gradientType === 'radial') {
+    if (
+      snapshot.gradientType === 'linear' ||
+      snapshot.gradientType === 'radial'
+    ) {
       this.gradientType.set(snapshot.gradientType);
     }
     if (typeof snapshot.gradientAngle === 'number') {
@@ -115,7 +135,13 @@ export class FillToolService implements ToolService<FillToolSnapshot> {
       this.color.set(value);
       return true;
     }
-    if (key === 'fillMode' && (value === 'color' || value === 'erase' || value === 'pattern' || value === 'gradient')) {
+    if (
+      key === 'fillMode' &&
+      (value === 'color' ||
+        value === 'erase' ||
+        value === 'pattern' ||
+        value === 'gradient')
+    ) {
       this.mode.set(value);
       return true;
     }

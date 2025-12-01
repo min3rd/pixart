@@ -59,7 +59,9 @@ export class ContentAwareScaleDialog {
   readonly canApply = computed(() => {
     const w = this.previewWidth();
     const h = this.previewHeight();
-    return w > 0 && h > 0 && w <= this.originalWidth() && h <= this.originalHeight();
+    return (
+      w > 0 && h > 0 && w <= this.originalWidth() && h <= this.originalHeight()
+    );
   });
 
   open(width: number, height: number) {

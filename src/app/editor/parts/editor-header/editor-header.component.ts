@@ -49,6 +49,7 @@ import { FillSelectionService } from '../../../services/editor/fill-selection.se
 import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../../../services/editor/define-pattern.service';
+import { EditorStrokeService } from '../../../services/editor/editor-stroke.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -90,6 +91,7 @@ export class EditorHeader {
   readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternService = inject(DefinePatternService);
+  readonly strokeService = inject(EditorStrokeService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -109,6 +111,7 @@ export class EditorHeader {
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
   readonly onDefinePatternToggle = output<void>();
+  readonly onStrokeToggle = output<void>();
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -678,6 +681,25 @@ export class EditorHeader {
       defaultKey: 'ctrl+alt+p',
       handler: () => this.onDefinePattern(),
     });
+
+    this.hotkeys.register({
+      id: 'edit.stroke',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+s',
+      handler: () => this.onStroke(),
+    });
+  }
+
+  onStroke(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      this.showEditMenu.set(false);
+      return;
+    }
+
+    this.strokeService.activate();
+    this.onStrokeToggle.emit();
+    this.showEditMenu.set(false);
   }
 
   onDefinePattern(): void {
@@ -749,7 +771,8 @@ export class EditorHeader {
         this.tools.setFillGradientStartColor(result.gradientStartColor);
       if (result.gradientEndColor)
         this.tools.setFillGradientEndColor(result.gradientEndColor);
-      if (result.gradientType) this.tools.setFillGradientType(result.gradientType);
+      if (result.gradientType)
+        this.tools.setFillGradientType(result.gradientType);
       if (result.gradientAngle !== undefined)
         this.tools.setFillGradientAngle(result.gradientAngle);
     }

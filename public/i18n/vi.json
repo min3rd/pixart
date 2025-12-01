@@ -33,11 +33,12 @@
     "rotate90CCW": "Xoay 90° trái",
     "rotate180": "Xoay 180°",
     "fillSelection": "Đổ màu vùng chọn",
-    "contentAwareFill": "Tô thông minh"
+    "contentAwareFill": "Tô thông minh",
+    "stroke": "Viền"
   },
   "badges": {
-    "title": "Trình biên tập 2D • Alpha"
-    ,"dev": "Đang Phát Triển"
+    "title": "Trình biên tập 2D • Alpha",
+    "dev": "Đang Phát Triển"
   },
   "tools": {
     "selectLayer": "Chọn layer",
@@ -85,7 +86,8 @@
       "flipVertical": "Lật dọc",
       "rotate90CW": "Xoay 90 độ theo chiều kim đồng hồ",
       "rotate90CCW": "Xoay 90 độ ngược chiều kim đồng hồ",
-      "rotate180": "Xoay 180 độ"
+      "rotate180": "Xoay 180 độ",
+      "stroke": "Thêm viền cho vùng chọn"
     },
     "tools": {
       "selectLayer": "Chọn và di chuyển layer",
@@ -101,7 +103,8 @@
       "brush": "Vẽ bằng cọ",
       "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh",
       "contentAwareFill": "Tô thông minh cho vùng chọn",
-      "definePattern": "Tạo pattern lặp từ vùng chọn"
+      "definePattern": "Tạo pattern lặp từ vùng chọn",
+      "stroke": "Thêm viền cho vùng chọn"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
@@ -109,7 +112,8 @@
       "timeline": "Quản lý timeline và các khung hình",
       "animationCreator": "Tạo và chỉnh sửa animation keyframe",
       "contentAwareFill": "Cấu hình tô thông minh",
-      "definePattern": "Tạo và lưu pattern từ vùng chọn"
+      "definePattern": "Tạo và lưu pattern từ vùng chọn",
+      "stroke": "Thêm viền cho vùng chọn"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -475,6 +479,7 @@
       "edit.fillSelection": "Tô vùng chọn",
       "edit.contentAwareFill": "Tô thông minh",
       "edit.definePattern": "Tạo Pattern",
+      "edit.stroke": "Viền",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -711,5 +716,22 @@
     "tilePreview": "Xem mẫu lặp",
     "noSelection": "Chọn vùng trên canvas trước",
     "createFromSelection": "Tạo pattern từ vùng chọn"
+  },
+  "stroke": {
+    "title": "Viền",
+    "description": "Thêm viền xung quanh vùng chọn hoặc layer.",
+    "color": "Màu viền",
+    "width": "Độ dày viền",
+    "style": "Kiểu viền",
+    "styleSolid": "Liền",
+    "styleDashed": "Gạch",
+    "styleDotted": "Chấm",
+    "position": "Vị trí viền",
+    "positionInside": "Trong",
+    "positionCenter": "Giữa",
+    "positionOutside": "Ngoài",
+    "previewToggle": "Xem trước trực tiếp",
+    "apply": "Áp dụng",
+    "cancel": "Hủy"
   }
 }

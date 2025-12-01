@@ -1,5 +1,8 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { ContentAwareFillService, ContentAwareFillOptions } from '../content-aware-fill.service';
+import {
+  ContentAwareFillService,
+  ContentAwareFillOptions,
+} from '../content-aware-fill.service';
 
 export interface SamplingArea {
   x: number;
@@ -93,7 +96,7 @@ export class ContentAwareFillStateService {
     sourceData: ImageData,
     maskData: Uint8Array,
     width: number,
-    height: number
+    height: number,
   ): ImageData {
     const effectiveMask = this.createEffectiveMask(maskData, width, height);
 
@@ -102,7 +105,7 @@ export class ContentAwareFillStateService {
       effectiveMask,
       width,
       height,
-      this.options()
+      this.options(),
     );
 
     this.previewImageData.set(result);
@@ -113,7 +116,7 @@ export class ContentAwareFillStateService {
     sourceData: ImageData,
     maskData: Uint8Array,
     width: number,
-    height: number
+    height: number,
   ): ImageData {
     const effectiveMask = this.createEffectiveMask(maskData, width, height);
 
@@ -122,14 +125,14 @@ export class ContentAwareFillStateService {
       effectiveMask,
       width,
       height,
-      this.options()
+      this.options(),
     );
   }
 
   private createEffectiveMask(
     maskData: Uint8Array,
     width: number,
-    height: number
+    height: number,
   ): Uint8Array {
     const effectiveMask = new Uint8Array(maskData);
 

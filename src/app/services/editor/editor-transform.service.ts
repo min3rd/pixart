@@ -595,7 +595,13 @@ export class EditorTransformService {
     height: number,
     srcCorners: { x: number; y: number }[],
     dstCorners: { x: number; y: number }[],
-  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
     const matrix = this.computeHomographyMatrix(srcCorners, dstCorners);
     if (!matrix) {
       return { buffer, width, height, minX: 0, minY: 0 };
@@ -804,14 +810,27 @@ export class EditorTransformService {
     buffer: string[],
     width: number,
     height: number,
-    gridNodes: { x: number; y: number; originalX: number; originalY: number; row: number; col: number }[],
+    gridNodes: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      row: number;
+      col: number;
+    }[],
     gridRows: number,
     gridCols: number,
-  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
-    const minX = Math.min(...gridNodes.map(n => n.x));
-    const maxX = Math.max(...gridNodes.map(n => n.x));
-    const minY = Math.min(...gridNodes.map(n => n.y));
-    const maxY = Math.max(...gridNodes.map(n => n.y));
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
+    const minX = Math.min(...gridNodes.map((n) => n.x));
+    const maxX = Math.max(...gridNodes.map((n) => n.x));
+    const minY = Math.min(...gridNodes.map((n) => n.y));
+    const maxY = Math.max(...gridNodes.map((n) => n.y));
 
     const newWidth = Math.ceil(maxX - minX);
     const newHeight = Math.ceil(maxY - minY);
@@ -891,7 +910,14 @@ export class EditorTransformService {
   private bilinearWarpInverse(
     worldX: number,
     worldY: number,
-    gridNodes: { x: number; y: number; originalX: number; originalY: number; row: number; col: number }[],
+    gridNodes: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      row: number;
+      col: number;
+    }[],
     gridRows: number,
     gridCols: number,
     srcWidth: number,
@@ -899,34 +925,49 @@ export class EditorTransformService {
   ): { x: number; y: number } | null {
     for (let row = 0; row < gridRows; row++) {
       for (let col = 0; col < gridCols; col++) {
-        const n00 = gridNodes.find(n => n.row === row && n.col === col);
-        const n10 = gridNodes.find(n => n.row === row && n.col === col + 1);
-        const n01 = gridNodes.find(n => n.row === row + 1 && n.col === col);
-        const n11 = gridNodes.find(n => n.row === row + 1 && n.col === col + 1);
+        const n00 = gridNodes.find((n) => n.row === row && n.col === col);
+        const n10 = gridNodes.find((n) => n.row === row && n.col === col + 1);
+        const n01 = gridNodes.find((n) => n.row === row + 1 && n.col === col);
+        const n11 = gridNodes.find(
+          (n) => n.row === row + 1 && n.col === col + 1,
+        );
 
         if (!n00 || !n10 || !n01 || !n11) continue;
 
         const uv = this.inverseQuadBilinear(
-          worldX, worldY,
-          n00.x, n00.y,
-          n10.x, n10.y,
-          n11.x, n11.y,
-          n01.x, n01.y
+          worldX,
+          worldY,
+          n00.x,
+          n00.y,
+          n10.x,
+          n10.y,
+          n11.x,
+          n11.y,
+          n01.x,
+          n01.y,
         );
 
-        if (uv && uv.u >= -0.001 && uv.u <= 1.001 && uv.v >= -0.001 && uv.v <= 1.001) {
+        if (
+          uv &&
+          uv.u >= -0.001 &&
+          uv.u <= 1.001 &&
+          uv.v >= -0.001 &&
+          uv.v <= 1.001
+        ) {
           const u = Math.max(0, Math.min(1, uv.u));
           const v = Math.max(0, Math.min(1, uv.v));
 
-          const srcX = (1 - u) * (1 - v) * n00.originalX +
-                       u * (1 - v) * n10.originalX +
-                       (1 - u) * v * n01.originalX +
-                       u * v * n11.originalX;
+          const srcX =
+            (1 - u) * (1 - v) * n00.originalX +
+            u * (1 - v) * n10.originalX +
+            (1 - u) * v * n01.originalX +
+            u * v * n11.originalX;
 
-          const srcY = (1 - u) * (1 - v) * n00.originalY +
-                       u * (1 - v) * n10.originalY +
-                       (1 - u) * v * n01.originalY +
-                       u * v * n11.originalY;
+          const srcY =
+            (1 - u) * (1 - v) * n00.originalY +
+            u * (1 - v) * n10.originalY +
+            (1 - u) * v * n01.originalY +
+            u * v * n11.originalY;
 
           return { x: srcX, y: srcY };
         }
@@ -937,17 +978,22 @@ export class EditorTransformService {
   }
 
   private inverseQuadBilinear(
-    px: number, py: number,
-    x0: number, y0: number,
-    x1: number, y1: number,
-    x2: number, y2: number,
-    x3: number, y3: number
+    px: number,
+    py: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    x3: number,
+    y3: number,
   ): { u: number; v: number } | null {
     const a = x0;
     const b = x1 - x0;
     const c = x3 - x0;
     const d = x0 - x1 - x3 + x2;
-    
+
     const e = y0;
     const f = y1 - y0;
     const g = y3 - y0;
@@ -972,7 +1018,7 @@ export class EditorTransformService {
       const sqrtDisc = Math.sqrt(discriminant);
       const u1 = (-B + sqrtDisc) / (2 * A);
       const u2 = (-B - sqrtDisc) / (2 * A);
-      
+
       if (u1 >= 0 && u1 <= 1) {
         u = u1;
       } else if (u2 >= 0 && u2 <= 1) {
@@ -1000,19 +1046,32 @@ export class EditorTransformService {
     buffer: string[],
     width: number,
     height: number,
-    pins: { x: number; y: number; originalX: number; originalY: number; radius: number; locked: boolean }[],
-  ): { buffer: string[]; width: number; height: number; minX: number; minY: number } {
+    pins: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      radius: number;
+      locked: boolean;
+    }[],
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
     if (pins.length === 0) {
       return { buffer, width, height, minX: 0, minY: 0 };
     }
 
-    const movingPins = pins.filter(p => !p.locked);
+    const movingPins = pins.filter((p) => !p.locked);
     if (movingPins.length === 0) {
       return { buffer, width, height, minX: 0, minY: 0 };
     }
 
-    const allX = pins.map(p => p.x);
-    const allY = pins.map(p => p.y);
+    const allX = pins.map((p) => p.x);
+    const allY = pins.map((p) => p.y);
     const minX = Math.min(...allX, 0);
     const maxX = Math.max(...allX, width);
     const minY = Math.min(...allY, 0);
@@ -1088,7 +1147,14 @@ export class EditorTransformService {
   private tpsTransform(
     x: number,
     y: number,
-    pins: { x: number; y: number; originalX: number; originalY: number; radius: number; locked: boolean }[],
+    pins: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      radius: number;
+      locked: boolean;
+    }[],
     srcWidth: number,
     srcHeight: number,
   ): { x: number; y: number } | null {

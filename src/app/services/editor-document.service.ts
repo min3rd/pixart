@@ -78,7 +78,9 @@ export class EditorDocumentService {
   readonly keyframeService = inject(EditorKeyframeService);
   private readonly transformService = inject(EditorTransformService);
   private readonly freeTransformService = inject(EditorFreeTransformService);
-  private readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
+  private readonly contentAwareScaleService = inject(
+    EditorContentAwareScaleService,
+  );
 
   readonly layers = this.layerService.layers;
   readonly selectedLayerId = this.layerService.selectedLayerId;
@@ -1967,20 +1969,23 @@ export class EditorDocumentService {
         importanceMap,
       );
 
-      const resultBuffer: string[] = new Array(
-        targetWidth * targetHeight,
-      ).fill('');
+      const resultBuffer: string[] = new Array(targetWidth * targetHeight).fill(
+        '',
+      );
       for (let i = 0; i < resultBuffer.length; i++) {
         const r = scaled.data[i * 4];
         const g = scaled.data[i * 4 + 1];
         const b = scaled.data[i * 4 + 2];
         const a = scaled.data[i * 4 + 3];
         if (a > 0) {
-          resultBuffer[i] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+          resultBuffer[i] =
+            `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
         }
       }
 
-      const transformedLayer = this.layerService.addLayer('Content-Aware Scaled');
+      const transformedLayer = this.layerService.addLayer(
+        'Content-Aware Scaled',
+      );
       this.canvasState.ensureLayerBuffer(
         transformedLayer.id,
         canvasWidth,
@@ -2028,7 +2033,10 @@ export class EditorDocumentService {
             }
           }
         }
-        this.canvasState.setLayerBuffer(transformedLayer.id, transformedLayerBuf);
+        this.canvasState.setLayerBuffer(
+          transformedLayer.id,
+          transformedLayerBuf,
+        );
       }
 
       if (originalLayerId) {
@@ -2127,7 +2135,8 @@ export class EditorDocumentService {
       const b = scaled.data[i * 4 + 2];
       const a = scaled.data[i * 4 + 3];
       if (a > 0) {
-        resultBuffer[i] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+        resultBuffer[i] =
+          `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
       }
     }
 

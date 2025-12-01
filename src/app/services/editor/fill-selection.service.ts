@@ -22,7 +22,8 @@ export class FillSelectionService {
 
   fillSelection(options: FillSelectionOptions): boolean {
     const selectionRect = this.document.selectionRect();
-    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0) return false;
+    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0)
+      return false;
 
     const currentLayer = this.document.selectedLayer();
     if (!currentLayer || currentLayer.type !== 'layer') return false;
@@ -39,7 +40,7 @@ export class FillSelectionService {
       height,
       selectionShape,
       selectionMask,
-      selectionPolygon
+      selectionPolygon,
     );
 
     const layerCanvas = document.createElement('canvas');
@@ -55,7 +56,11 @@ export class FillSelectionService {
     if (!tempCtx) return false;
 
     const currentBuffer = this.document.getLayerBuffer(currentLayer.id);
-    this.renderBufferToCanvas(currentBuffer, this.document.canvasWidth(), layerCanvas);
+    this.renderBufferToCanvas(
+      currentBuffer,
+      this.document.canvasWidth(),
+      layerCanvas,
+    );
     const fullImageData = layerCtx.getImageData(x, y, width, height);
 
     const originalPixels = new Uint8ClampedArray(fullImageData.data);
@@ -67,14 +72,14 @@ export class FillSelectionService {
         width,
         height,
         maskData,
-        options.color
+        options.color,
       );
     } else if (options.mode === 'pattern' && options.patternId) {
       fillImageData = this.fillWithPattern(
         width,
         height,
         maskData,
-        options.patternId
+        options.patternId,
       );
     } else if (options.mode === 'gradient') {
       fillImageData = this.fillWithGradient(
@@ -84,7 +89,7 @@ export class FillSelectionService {
         options.gradientStartColor || '#000000',
         options.gradientEndColor || '#ffffff',
         options.gradientType || 'linear',
-        options.gradientAngle || 0
+        options.gradientAngle || 0,
       );
     } else if (options.mode === 'erase') {
       fillImageData = this.fillWithErase(width, height, maskData);
@@ -99,12 +104,14 @@ export class FillSelectionService {
     const hiddenCanvas = document.createElement('canvas');
     hiddenCanvas.width = width;
     hiddenCanvas.height = height;
-    const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+    const hiddenCtx = hiddenCanvas.getContext('2d', {
+      willReadFrequently: true,
+    });
     if (hiddenCtx) {
       hiddenCtx.putImageData(
         new ImageData(originalPixels, width, height),
         0,
-        0
+        0,
       );
       const hiddenData = hiddenCtx.getImageData(0, 0, width, height);
       for (let py = 0; py < height; py++) {
@@ -112,15 +119,15 @@ export class FillSelectionService {
           const idx = py * width + px;
           if (maskData[idx] > 0) {
             const dataIdx = idx * 4;
-            const layerIndex = (y + py) * this.document.canvasWidth() + (x + px);
+            const layerIndex =
+              (y + py) * this.document.canvasWidth() + (x + px);
             const hiddenBuffer = this.document.getLayerBuffer(hiddenLayer.id);
-            hiddenBuffer[layerIndex] =
-              this.rgbaToHex(
-                hiddenData.data[dataIdx],
-                hiddenData.data[dataIdx + 1],
-                hiddenData.data[dataIdx + 2],
-                hiddenData.data[dataIdx + 3]
-              );
+            hiddenBuffer[layerIndex] = this.rgbaToHex(
+              hiddenData.data[dataIdx],
+              hiddenData.data[dataIdx + 1],
+              hiddenData.data[dataIdx + 2],
+              hiddenData.data[dataIdx + 3],
+            );
           }
         }
       }
@@ -138,13 +145,12 @@ export class FillSelectionService {
           const dataIdx = idx * 4;
           const layerIndex = (y + py) * this.document.canvasWidth() + (x + px);
           const newBuffer = this.document.getLayerBuffer(newLayer.id);
-          newBuffer[layerIndex] =
-            this.rgbaToHex(
-              filledData.data[dataIdx],
-              filledData.data[dataIdx + 1],
-              filledData.data[dataIdx + 2],
-              filledData.data[dataIdx + 3]
-            );
+          newBuffer[layerIndex] = this.rgbaToHex(
+            filledData.data[dataIdx],
+            filledData.data[dataIdx + 1],
+            filledData.data[dataIdx + 2],
+            filledData.data[dataIdx + 3],
+          );
         }
       }
     }
@@ -167,7 +173,7 @@ export class FillSelectionService {
     width: number,
     height: number,
     maskData: Uint8Array,
-    color: string
+    color: string,
   ): ImageData {
     const imageData = new ImageData(width, height);
     const data = imageData.data;
@@ -189,7 +195,7 @@ export class FillSelectionService {
     width: number,
     height: number,
     maskData: Uint8Array,
-    patternId: string
+    patternId: string,
   ): ImageData {
     const pattern = this.patternLibrary.getPattern(patternId);
     if (!pattern) {
@@ -227,7 +233,7 @@ export class FillSelectionService {
     startColor: string,
     endColor: string,
     type: 'linear' | 'radial',
-    angle: number
+    angle: number,
   ): ImageData {
     const imageData = new ImageData(width, height);
     const data = imageData.data;
@@ -248,10 +254,18 @@ export class FillSelectionService {
             const proj = (nx * cos + ny * sin + 1) / 2;
             const t = Math.max(0, Math.min(1, proj));
             const dataIdx = idx * 4;
-            data[dataIdx] = Math.round(startRgba[0] + (endRgba[0] - startRgba[0]) * t);
-            data[dataIdx + 1] = Math.round(startRgba[1] + (endRgba[1] - startRgba[1]) * t);
-            data[dataIdx + 2] = Math.round(startRgba[2] + (endRgba[2] - startRgba[2]) * t);
-            data[dataIdx + 3] = Math.round(startRgba[3] + (endRgba[3] - startRgba[3]) * t);
+            data[dataIdx] = Math.round(
+              startRgba[0] + (endRgba[0] - startRgba[0]) * t,
+            );
+            data[dataIdx + 1] = Math.round(
+              startRgba[1] + (endRgba[1] - startRgba[1]) * t,
+            );
+            data[dataIdx + 2] = Math.round(
+              startRgba[2] + (endRgba[2] - startRgba[2]) * t,
+            );
+            data[dataIdx + 3] = Math.round(
+              startRgba[3] + (endRgba[3] - startRgba[3]) * t,
+            );
           }
         }
       }
@@ -269,10 +283,18 @@ export class FillSelectionService {
             const dist = Math.sqrt(dx * dx + dy * dy);
             const t = Math.max(0, Math.min(1, dist / maxDist));
             const dataIdx = idx * 4;
-            data[dataIdx] = Math.round(startRgba[0] + (endRgba[0] - startRgba[0]) * t);
-            data[dataIdx + 1] = Math.round(startRgba[1] + (endRgba[1] - startRgba[1]) * t);
-            data[dataIdx + 2] = Math.round(startRgba[2] + (endRgba[2] - startRgba[2]) * t);
-            data[dataIdx + 3] = Math.round(startRgba[3] + (endRgba[3] - startRgba[3]) * t);
+            data[dataIdx] = Math.round(
+              startRgba[0] + (endRgba[0] - startRgba[0]) * t,
+            );
+            data[dataIdx + 1] = Math.round(
+              startRgba[1] + (endRgba[1] - startRgba[1]) * t,
+            );
+            data[dataIdx + 2] = Math.round(
+              startRgba[2] + (endRgba[2] - startRgba[2]) * t,
+            );
+            data[dataIdx + 3] = Math.round(
+              startRgba[3] + (endRgba[3] - startRgba[3]) * t,
+            );
           }
         }
       }
@@ -283,7 +305,7 @@ export class FillSelectionService {
   private fillWithErase(
     width: number,
     height: number,
-    maskData: Uint8Array
+    maskData: Uint8Array,
   ): ImageData {
     const imageData = new ImageData(width, height);
     return imageData;
@@ -325,7 +347,7 @@ export class FillSelectionService {
     height: number,
     shape: 'rect' | 'ellipse' | 'lasso',
     mask: Set<string> | null,
-    polygon: { x: number; y: number }[] | null
+    polygon: { x: number; y: number }[] | null,
   ): Uint8Array {
     const maskData = new Uint8Array(width * height);
 
@@ -367,7 +389,7 @@ export class FillSelectionService {
   private pointInPolygon(
     x: number,
     y: number,
-    polygon: { x: number; y: number }[]
+    polygon: { x: number; y: number }[],
   ): boolean {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -385,7 +407,7 @@ export class FillSelectionService {
   private renderBufferToCanvas(
     buffer: string[],
     canvasWidth: number,
-    canvas: HTMLCanvasElement
+    canvas: HTMLCanvasElement,
   ): void {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;

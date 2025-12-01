@@ -9,7 +9,10 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { heroXMark } from '@ng-icons/heroicons/outline';
 import { Modal } from '../modal/modal';
-import { WarpGridSize, WarpGridNode } from '../../../services/editor/editor-warp.service';
+import {
+  WarpGridSize,
+  WarpGridNode,
+} from '../../../services/editor/editor-warp.service';
 
 export interface WarpResult {
   nodes: WarpGridNode[];
@@ -51,7 +54,7 @@ export class WarpDialog {
     this.originalHeight.set(height);
     this.gridSize.set(gridSize);
     this.smoothing.set(0.5);
-    
+
     if (nodes) {
       this.nodes.set(nodes);
     } else {

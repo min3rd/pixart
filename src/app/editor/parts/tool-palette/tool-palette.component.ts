@@ -15,6 +15,7 @@ import { HotkeysService } from '../../../services/hotkeys.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../../../services/editor/define-pattern.service';
+import { EditorStrokeService } from '../../../services/editor/editor-stroke.service';
 
 @Component({
   selector: 'pa-tool-palette',
@@ -32,8 +33,10 @@ export class ToolPalette {
   readonly hotkeys = inject(HotkeysService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternService = inject(DefinePatternService);
+  readonly strokeService = inject(EditorStrokeService);
   readonly onContentAwareFillActivate = output<void>();
   readonly onDefinePatternActivate = output<void>();
+  readonly onStrokeActivate = output<void>();
 
   select(id: ToolId) {
     this.tools.selectTool(id);
@@ -55,6 +58,15 @@ export class ToolPalette {
     }
     this.definePatternService.activate();
     this.onDefinePatternActivate.emit();
+  }
+
+  activateStroke(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+    this.strokeService.activate();
+    this.onStrokeActivate.emit();
   }
 
   getToolHotkeyId(toolId: ToolId): string {

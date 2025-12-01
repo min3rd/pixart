@@ -89,7 +89,13 @@ interface ContextMenuAction {
   selector: 'pa-editor-canvas',
   templateUrl: './editor-canvas.component.html',
   styleUrls: ['./editor-canvas.component.css'],
-  imports: [CommonModule, TranslocoPipe, NgIcon, PixelGenerationDialog, FillSelectionDialog],
+  imports: [
+    CommonModule,
+    TranslocoPipe,
+    NgIcon,
+    PixelGenerationDialog,
+    FillSelectionDialog,
+  ],
   host: {
     class: 'block h-full w-full',
     '(wheel)': 'onWheel($event)',
@@ -438,7 +444,8 @@ export class EditorCanvas implements OnDestroy {
 
   async openFillSelectionDialog() {
     const selectionRect = this.document.selectionRect();
-    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0) return;
+    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0)
+      return;
 
     const result = await this.fillSelectionDialog?.open();
     if (!result) return;
@@ -1164,7 +1171,11 @@ export class EditorCanvas implements OnDestroy {
           return;
         }
 
-        const clickedPin = this.puppetWarp.findPinAtPosition(logicalX, logicalY, handleSize);
+        const clickedPin = this.puppetWarp.findPinAtPosition(
+          logicalX,
+          logicalY,
+          handleSize,
+        );
         if (clickedPin) {
           this.capturePointer(ev);
           this.puppetWarp.startPinDrag(clickedPin, logicalX, logicalY);
@@ -1272,7 +1283,11 @@ export class EditorCanvas implements OnDestroy {
         tool === 'rect-select' ||
         tool === 'ellipse-select' ||
         tool === 'lasso-select';
-      if (clickedInSelection && insideCanvas && this.moveSelectionHotkeyActive) {
+      if (
+        clickedInSelection &&
+        insideCanvas &&
+        this.moveSelectionHotkeyActive
+      ) {
         const selectedLayer = this.document.selectedLayer();
         if (selectedLayer?.locked) {
           return;
@@ -2097,9 +2112,9 @@ export class EditorCanvas implements OnDestroy {
     if (!layerBuf) return;
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
-    
+
     this.distortFullLayerBackup = [...layerBuf];
-    
+
     const original: string[] = new Array<string>(sel.width * sel.height).fill(
       '',
     );
@@ -2186,7 +2201,9 @@ export class EditorCanvas implements OnDestroy {
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
-    const originalLayerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.distortLayerId,
+    );
     if (!originalLayerBuffer) return;
 
     for (let i = 0; i < originalLayerBuffer.length; i++) {
@@ -2205,8 +2222,10 @@ export class EditorCanvas implements OnDestroy {
     }
 
     const originalSelectionLayer = this.document.addLayer('Original Selection');
-    const origSelLayerBuf = this.document.getLayerBuffer(originalSelectionLayer.id);
-    
+    const origSelLayerBuf = this.document.getLayerBuffer(
+      originalSelectionLayer.id,
+    );
+
     if (origSelLayerBuf) {
       for (let y = 0; y < this.distortOriginalRect.height; y++) {
         for (let x = 0; x < this.distortOriginalRect.width; x++) {
@@ -2281,10 +2300,7 @@ export class EditorCanvas implements OnDestroy {
   }
 
   private cancelDistort(): void {
-    if (
-      this.distortFullLayerBackup &&
-      this.distortLayerId
-    ) {
+    if (this.distortFullLayerBackup && this.distortLayerId) {
       const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
       if (layerBuffer) {
         for (let i = 0; i < layerBuffer.length; i++) {
@@ -2352,12 +2368,7 @@ export class EditorCanvas implements OnDestroy {
         if (color) {
           const destX = Math.floor(result.minX + x);
           const destY = Math.floor(result.minY + y);
-          if (
-            destX >= 0 &&
-            destX < canvasW &&
-            destY >= 0 &&
-            destY < canvasH
-          ) {
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
             const destIdx = destY * canvasW + destX;
             layerBuffer[destIdx] = color;
           }
@@ -2516,10 +2527,12 @@ export class EditorCanvas implements OnDestroy {
     if (!layerBuf) return;
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
-    
+
     this.warpFullLayerBackup = [...layerBuf];
-    
-    const original: string[] = new Array<string>(sel.width * sel.height).fill('');
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
     for (let y = 0; y < sel.height; y++) {
       for (let x = 0; x < sel.width; x++) {
         const srcX = sel.x + x;
@@ -2557,10 +2570,12 @@ export class EditorCanvas implements OnDestroy {
     if (!layerBuf) return;
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
-    
+
     this.puppetWarpFullLayerBackup = [...layerBuf];
-    
-    const original: string[] = new Array<string>(sel.width * sel.height).fill('');
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
     for (let y = 0; y < sel.height; y++) {
       for (let x = 0; x < sel.width; x++) {
         const srcX = sel.x + x;
@@ -2650,7 +2665,9 @@ export class EditorCanvas implements OnDestroy {
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
-    const originalLayerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.puppetWarpLayerId,
+    );
     if (!originalLayerBuffer) return;
 
     for (let i = 0; i < originalLayerBuffer.length; i++) {
@@ -2735,12 +2752,7 @@ export class EditorCanvas implements OnDestroy {
         if (color) {
           const destX = Math.floor(result.minX + x);
           const destY = Math.floor(result.minY + y);
-          if (
-            destX >= 0 &&
-            destX < canvasW &&
-            destY >= 0 &&
-            destY < canvasH
-          ) {
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
             const destIdx = destY * canvasW + destX;
             layerBuffer[destIdx] = color;
           }
@@ -2792,7 +2804,12 @@ export class EditorCanvas implements OnDestroy {
           if (color) {
             const destX: number = this.puppetWarpOriginalRect.x + x;
             const destY: number = this.puppetWarpOriginalRect.y + y;
-            if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
               const destIdx = destY * canvasW + destX;
               layerBuffer[destIdx] = color;
             }
@@ -2817,12 +2834,7 @@ export class EditorCanvas implements OnDestroy {
         if (color) {
           const destX = Math.floor(result.minX + x);
           const destY = Math.floor(result.minY + y);
-          if (
-            destX >= 0 &&
-            destX < canvasW &&
-            destY >= 0 &&
-            destY < canvasH
-          ) {
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
             const destIdx = destY * canvasW + destX;
             layerBuffer[destIdx] = color;
           }
@@ -2894,12 +2906,7 @@ export class EditorCanvas implements OnDestroy {
         if (color) {
           const destX = Math.floor(result.minX + x);
           const destY = Math.floor(result.minY + y);
-          if (
-            destX >= 0 &&
-            destX < canvasW &&
-            destY >= 0 &&
-            destY < canvasH
-          ) {
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
             const destIdx = destY * canvasW + destX;
             layerBuffer[destIdx] = color;
           }
@@ -3790,7 +3797,16 @@ export class EditorCanvas implements OnDestroy {
     const isPerspectiveActive = this.perspective.isActive();
     const isWarpActive = this.warp.isActive();
     const isPuppetWarpActive = this.puppetWarp.isActive();
-    if (sel && sel.width > 0 && sel.height > 0 && !isFreeTransformActive && !isDistortActive && !isPerspectiveActive && !isWarpActive && !isPuppetWarpActive) {
+    if (
+      sel &&
+      sel.width > 0 &&
+      sel.height > 0 &&
+      !isFreeTransformActive &&
+      !isDistortActive &&
+      !isPerspectiveActive &&
+      !isWarpActive &&
+      !isPuppetWarpActive
+    ) {
       ctx.save();
 
       // Check if we have a mask-based selection
@@ -4113,19 +4129,29 @@ export class EditorCanvas implements OnDestroy {
       const gridSteps = 3;
       for (let i = 1; i < gridSteps; i++) {
         const t = i / gridSteps;
-        const topX = corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
-        const topY = corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
-        const bottomX = corners.bottomLeft.x + (corners.bottomRight.x - corners.bottomLeft.x) * t;
-        const bottomY = corners.bottomLeft.y + (corners.bottomRight.y - corners.bottomLeft.y) * t;
+        const topX =
+          corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
+        const topY =
+          corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
+        const bottomX =
+          corners.bottomLeft.x +
+          (corners.bottomRight.x - corners.bottomLeft.x) * t;
+        const bottomY =
+          corners.bottomLeft.y +
+          (corners.bottomRight.y - corners.bottomLeft.y) * t;
         ctx.beginPath();
         ctx.moveTo(topX, topY);
         ctx.lineTo(bottomX, bottomY);
         ctx.stroke();
 
-        const leftX = corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
-        const leftY = corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
-        const rightX = corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
-        const rightY = corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
+        const leftX =
+          corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
+        const leftY =
+          corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
+        const rightX =
+          corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
+        const rightY =
+          corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
         ctx.beginPath();
         ctx.moveTo(leftX, leftY);
         ctx.lineTo(rightX, rightY);
@@ -4187,7 +4213,9 @@ export class EditorCanvas implements OnDestroy {
       ctx.save();
       ctx.lineWidth = pxLineWidth;
       ctx.setLineDash([4 / Math.max(0.001, scale), 4 / Math.max(0.001, scale)]);
-      ctx.strokeStyle = isDark ? 'rgba(147,51,234,0.9)' : 'rgba(126,34,206,0.9)';
+      ctx.strokeStyle = isDark
+        ? 'rgba(147,51,234,0.9)'
+        : 'rgba(126,34,206,0.9)';
 
       const corners = perspectiveState.corners;
       ctx.beginPath();
@@ -4224,11 +4252,9 @@ export class EditorCanvas implements OnDestroy {
         const leftY =
           corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
         const rightX =
-          corners.topRight.x +
-          (corners.bottomRight.x - corners.topRight.x) * t;
+          corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
         const rightY =
-          corners.topRight.y +
-          (corners.bottomRight.y - corners.topRight.y) * t;
+          corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
         ctx.beginPath();
         ctx.moveTo(leftX, leftY);
         ctx.lineTo(rightX, rightY);
@@ -4296,12 +4322,12 @@ export class EditorCanvas implements OnDestroy {
       const dims = this.warp.getGridDimensions();
       if (dims) {
         const { rows, cols } = dims;
-        
+
         for (let row = 0; row <= rows; row++) {
           for (let col = 0; col <= cols; col++) {
             const node = this.warp.getNode(row, col);
             if (!node) continue;
-            
+
             if (col < cols) {
               const nextNode = this.warp.getNode(row, col + 1);
               if (nextNode) {
@@ -4311,7 +4337,7 @@ export class EditorCanvas implements OnDestroy {
                 ctx.stroke();
               }
             }
-            
+
             if (row < rows) {
               const nextNode = this.warp.getNode(row + 1, col);
               if (nextNode) {
@@ -4338,10 +4364,7 @@ export class EditorCanvas implements OnDestroy {
         }
       }
 
-      const buttonPositions = this.computeWarpButtonPositions(
-        warpState,
-        scale,
-      );
+      const buttonPositions = this.computeWarpButtonPositions(warpState, scale);
       const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
 
       ctx.fillStyle = isDark ? '#059669' : '#047857';
@@ -4371,20 +4394,31 @@ export class EditorCanvas implements OnDestroy {
       ctx.save();
 
       for (const pin of puppetWarpState.pins) {
-        ctx.fillStyle = isDark ? 'rgba(236,72,153,0.2)' : 'rgba(219,39,119,0.2)';
+        ctx.fillStyle = isDark
+          ? 'rgba(236,72,153,0.2)'
+          : 'rgba(219,39,119,0.2)';
         ctx.beginPath();
         ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = isDark ? 'rgba(236,72,153,0.4)' : 'rgba(219,39,119,0.4)';
+        ctx.strokeStyle = isDark
+          ? 'rgba(236,72,153,0.4)'
+          : 'rgba(219,39,119,0.4)';
         ctx.lineWidth = pxLineWidth;
-        ctx.setLineDash([4 / Math.max(0.001, scale), 4 / Math.max(0.001, scale)]);
+        ctx.setLineDash([
+          4 / Math.max(0.001, scale),
+          4 / Math.max(0.001, scale),
+        ]);
         ctx.stroke();
         ctx.setLineDash([]);
 
         const rOuter = Math.max(1.5, 2 / Math.max(0.001, scale));
         ctx.fillStyle = pin.locked
-          ? (isDark ? '#ef4444' : '#dc2626')
-          : (isDark ? '#ec4899' : '#db2777');
+          ? isDark
+            ? '#ef4444'
+            : '#dc2626'
+          : isDark
+            ? '#ec4899'
+            : '#db2777';
         ctx.beginPath();
         ctx.arc(pin.x, pin.y, rOuter, 0, Math.PI * 2);
         ctx.fill();
@@ -4397,7 +4431,12 @@ export class EditorCanvas implements OnDestroy {
         if (pin.locked) {
           const lockSize = rOuter * 0.8;
           ctx.fillStyle = isDark ? '#ffffff' : '#000000';
-          ctx.fillRect(pin.x - lockSize * 0.3, pin.y - lockSize * 0.5, lockSize * 0.6, lockSize);
+          ctx.fillRect(
+            pin.x - lockSize * 0.3,
+            pin.y - lockSize * 0.5,
+            lockSize * 0.6,
+            lockSize,
+          );
         }
       }
 
@@ -4557,7 +4596,13 @@ export class EditorCanvas implements OnDestroy {
   }
 
   private computeDistortButtonPositions(
-    distortState: { corners: any; sourceX: number; sourceY: number; sourceWidth: number; sourceHeight: number },
+    distortState: {
+      corners: any;
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+    },
     scale: number,
   ): {
     btnSize: number;
@@ -4745,10 +4790,10 @@ export class EditorCanvas implements OnDestroy {
     const canvasW = this.document.canvasWidth();
     const canvasH = this.document.canvasHeight();
 
-    const minX = Math.min(...warpState.nodes.map(n => n.x));
-    const maxX = Math.max(...warpState.nodes.map(n => n.x));
-    const minY = Math.min(...warpState.nodes.map(n => n.y));
-    const maxY = Math.max(...warpState.nodes.map(n => n.y));
+    const minX = Math.min(...warpState.nodes.map((n) => n.x));
+    const maxX = Math.max(...warpState.nodes.map((n) => n.x));
+    const minY = Math.min(...warpState.nodes.map((n) => n.y));
+    const maxY = Math.max(...warpState.nodes.map((n) => n.y));
 
     const spaceAbove = minY;
     const spaceBelow = canvasH - maxY;
@@ -4825,10 +4870,10 @@ export class EditorCanvas implements OnDestroy {
       };
     }
 
-    const minX = Math.min(...puppetWarpState.pins.map(p => p.x));
-    const maxX = Math.max(...puppetWarpState.pins.map(p => p.x));
-    const minY = Math.min(...puppetWarpState.pins.map(p => p.y));
-    const maxY = Math.max(...puppetWarpState.pins.map(p => p.y));
+    const minX = Math.min(...puppetWarpState.pins.map((p) => p.x));
+    const maxX = Math.max(...puppetWarpState.pins.map((p) => p.x));
+    const minY = Math.min(...puppetWarpState.pins.map((p) => p.y));
+    const maxY = Math.max(...puppetWarpState.pins.map((p) => p.y));
 
     const spaceAbove = minY;
     const spaceBelow = canvasH - maxY;

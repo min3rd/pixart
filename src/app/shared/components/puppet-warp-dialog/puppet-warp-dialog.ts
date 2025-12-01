@@ -7,7 +7,12 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { heroXMark, heroLockClosed, heroLockOpen, heroTrash } from '@ng-icons/heroicons/outline';
+import {
+  heroXMark,
+  heroLockClosed,
+  heroLockOpen,
+  heroTrash,
+} from '@ng-icons/heroicons/outline';
 import { Modal } from '../modal/modal';
 import { PuppetWarpPinData } from '../../../services/editor/editor-puppet-warp.service';
 
@@ -21,7 +26,9 @@ export interface PuppetWarpResult {
   styleUrls: ['./puppet-warp-dialog.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslocoPipe, NgIconComponent, Modal],
-  viewProviders: [provideIcons({ heroXMark, heroLockClosed, heroLockOpen, heroTrash })],
+  viewProviders: [
+    provideIcons({ heroXMark, heroLockClosed, heroLockOpen, heroTrash }),
+  ],
 })
 export class PuppetWarpDialog {
   readonly visible = signal(false);

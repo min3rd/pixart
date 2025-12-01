@@ -25,10 +25,7 @@
       {{ "contentAwareFill.description" | transloco }}
     </div>
 
-    <section
-      id="content-aware-fill-detail-section"
-      class="space-y-2"
-    >
+    <section id="content-aware-fill-detail-section" class="space-y-2">
       <label
         id="content-aware-fill-detail-label"
         for="content-aware-fill-detail-input"
@@ -61,10 +58,7 @@
       </div>
     </section>
 
-    <section
-      id="content-aware-fill-radius-section"
-      class="space-y-2"
-    >
+    <section id="content-aware-fill-radius-section" class="space-y-2">
       <label
         id="content-aware-fill-radius-label"
         for="content-aware-fill-radius-input"
@@ -85,7 +79,10 @@
           (ngModelChange)="sampleRadius = $event"
           class="w-full accent-blue-500"
         />
-        <div id="content-aware-fill-radius-value-row" class="flex items-center gap-1">
+        <div
+          id="content-aware-fill-radius-value-row"
+          class="flex items-center gap-1"
+        >
           <input
             id="content-aware-fill-radius-input"
             type="number"
@@ -95,7 +92,11 @@
             (input)="onSampleRadiusInput($event)"
             class="w-14 rounded border border-neutral-300/70 bg-white px-2 py-1 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
           />
-          <span id="content-aware-fill-radius-unit" class="text-xs text-neutral-500 dark:text-neutral-500">px</span>
+          <span
+            id="content-aware-fill-radius-unit"
+            class="text-xs text-neutral-500 dark:text-neutral-500"
+            >px</span
+          >
         </div>
       </div>
     </section>
