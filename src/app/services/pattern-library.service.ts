@@ -149,9 +149,12 @@ export class PatternLibraryService {
   }
 
   addCustomPattern(customPattern: Omit<CustomPattern, 'id' | 'createdAt'>): CustomPattern {
+    const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const newPattern: CustomPattern = {
       ...customPattern,
-      id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      id: `custom_${uniqueId}`,
       createdAt: Date.now(),
     };
     this.customPatternsData.update(list => [...list, newPattern]);
