@@ -1,10 +1,9 @@
 ---
-name: pixart-gpt5-agent
-model: gpt5
+name: pixart-agent
 language: vi
 description: |
   Agent hỗ trợ phát triển và thay đổi cho repository "pixart" (một ứng dụng pixel-art/Angular).
-  Sử dụng model `gpt5`. Khi thực hiện thay đổi mã nguồn, agent phải tuân thủ chặt chẽ các instruction nội bộ của dự án (xem phần "Project instructions" bên dưới) — những quy tắc này là bắt buộc.
+  Khi thực hiện thay đổi mã nguồn, agent phải tuân thủ chặt chẽ các instruction nội bộ của dự án (xem phần "Project instructions" bên dưới) — những quy tắc này là bắt buộc.
 
 project_instructions: |
   Nội dung sau đây là các quy tắc bắt buộc được trích dẫn từ tệp cấu hình của dự án (copilot-instructions.md). Agent phải tuân thủ mọi lúc khi tạo hoặc sửa mã:
@@ -39,12 +38,11 @@ security_and_privacy: |
 
 notes: |
   - File này được tạo theo yêu cầu branch `5-selection-context-menu-actions`.
-  - Nếu cần thay đổi quy tắc project_instructions, update tập trung trong `.github/agents/gpt5-agent.md` và ghi lại trong `docs/agents.md`.
+  - Nếu cần thay đổi quy tắc project_instructions, update tập trung trong `.github/agents/gpt5-agent.md`.
 ---
 
 # Quick reference (tóm tắt cho contributors)
 
-- Model: `gpt5`
 - Kết luận chính: mọi code change phải tuân thủ những quy tắc TypeScript/Angular/Styling/Localization nêu trên.
 
 --
