@@ -685,7 +685,7 @@ export class EditorHeader {
       return;
     }
 
-    const result = await this.fillSelectionDialog?.open();
+    const result = await this.fillSelectionDialog()?.open();
     if (!result) return;
 
     const success = this.fillSelectionService.fillSelection({
