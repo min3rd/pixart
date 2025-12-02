@@ -50,6 +50,7 @@
     "eraser": "Eraser",
     "line": "Line",
     "pen": "Pen",
+    "lineToolOptions": "Show line tool options",
     "circle": "Circle",
     "square": "Square",
     "brush": "Brush",
