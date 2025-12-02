@@ -301,9 +301,7 @@ export class DefineBrushService {
       const srcCtx = srcCanvas.getContext('2d');
       if (srcCtx) {
         const imageData = srcCtx.createImageData(srcW, srcH);
-        for (let i = 0; i < s.pixelData.length; i++) {
-          imageData.data[i] = s.pixelData[i];
-        }
+        imageData.data.set(new Uint8ClampedArray(s.pixelData));
         srcCtx.putImageData(imageData, 0, 0);
         ctx.drawImage(srcCanvas, 0, 0, destW, destH);
       }
@@ -344,9 +342,7 @@ export class DefineBrushService {
       const brushCtx = brushCanvas.getContext('2d');
       if (brushCtx) {
         const imageData = brushCtx.createImageData(s.width, s.height);
-        for (let i = 0; i < s.pixelData.length; i++) {
-          imageData.data[i] = s.pixelData[i];
-        }
+        imageData.data.set(new Uint8ClampedArray(s.pixelData));
         brushCtx.putImageData(imageData, 0, 0);
 
         for (let x = 16; x < previewSize - 16; x += strokeSpacing) {
