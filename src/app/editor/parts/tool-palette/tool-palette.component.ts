@@ -1,8 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';

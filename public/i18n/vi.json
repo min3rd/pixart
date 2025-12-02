@@ -104,7 +104,8 @@
       "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh",
       "contentAwareFill": "Tô thông minh cho vùng chọn",
       "definePattern": "Tạo pattern lặp từ vùng chọn",
-      "stroke": "Thêm viền cho vùng chọn"
+      "stroke": "Thêm viền cho vùng chọn",
+      "defineBrush": "Tạo brush tùy chỉnh từ vùng chọn"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
@@ -113,7 +114,8 @@
       "animationCreator": "Tạo và chỉnh sửa animation keyframe",
       "contentAwareFill": "Cấu hình tô thông minh",
       "definePattern": "Tạo và lưu pattern từ vùng chọn",
-      "stroke": "Thêm viền cho vùng chọn"
+      "stroke": "Thêm viền cho vùng chọn",
+      "defineBrush": "Tạo và lưu brush từ vùng chọn"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -479,6 +481,7 @@
       "edit.fillSelection": "Tô vùng chọn",
       "edit.contentAwareFill": "Tô thông minh",
       "edit.definePattern": "Tạo Pattern",
+      "edit.defineBrush": "Tạo Brush",
       "edit.stroke": "Viền",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
@@ -733,5 +736,25 @@
     "previewToggle": "Xem trước trực tiếp",
     "apply": "Áp dụng",
     "cancel": "Hủy"
+  },
+  "defineBrush": {
+    "title": "Định nghĩa Brush",
+    "name": "Tên Brush",
+    "type": "Loại Brush",
+    "typeSoft": "Mềm",
+    "typeHard": "Cứng",
+    "typeNormal": "Bình thường",
+    "opacity": "Độ mờ",
+    "spacing": "Khoảng cách",
+    "preview": "Xem trước",
+    "thumbnail": "Hình thu nhỏ",
+    "noSelection": "Chọn một vùng trên canvas trước",
+    "createFromSelection": "Tạo Brush từ vùng chọn",
+    "save": "Lưu Brush",
+    "cancel": "Hủy",
+    "library": "Thư viện Brush",
+    "deleteBrush": "Xóa Brush",
+    "editBrush": "Chỉnh sửa Brush",
+    "noBrushes": "Chưa có brush tùy chỉnh"
   }
 }

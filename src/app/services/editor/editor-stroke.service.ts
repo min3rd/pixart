@@ -227,7 +227,11 @@ export class EditorStrokeService {
         position,
         style,
       );
-    } else if (selectionShape === 'lasso' && selectionPolygon && selectionMask) {
+    } else if (
+      selectionShape === 'lasso' &&
+      selectionPolygon &&
+      selectionMask
+    ) {
       return this.calculateLassoStrokePixels(
         x,
         y,

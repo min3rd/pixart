@@ -104,7 +104,8 @@
       "bone": "Create and edit bone points for animation",
       "contentAwareFill": "Content-aware fill for selection",
       "definePattern": "Create a repeatable pattern from selection",
-      "stroke": "Add stroke border to selection"
+      "stroke": "Add stroke border to selection",
+      "defineBrush": "Create a custom brush from selection"
     },
     "panels": {
       "layers": "Manage layers and their properties",
@@ -113,7 +114,8 @@
       "animationCreator": "Create and edit keyframe animations",
       "contentAwareFill": "Configure content-aware fill settings",
       "definePattern": "Create and save pattern from selection",
-      "stroke": "Add stroke border to selection"
+      "stroke": "Add stroke border to selection",
+      "defineBrush": "Create and save custom brush from selection"
     },
     "file": {
       "new": "Create a new project",
@@ -476,6 +478,7 @@
       "edit.fillSelection": "Fill Selection",
       "edit.contentAwareFill": "Content-Aware Fill",
       "edit.definePattern": "Define Pattern",
+      "edit.defineBrush": "Define Brush",
       "edit.stroke": "Stroke",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
@@ -733,5 +736,25 @@
     "previewToggle": "Live preview",
     "apply": "Apply",
     "cancel": "Cancel"
+  },
+  "defineBrush": {
+    "title": "Define Brush",
+    "name": "Brush Name",
+    "type": "Brush Type",
+    "typeSoft": "Soft",
+    "typeHard": "Hard",
+    "typeNormal": "Normal",
+    "opacity": "Opacity",
+    "spacing": "Spacing",
+    "preview": "Preview",
+    "thumbnail": "Thumbnail",
+    "noSelection": "Select an area on canvas first",
+    "createFromSelection": "Create Brush from Selection",
+    "save": "Save Brush",
+    "cancel": "Cancel",
+    "library": "Brush Library",
+    "deleteBrush": "Delete Brush",
+    "editBrush": "Edit Brush",
+    "noBrushes": "No custom brushes yet"
   }
 }

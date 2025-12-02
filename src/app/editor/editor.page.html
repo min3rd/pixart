@@ -7,6 +7,7 @@
     class="row-start-1 col-start-1 -col-end-1"
     (onContentAwareFillToggle)="onContentAwareFillToggle()"
     (onDefinePatternToggle)="onDefinePatternToggle()"
+    (onDefineBrushToggle)="onDefineBrushToggle()"
     (onStrokeToggle)="onStrokeToggle()"
   />
 
@@ -98,6 +99,22 @@
       >
         {{ "definePattern.title" | transloco }}
       </button>
+      } @if (defineBrushState.isActive()) {
+      <button
+        type="button"
+        (click)="rightPanelTab.set('defineBrush')"
+        class="flex-1 px-4 py-2 text-sm font-medium"
+        [class.bg-white]="rightPanelTab() === 'defineBrush'"
+        [class.dark\:bg-neutral-900]="rightPanelTab() === 'defineBrush'"
+        [class.text-blue-600]="rightPanelTab() === 'defineBrush'"
+        [class.dark\:text-blue-400]="rightPanelTab() === 'defineBrush'"
+        [class.text-neutral-600]="rightPanelTab() !== 'defineBrush'"
+        [class.dark\:text-neutral-400]="rightPanelTab() !== 'defineBrush'"
+        id="define-brush-tab-button"
+        [paTooltip]="'tooltips.tools.defineBrush' | transloco"
+      >
+        {{ "defineBrush.title" | transloco }}
+      </button>
       } @if (strokeState.isActive()) {
       <button
         type="button"
@@ -128,6 +145,8 @@
       />
       } @else if (rightPanelTab() === 'definePattern') {
       <pa-define-pattern-panel />
+      } @else if (rightPanelTab() === 'defineBrush') {
+      <pa-define-brush-panel />
       } @else if (rightPanelTab() === 'stroke') {
       <pa-stroke-panel
         (onApply)="onStrokeApply()"

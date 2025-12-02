@@ -14,10 +14,12 @@ import { AnimationCreatorPanel } from './parts/animation-creator-panel/animation
 import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { ContentAwareFillPanelComponent } from './parts/content-aware-fill-panel/content-aware-fill-panel.component';
 import { DefinePatternPanelComponent } from './parts/define-pattern-panel/define-pattern-panel.component';
+import { DefineBrushPanelComponent } from './parts/define-brush-panel/define-brush-panel.component';
 import { StrokePanelComponent } from './parts/stroke-panel/stroke-panel.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { ContentAwareFillStateService } from '../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../services/editor/define-pattern.service';
+import { DefineBrushService } from '../services/editor/define-brush.service';
 import { EditorStrokeService } from '../services/editor/editor-stroke.service';
 import { EditorDocumentService } from '../services/editor-document.service';
 import { ContentAwareFillService } from '../services/content-aware-fill.service';
@@ -42,6 +44,7 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
     EditorCanvas,
     ContentAwareFillPanelComponent,
     DefinePatternPanelComponent,
+    DefineBrushPanelComponent,
     StrokePanelComponent,
     TooltipDirective,
   ],
@@ -55,12 +58,18 @@ export class EditorPage {
   private readonly settings = inject(UserSettingsService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternState = inject(DefinePatternService);
+  readonly defineBrushState = inject(DefineBrushService);
   readonly strokeState = inject(EditorStrokeService);
   private readonly document = inject(EditorDocumentService);
   private readonly contentAwareFillService = inject(ContentAwareFillService);
 
   readonly rightPanelTab = signal<
-    'layers' | 'bones' | 'contentAwareFill' | 'definePattern' | 'stroke'
+    | 'layers'
+    | 'bones'
+    | 'contentAwareFill'
+    | 'definePattern'
+    | 'defineBrush'
+    | 'stroke'
   >('layers');
   readonly bottomPanelTab = signal<'timeline' | 'animationCreator'>('timeline');
 
@@ -401,6 +410,15 @@ export class EditorPage {
 
   onDefinePatternCancel(): void {
     this.definePatternState.deactivate();
+    this.rightPanelTab.set('layers');
+  }
+
+  onDefineBrushToggle(): void {
+    this.rightPanelTab.set('defineBrush');
+  }
+
+  onDefineBrushCancel(): void {
+    this.defineBrushState.deactivate();
     this.rightPanelTab.set('layers');
   }
 
