@@ -1,75 +1,150 @@
-<div id="layers-panel-root" class="p-2 text-sm">
+<div id="layers-panel-root" class="p-2 text-sm relative">
   <div id="layers-list-heading" class="font-semibold mb-2">
     {{ "editor.layers.title" | transloco }}
   </div>
   <div id="layers-list-container" class="flex flex-col gap-1">
-    @for (layer of document.layers(); let layerIndex = $index; track layer.id) {
+    @for (
+      entry of getFlattenedLayers();
+      let layerIndex = $index;
+      track entry.item.id
+    ) {
       <div
-        id="layers-list-item-{{ layer.id }}"
-        class="px-2 py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center"
-        draggable="true"
+        id="layers-list-item-{{ entry.item.id }}"
+        class="py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center"
+        [attr.draggable]="!entry.item.locked"
         (dragstart)="onDragStart($event, layerIndex)"
         (dragover)="onDragOver($event, layerIndex)"
         (drop)="onDrop($event, layerIndex)"
+        (contextmenu)="onContextMenu($event, entry.item.id)"
         [class]="
-          document.selectedLayerId() === layer.id
-            ? 'px-2 py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center bg-neutral-200 dark:bg-neutral-700'
-            : 'px-2 py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60'
+          isSelected(entry.item.id)
+            ? 'py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center bg-neutral-200 dark:bg-neutral-700'
+            : 'py-1 rounded-sm border border-neutral-300 dark:border-neutral-700 flex items-center hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60'
         "
+        [style.padding-left.px]="8 + entry.depth * 16"
       >
+        @if (isGroup(entry.item)) {
+          <button
+            type="button"
+            id="layers-list-item-expand-{{ entry.item.id }}"
+            class="w-4 h-4 flex-shrink-0 flex items-center justify-center mr-1"
+            (click)="onToggleExpand(entry.item.id, $event)"
+          >
+            <ng-icon
+              id="layers-list-item-expand-icon-{{ entry.item.id }}"
+              [name]="
+                entry.item.expanded
+                  ? 'heroIconsChevronDownMini'
+                  : 'heroIconsChevronRightMini'
+              "
+              class="w-4 h-4"
+            ></ng-icon>
+          </button>
+        } @else {
+          <div class="w-4 h-4 flex-shrink-0 mr-1"></div>
+        }
         <div
-          id="layers-list-item-handle-{{ layer.id }}"
-          class="w-4 h-6 flex items-center justify-center cursor-grab mr-2"
+          id="layers-list-item-handle-{{ entry.item.id }}"
+          class="w-4 h-6 flex-shrink-0 flex items-center justify-center cursor-grab mr-2"
         >
           <ng-icon
-            id="layers-list-item-handle-icon-{{ layer.id }}"
+            id="layers-list-item-handle-icon-{{ entry.item.id }}"
             name="featherAlignJustify"
             class="w-4 h-4"
           ></ng-icon>
         </div>
         <button
           type="button"
-          id="layers-list-item-visibility-{{ layer.id }}"
-          class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center"
-          (click)="document.toggleLayerVisibility(layer.id)"
+          id="layers-list-item-visibility-{{ entry.item.id }}"
+          class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center"
+          (click)="document.toggleLayerVisibility(entry.item.id)"
           [title]="
-            layer.visible
+            entry.item.visible
               ? ('editor.layers.hide' | transloco)
               : ('editor.layers.show' | transloco)
           "
         >
           <ng-icon
-            id="layers-list-item-visibility-icon-{{ layer.id }}"
-            [name]="layer.visible ? 'featherEye' : 'featherEyeOff'"
+            id="layers-list-item-visibility-icon-{{ entry.item.id }}"
+            [name]="entry.item.visible ? 'featherEye' : 'featherEyeOff'"
             class="w-4 h-4"
           ></ng-icon>
         </button>
         <button
           type="button"
-          id="layers-list-item-select-{{ layer.id }}"
-          class="flex-1 text-left ml-2"
-          (click)="select(layer.id)"
-        >
-          <span
-            id="layers-list-item-name-{{ layer.id }}"
-            class="truncate opacity-90"
-            >{{ layer.name }}</span
-          >
-        </button>
-        <button
-          type="button"
-          id="layers-list-item-delete-{{ layer.id }}"
-          class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
-          (click)="document.removeLayer(layer.id)"
-          [disabled]="document.layers().length <= 1"
-          [title]="'editor.layers.delete' | transloco"
+          id="layers-list-item-lock-{{ entry.item.id }}"
+          class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center ml-1"
+          (click)="document.toggleLayerLock(entry.item.id)"
+          [title]="
+            entry.item.locked
+              ? ('editor.layers.unlock' | transloco)
+              : ('editor.layers.lock' | transloco)
+          "
         >
           <ng-icon
-            id="layers-list-item-delete-icon-{{ layer.id }}"
-            name="featherTrash"
+            id="layers-list-item-lock-icon-{{ entry.item.id }}"
+            [name]="
+              entry.item.locked ? 'heroLockClosedMini' : 'heroLockOpenMini'
+            "
             class="w-4 h-4"
           ></ng-icon>
         </button>
+        @if (editingLayerId() === entry.item.id) {
+          <input
+            type="text"
+            id="layers-list-item-rename-{{ entry.item.id }}"
+            class="flex-1 min-w-0 ml-2 px-1 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-sm"
+            [(ngModel)]="editingLayerName"
+            (blur)="onRenameBlur()"
+            (keydown)="onRenameKeydown($event)"
+            autofocus
+          />
+        } @else {
+          <button
+            type="button"
+            id="layers-list-item-select-{{ entry.item.id }}"
+            class="flex-1 min-w-0 text-left ml-2 overflow-hidden"
+            (click)="select(entry.item.id, $event)"
+            (dblclick)="onDoubleClick(entry.item)"
+          >
+            <span
+              id="layers-list-item-name-{{ entry.item.id }}"
+              class="block truncate opacity-90"
+              >{{ entry.item.name }}</span
+            >
+          </button>
+        }
+        @if (isGroup(entry.item)) {
+          <button
+            type="button"
+            id="layers-list-item-ungroup-{{ entry.item.id }}"
+            class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
+            (click)="document.ungroupLayers(entry.item.id)"
+            [title]="'editor.layers.ungroup' | transloco"
+            [disabled]="entry.item.locked"
+          >
+            <ng-icon
+              id="layers-list-item-ungroup-icon-{{ entry.item.id }}"
+              name="heroIconsFolderOpenMini"
+              class="w-4 h-4"
+            ></ng-icon>
+          </button>
+        } @else {
+          <button
+            type="button"
+            id="layers-list-item-delete-{{ entry.item.id }}"
+            class="w-6 h-6 flex-shrink-0 rounded-sm border border-neutral-300 dark:border-neutral-700 grid place-items-center disabled:opacity-50 ml-2"
+            (click)="document.removeLayer(entry.item.id)"
+            [title]="'editor.layers.delete' | transloco"
+            [disabled]="entry.item.locked"
+          >
+            <ng-icon
+              id="layers-list-item-delete-icon-{{ entry.item.id }}"
+              name="featherTrash"
+              class="w-4 h-4"
+            ></ng-icon>
+          </button>
+        }
       </div>
     }
   </div>
@@ -88,4 +163,208 @@
       }}</span>
     </button>
   </div>
+
+  @if (contextMenuVisible()) {
+    <div
+      id="layers-context-menu"
+      class="absolute z-50 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-sm shadow-lg min-w-[12rem]"
+      [style.left.px]="contextMenuPosition().x"
+      [style.top.px]="contextMenuPosition().y"
+      (click)="closeContextMenu()"
+    >
+      <div id="layers-context-menu-list" class="py-1">
+        <button
+          type="button"
+          id="layers-context-menu-generate"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onGenerate()"
+        >
+          <ng-icon
+            id="layers-context-menu-generate-icon"
+            name="heroIconsSparklesMini"
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-generate-label" class="flex-1">{{
+            "editor.layers.generate" | transloco
+          }}</span>
+        </button>
+        <button
+          type="button"
+          id="layers-context-menu-select-pixel"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onSelectPixel()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.selectPixel')"
+        >
+          <ng-icon
+            id="layers-context-menu-select-pixel-icon"
+            name="heroIconsSquare2StackMini"
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-select-pixel-label" class="flex-1">{{
+            "editor.layers.selectPixel" | transloco
+          }}</span>
+          @if (getShortcut("edit.selectPixel")) {
+            <span
+              id="layers-context-menu-select-pixel-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut("edit.selectPixel") }}</span
+            >
+          }
+        </button>
+        <button
+          type="button"
+          id="layers-context-menu-duplicate"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onDuplicate()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.duplicateLayer')"
+        >
+          <ng-icon
+            id="layers-context-menu-duplicate-icon"
+            name="heroIconsDocumentDuplicateMini"
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-duplicate-label" class="flex-1">{{
+            "editor.layers.duplicate" | transloco
+          }}</span>
+          @if (getShortcut("edit.duplicateLayer")) {
+            <span
+              id="layers-context-menu-duplicate-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut("edit.duplicateLayer") }}</span
+            >
+          }
+        </button>
+        <button
+          type="button"
+          id="layers-context-menu-lock"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onToggleLock()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.lockLayer')"
+        >
+          <ng-icon
+            id="layers-context-menu-lock-icon"
+            [name]="
+              isContextMenuItemLocked
+                ? 'heroLockOpenMini'
+                : 'heroLockClosedMini'
+            "
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-lock-label" class="flex-1">{{
+            (isContextMenuItemLocked
+              ? "editor.layers.unlock"
+              : "editor.layers.lock"
+            ) | transloco
+          }}</span>
+          @if (getShortcut("edit.lockLayer")) {
+            <span
+              id="layers-context-menu-lock-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut("edit.lockLayer") }}</span
+            >
+          }
+        </button>
+        @if (selectedCount >= 2) {
+          <button
+            type="button"
+            id="layers-context-menu-merge"
+            class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+            (click)="onMerge()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.mergeLayer')"
+          >
+            <ng-icon
+              id="layers-context-menu-merge-icon"
+              name="heroIconsRectangleStackMini"
+              class="w-4 h-4"
+            ></ng-icon>
+            <span id="layers-context-menu-merge-label" class="flex-1">{{
+              "editor.layers.merge" | transloco
+            }}</span>
+            @if (getShortcut("edit.mergeLayer")) {
+              <span
+                id="layers-context-menu-merge-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut("edit.mergeLayer") }}</span
+              >
+            }
+          </button>
+          <button
+            type="button"
+            id="layers-context-menu-group"
+            class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+            (click)="onGroup()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.groupLayers')"
+          >
+            <ng-icon
+              id="layers-context-menu-group-icon"
+              name="heroIconsFolderMini"
+              class="w-4 h-4"
+            ></ng-icon>
+            <span id="layers-context-menu-group-label" class="flex-1">{{
+              "editor.layers.group" | transloco
+            }}</span>
+            @if (getShortcut("edit.groupLayers")) {
+              <span
+                id="layers-context-menu-group-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut("edit.groupLayers") }}</span
+              >
+            }
+          </button>
+        }
+        @if (isContextMenuItemGroup) {
+          <button
+            type="button"
+            id="layers-context-menu-ungroup"
+            class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+            (click)="onUngroup()"
+            [attr.aria-keyshortcuts]="getShortcut('edit.ungroupLayers')"
+          >
+            <ng-icon
+              id="layers-context-menu-ungroup-icon"
+              name="heroIconsFolderOpenMini"
+              class="w-4 h-4"
+            ></ng-icon>
+            <span id="layers-context-menu-ungroup-label" class="flex-1">{{
+              "editor.layers.ungroup" | transloco
+            }}</span>
+            @if (getShortcut("edit.ungroupLayers")) {
+              <span
+                id="layers-context-menu-ungroup-shortcut"
+                class="ml-auto text-xs opacity-60"
+                >{{ getShortcut("edit.ungroupLayers") }}</span
+              >
+            }
+          </button>
+        }
+        <button
+          type="button"
+          id="layers-context-menu-delete"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2"
+          (click)="onDelete()"
+          [attr.aria-keyshortcuts]="getShortcut('edit.deleteLayer')"
+        >
+          <ng-icon
+            id="layers-context-menu-delete-icon"
+            name="heroIconsTrashMini"
+            class="w-4 h-4"
+          ></ng-icon>
+          <span id="layers-context-menu-delete-label" class="flex-1">{{
+            "editor.layers.delete" | transloco
+          }}</span>
+          @if (getShortcut("edit.deleteLayer")) {
+            <span
+              id="layers-context-menu-delete-shortcut"
+              class="ml-auto text-xs opacity-60"
+              >{{ getShortcut("edit.deleteLayer") }}</span
+            >
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+  <pa-pixel-generation-dialog
+    (onGenerate)="handleGenerate($event)"
+  ></pa-pixel-generation-dialog>
 </div>

@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(163 163 163) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgb(163 163 163);
+  border-radius: 3px;
+}
+
+.transform-input {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  font-size: 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background-color: white;
+  border: 1px solid rgb(229 229 229);
+  border-radius: 2px;
+  color: rgb(38 38 38);
+}
+
+.transform-input:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+}
+
+@media (prefers-color-scheme: dark) {
+  .scrollbar-thin {
+    scrollbar-color: rgb(82 82 82) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(82 82 82);
+  }
+
+  .transform-input {
+    background-color: rgb(64 64 64);
+    border-color: rgb(82 82 82);
+    color: rgb(229 229 229);
+  }
+}
+

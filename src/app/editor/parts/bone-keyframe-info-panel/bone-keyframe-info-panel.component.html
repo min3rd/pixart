@@ -1,0 +1,267 @@
+<div
+  id="bone-keyframe-info-container"
+  class="border-t border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800"
+>
+  <button
+    id="bone-keyframe-info-toggle"
+    type="button"
+    (click)="toggleExpanded()"
+    class="w-full px-2 py-1.5 flex items-center justify-between text-xs font-medium text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+  >
+    <span id="bone-keyframe-info-title">{{
+      "animationCreator.boneConfig.title" | transloco
+    }}</span>
+    <ng-icon
+      [name]="isExpanded() ? 'heroChevronUp' : 'heroChevronDown'"
+      size="14"
+    />
+  </button>
+
+  @if (isExpanded()) {
+    <div id="bone-keyframe-info-content" class="px-2 pb-2">
+      @if (!selectedKeyframeId()) {
+        <div
+          id="bone-keyframe-no-selection"
+          class="text-[10px] text-neutral-500 dark:text-neutral-400 italic py-1"
+        >
+          {{ "animationCreator.boneConfig.noKeyframeSelected" | transloco }}
+        </div>
+      } @else {
+        <div
+          id="bone-keyframe-header"
+          class="flex items-center justify-between mb-1"
+        >
+          <span
+            id="bone-keyframe-time"
+            class="text-[10px] text-neutral-700 dark:text-neutral-300 font-mono"
+          >
+            {{ "animationCreator.boneConfig.keyframeAt" | transloco }}
+            {{ formatTime(selectedKeyframe()?.time ?? 0) }}
+          </span>
+          <div id="bone-keyframe-actions" class="flex items-center gap-1">
+            <button
+              id="bone-keyframe-copy-btn"
+              type="button"
+              (click)="copyConfig()"
+              [disabled]="!hasTransforms()"
+              [class.opacity-50]="!hasTransforms()"
+              [class.cursor-not-allowed]="!hasTransforms()"
+              class="p-1 rounded-sm bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300"
+              [title]="'animationCreator.boneConfig.copyConfig' | transloco"
+            >
+              <ng-icon name="heroClipboard" size="12" />
+            </button>
+            <button
+              id="bone-keyframe-paste-btn"
+              type="button"
+              (click)="pasteConfig()"
+              [disabled]="!canPaste()"
+              [class.opacity-50]="!canPaste()"
+              [class.cursor-not-allowed]="!canPaste()"
+              class="p-1 rounded-sm bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-700 dark:text-neutral-300"
+              [title]="'animationCreator.boneConfig.pasteConfig' | transloco"
+            >
+              <ng-icon name="heroClipboardDocument" size="12" />
+            </button>
+          </div>
+        </div>
+
+        @if (clipboard(); as clipboardData) {
+          <div
+            id="bone-keyframe-clipboard-info"
+            class="text-[9px] text-blue-600 dark:text-blue-400 mb-1"
+          >
+            {{ "animationCreator.boneConfig.clipboardFrom" | transloco }}
+            {{ formatTime(clipboardData.sourceTime) }}
+          </div>
+        }
+
+        @if (!hasTransforms()) {
+          <div
+            id="bone-keyframe-no-transforms"
+            class="text-[10px] text-neutral-500 dark:text-neutral-400 italic py-1"
+          >
+            {{ "animationCreator.boneConfig.noTransforms" | transloco }}
+          </div>
+        } @else {
+          <div
+            id="bone-keyframe-transforms-list"
+            class="space-y-1 max-h-60 overflow-y-auto scrollbar-thin"
+          >
+            @for (boneId of getBoneIds(); track boneId) {
+              <div
+                [id]="'bone-group-' + boneId"
+                class="border border-neutral-200 dark:border-neutral-600 rounded-sm"
+              >
+                <button
+                  [id]="'bone-group-toggle-' + boneId"
+                  type="button"
+                  (click)="toggleBoneExpanded(boneId)"
+                  class="w-full px-1.5 py-1 flex items-center justify-between text-[10px] font-medium bg-neutral-50 dark:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-600 text-neutral-800 dark:text-neutral-200"
+                >
+                  <span [id]="'bone-group-name-' + boneId" class="truncate">{{
+                    boneId
+                  }}</span>
+                  <div class="flex items-center gap-1">
+                    <span
+                      [id]="'bone-group-count-' + boneId"
+                      class="text-neutral-500 dark:text-neutral-400"
+                    >
+                      {{ getTransformsForBone(boneId).length }}
+                      {{ "animationCreator.boneConfig.points" | transloco }}
+                    </span>
+                    <ng-icon
+                      [name]="
+                        isBoneExpanded(boneId)
+                          ? 'heroChevronUp'
+                          : 'heroChevronDown'
+                      "
+                      size="10"
+                    />
+                  </div>
+                </button>
+
+                @if (isBoneExpanded(boneId)) {
+                  <div
+                    [id]="'bone-transforms-' + boneId"
+                    class="p-1.5 space-y-1 bg-white dark:bg-neutral-800"
+                  >
+                    @for (
+                      transform of getTransformsForBone(boneId);
+                      track transform.bonePointId
+                    ) {
+                      <div
+                        [id]="'transform-' + transform.bonePointId"
+                        class="p-1.5 bg-neutral-50 dark:bg-neutral-750 rounded-sm border border-neutral-100 dark:border-neutral-600"
+                      >
+                        <div
+                          [id]="'transform-point-id-' + transform.bonePointId"
+                          class="text-[10px] font-medium text-neutral-700 dark:text-neutral-300 mb-1 truncate"
+                        >
+                          {{ transform.bonePointId }}
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                          <div
+                            [id]="'transform-x-' + transform.bonePointId"
+                            class="flex items-center gap-1"
+                          >
+                            <label
+                              class="text-[9px] text-neutral-600 dark:text-neutral-400 w-3"
+                              >X</label
+                            >
+                            <input
+                              type="number"
+                              step="0.1"
+                              [value]="transform.x"
+                              (change)="
+                                onInputChange(
+                                  $event,
+                                  transform.boneId,
+                                  transform.bonePointId,
+                                  'x'
+                                )
+                              "
+                              class="flex-1 w-full px-1 py-0.5 text-[9px] font-mono bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div
+                            [id]="'transform-y-' + transform.bonePointId"
+                            class="flex items-center gap-1"
+                          >
+                            <label
+                              class="text-[9px] text-neutral-600 dark:text-neutral-400 w-3"
+                              >Y</label
+                            >
+                            <input
+                              type="number"
+                              step="0.1"
+                              [value]="transform.y"
+                              (change)="
+                                onInputChange(
+                                  $event,
+                                  transform.boneId,
+                                  transform.bonePointId,
+                                  'y'
+                                )
+                              "
+                              class="flex-1 w-full px-1 py-0.5 text-[9px] font-mono bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div
+                            [id]="'transform-rot-' + transform.bonePointId"
+                            class="flex items-center gap-1"
+                          >
+                            <label
+                              class="text-[9px] text-neutral-600 dark:text-neutral-400 w-3"
+                              >{{
+                                "animationCreator.boneConfig.rot" | transloco
+                              }}</label
+                            >
+                            <input
+                              type="number"
+                              step="1"
+                              [value]="transform.rotation"
+                              (change)="
+                                onInputChange(
+                                  $event,
+                                  transform.boneId,
+                                  transform.bonePointId,
+                                  'rotation'
+                                )
+                              "
+                              class="flex-1 w-full px-1 py-0.5 text-[9px] font-mono bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                          <div
+                            [id]="'transform-scale-' + transform.bonePointId"
+                            class="flex items-center gap-1"
+                          >
+                            <label
+                              class="text-[9px] text-neutral-600 dark:text-neutral-400 w-3"
+                              >{{
+                                "animationCreator.boneConfig.scale" | transloco
+                              }}</label
+                            >
+                            <input
+                              type="number"
+                              step="0.01"
+                              [value]="transform.scaleX"
+                              (change)="
+                                onInputChange(
+                                  $event,
+                                  transform.boneId,
+                                  transform.bonePointId,
+                                  'scaleX'
+                                )
+                              "
+                              class="flex-1 min-w-0 px-1 py-0.5 text-[9px] font-mono bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-blue-500"
+                            />
+                            <span class="text-[9px] text-neutral-500">×</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              [value]="transform.scaleY"
+                              (change)="
+                                onInputChange(
+                                  $event,
+                                  transform.boneId,
+                                  transform.bonePointId,
+                                  'scaleY'
+                                )
+                              "
+                              class="flex-1 min-w-0 px-1 py-0.5 text-[9px] font-mono bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

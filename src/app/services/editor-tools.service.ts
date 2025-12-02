@@ -21,6 +21,7 @@ import { LineToolService } from './tools/line-tool.service';
 import { RectSelectToolService } from './tools/rect-select-tool.service';
 import { SelectLayerToolService } from './tools/select-layer-tool.service';
 import { SquareToolService } from './tools/square-tool.service';
+import { BoneToolService } from './tools/bone-tool.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorToolsService {
@@ -38,6 +39,7 @@ export class EditorToolsService {
   private readonly lineTool = inject(LineToolService);
   private readonly circleTool = inject(CircleToolService);
   private readonly squareTool = inject(SquareToolService);
+  private readonly boneTool = inject(BoneToolService);
 
   private readonly toolRegistry = new Map<ToolId, ToolService>([
     ['select-layer', this.selectLayerTool],
@@ -51,6 +53,7 @@ export class EditorToolsService {
     ['line', this.lineTool],
     ['circle', this.circleTool],
     ['square', this.squareTool],
+    ['bone', this.boneTool],
   ]);
 
   readonly tools = signal<ToolDefinition[]>(
@@ -60,6 +63,12 @@ export class EditorToolsService {
   readonly currentTool = signal<ToolId>('select-layer');
   readonly fillColor = this.fillTool.color.asReadonly();
   readonly fillMode = this.fillTool.mode.asReadonly();
+  readonly fillPatternId = this.fillTool.patternId.asReadonly();
+  readonly fillGradientStartColor =
+    this.fillTool.gradientStartColor.asReadonly();
+  readonly fillGradientEndColor = this.fillTool.gradientEndColor.asReadonly();
+  readonly fillGradientType = this.fillTool.gradientType.asReadonly();
+  readonly fillGradientAngle = this.fillTool.gradientAngle.asReadonly();
   readonly brushSize = this.brushTool.size.asReadonly();
   readonly brushColor = this.brushTool.color.asReadonly();
   readonly eraserSize = this.eraserTool.size.asReadonly();
@@ -86,6 +95,10 @@ export class EditorToolsService {
     this.squareTool.gradientEndColor.asReadonly();
   readonly squareGradientType = this.squareTool.gradientType.asReadonly();
   readonly squareGradientAngle = this.squareTool.gradientAngle.asReadonly();
+  readonly boneThickness = this.boneTool.thickness.asReadonly();
+  readonly boneColor = this.boneTool.color.asReadonly();
+  readonly boneAutoBindEnabled = this.boneTool.autoBindEnabled.asReadonly();
+  readonly boneAutoBindRadius = this.boneTool.autoBindRadius.asReadonly();
 
   constructor() {
     this.loadFromStorage();
@@ -118,6 +131,31 @@ export class EditorToolsService {
 
   setFillMode(mode: FillToolMode) {
     this.fillTool.setMode(mode);
+    this.saveToStorage();
+  }
+
+  setFillPatternId(patternId: string) {
+    this.fillTool.setPatternId(patternId);
+    this.saveToStorage();
+  }
+
+  setFillGradientStartColor(color: string) {
+    this.fillTool.setGradientStartColor(color);
+    this.saveToStorage();
+  }
+
+  setFillGradientEndColor(color: string) {
+    this.fillTool.setGradientEndColor(color);
+    this.saveToStorage();
+  }
+
+  setFillGradientType(type: 'linear' | 'radial') {
+    this.fillTool.setGradientType(type);
+    this.saveToStorage();
+  }
+
+  setFillGradientAngle(angle: number) {
+    this.fillTool.setGradientAngle(angle);
     this.saveToStorage();
   }
 
@@ -231,6 +269,26 @@ export class EditorToolsService {
     this.saveToStorage();
   }
 
+  setBoneThickness(value: number, max?: number) {
+    this.boneTool.setThickness(value, max);
+    this.saveToStorage();
+  }
+
+  setBoneColor(color: string) {
+    this.boneTool.setColor(color);
+    this.saveToStorage();
+  }
+
+  setBoneAutoBindEnabled(enabled: boolean) {
+    this.boneTool.setAutoBindEnabled(enabled);
+    this.saveToStorage();
+  }
+
+  setBoneAutoBindRadius(radius: number) {
+    this.boneTool.setAutoBindRadius(radius);
+    this.saveToStorage();
+  }
+
   applySnapshot(snapshot: Partial<ToolSnapshot>, context?: ToolRestoreContext) {
     if (!snapshot) return;
     if (snapshot.currentTool && this.hasTool(snapshot.currentTool)) {
@@ -242,6 +300,7 @@ export class EditorToolsService {
     this.lineTool.restore(snapshot.line, context);
     this.circleTool.restore(snapshot.circle);
     this.squareTool.restore(snapshot.square);
+    this.boneTool.restore(snapshot.bone, context);
     this.saveToStorage();
   }
 
@@ -260,7 +319,8 @@ export class EditorToolsService {
       (this.eraserTool.applyMeta?.(key, value) ?? false) ||
       (this.lineTool.applyMeta?.(key, value) ?? false) ||
       (this.circleTool.applyMeta?.(key, value) ?? false) ||
-      (this.squareTool.applyMeta?.(key, value) ?? false);
+      (this.squareTool.applyMeta?.(key, value) ?? false) ||
+      (this.boneTool.applyMeta?.(key, value) ?? false);
 
     if (handled) {
       this.saveToStorage();
@@ -276,6 +336,7 @@ export class EditorToolsService {
       line: this.lineTool.snapshot(),
       circle: this.circleTool.snapshot(),
       square: this.squareTool.snapshot(),
+      bone: this.boneTool.snapshot(),
     };
   }
 
@@ -286,6 +347,11 @@ export class EditorToolsService {
         currentTool: this.currentTool(),
         fillColor: this.fillTool.color(),
         fillMode: this.fillTool.mode(),
+        fillPatternId: this.fillTool.patternId(),
+        fillGradientStartColor: this.fillTool.gradientStartColor(),
+        fillGradientEndColor: this.fillTool.gradientEndColor(),
+        fillGradientType: this.fillTool.gradientType(),
+        fillGradientAngle: this.fillTool.gradientAngle(),
         brushSize: this.brushTool.size(),
         brushColor: this.brushTool.color(),
         eraserStrength: this.eraserTool.strength(),
@@ -308,6 +374,10 @@ export class EditorToolsService {
         squareGradientEndColor: this.squareTool.gradientEndColor(),
         squareGradientType: this.squareTool.gradientType(),
         squareGradientAngle: this.squareTool.gradientAngle(),
+        boneThickness: this.boneTool.thickness(),
+        boneColor: this.boneTool.color(),
+        boneAutoBindEnabled: this.boneTool.autoBindEnabled(),
+        boneAutoBindRadius: this.boneTool.autoBindRadius(),
       } as const;
       window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch {}
@@ -322,6 +392,11 @@ export class EditorToolsService {
         currentTool: ToolId;
         fillColor: string;
         fillMode: FillToolMode;
+        fillPatternId: string;
+        fillGradientStartColor: string;
+        fillGradientEndColor: string;
+        fillGradientType: 'linear' | 'radial';
+        fillGradientAngle: number;
         brushSize: number;
         brushColor: string;
         eraserStrength: number;
@@ -346,6 +421,10 @@ export class EditorToolsService {
         squareGradientAngle: number;
         circleColor: string;
         squareColor: string;
+        boneThickness: number;
+        boneColor: string;
+        boneAutoBindEnabled: boolean;
+        boneAutoBindRadius: number;
       }> | null;
       if (!parsed) return;
       if (parsed.currentTool && this.hasTool(parsed.currentTool)) {
@@ -355,8 +434,40 @@ export class EditorToolsService {
       if (typeof parsed.fillColor === 'string' && parsed.fillColor.length) {
         fillSnapshot.color = parsed.fillColor;
       }
-      if (parsed.fillMode === 'color' || parsed.fillMode === 'erase') {
+      if (
+        parsed.fillMode === 'color' ||
+        parsed.fillMode === 'erase' ||
+        parsed.fillMode === 'pattern' ||
+        parsed.fillMode === 'gradient'
+      ) {
         fillSnapshot.mode = parsed.fillMode;
+      }
+      if (
+        typeof parsed.fillPatternId === 'string' &&
+        parsed.fillPatternId.length
+      ) {
+        fillSnapshot.patternId = parsed.fillPatternId;
+      }
+      if (
+        typeof parsed.fillGradientStartColor === 'string' &&
+        parsed.fillGradientStartColor.length
+      ) {
+        fillSnapshot.gradientStartColor = parsed.fillGradientStartColor;
+      }
+      if (
+        typeof parsed.fillGradientEndColor === 'string' &&
+        parsed.fillGradientEndColor.length
+      ) {
+        fillSnapshot.gradientEndColor = parsed.fillGradientEndColor;
+      }
+      if (
+        parsed.fillGradientType === 'linear' ||
+        parsed.fillGradientType === 'radial'
+      ) {
+        fillSnapshot.gradientType = parsed.fillGradientType;
+      }
+      if (typeof parsed.fillGradientAngle === 'number') {
+        fillSnapshot.gradientAngle = parsed.fillGradientAngle;
       }
       const brushSnapshot: Partial<ToolSnapshot['brush']> = {};
       if (typeof parsed.brushSize === 'number') {
@@ -485,12 +596,26 @@ export class EditorToolsService {
       ) {
         squareSnapshot.fillColor = parsed.squareColor;
       }
+      const boneSnapshot: Partial<ToolSnapshot['bone']> = {};
+      if (typeof parsed.boneThickness === 'number') {
+        boneSnapshot.thickness = parsed.boneThickness;
+      }
+      if (typeof parsed.boneColor === 'string' && parsed.boneColor.length) {
+        boneSnapshot.color = parsed.boneColor;
+      }
+      if (typeof parsed.boneAutoBindEnabled === 'boolean') {
+        boneSnapshot.autoBindEnabled = parsed.boneAutoBindEnabled;
+      }
+      if (typeof parsed.boneAutoBindRadius === 'number') {
+        boneSnapshot.autoBindRadius = parsed.boneAutoBindRadius;
+      }
       this.fillTool.restore(fillSnapshot);
       this.brushTool.restore(brushSnapshot);
       this.eraserTool.restore(eraserSnapshot);
       this.lineTool.restore(lineSnapshot);
       this.circleTool.restore(circleSnapshot);
       this.squareTool.restore(squareSnapshot);
+      this.boneTool.restore(boneSnapshot);
     } catch {}
   }
 }

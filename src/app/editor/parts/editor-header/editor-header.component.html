@@ -1,96 +1,1142 @@
-<div class="flex items-center gap-4 px-3 h-10 text-sm select-none">
-  <div class="font-semibold tracking-wide">Pixart</div>
-  <nav class="flex items-center gap-2">
+<div
+  id="header-container"
+  class="flex items-center gap-4 px-3 h-10 text-sm select-none"
+>
+  <div id="header-title" class="font-semibold tracking-wide">Pixart</div>
+  <nav id="header-nav" class="flex items-center gap-2">
     <div
+      id="menu-file-wrapper"
       class="relative"
       (mouseenter)="openFileMenuHover()"
       (mouseleave)="closeFileMenuHover()"
     >
       <button
         type="button"
+        id="menu-file-button"
         class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="showFileMenu.set(!showFileMenu())"
         [attr.aria-expanded]="showFileMenu()"
+        [paTooltip]="'tooltips.menu.file' | transloco"
       >
         {{ "menu.file" | transloco }}
       </button>
       @if (showFileMenu()) {
         <div
+          id="menu-file-dropdown"
           class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-44"
           tabindex="0"
           (focusin)="onMenuFocusIn()"
           (focusout)="onMenuFocusOut()"
         >
           <button
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            id="menu-file-new-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onNewProject()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.new')"
           >
-            {{ "file.new" | transloco }}
+            <span>{{ "file.new" | transloco }}</span>
+            @if (hotkeys.getBinding("file.new")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.new")!)
+                }}
+              </span>
+            }
           </button>
           <button
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            id="menu-file-open-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onOpenFromComputer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.open')"
           >
-            {{ "file.openFromComputer" | transloco }}
+            <span>{{ "file.openFromComputer" | transloco }}</span>
+            @if (hotkeys.getBinding("file.open")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.open")!)
+                }}
+              </span>
+            }
           </button>
           <button
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            id="menu-file-save-computer-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onSaveToComputer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.saveToComputer')"
           >
-            {{ "file.saveToComputer" | transloco }}
+            <span>{{ "file.saveToComputer" | transloco }}</span>
+            @if (hotkeys.getBinding("file.saveToComputer")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("file.saveToComputer")!
+                  )
+                }}
+              </span>
+            }
           </button>
           <div
+            id="menu-file-divider"
             class="border-t border-neutral-100 dark:border-neutral-700"
           ></div>
           <button
-            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            id="menu-file-save-local-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onSave()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.save')"
           >
-            {{ "file.saveLocal" | transloco }}
+            <span>{{ "file.saveLocal" | transloco }}</span>
+            @if (hotkeys.getBinding("file.save")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("file.save")!)
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
+      id="menu-edit-wrapper"
+      class="relative"
+      (mouseenter)="openEditMenuHover()"
+      (mouseleave)="closeEditMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-edit-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showEditMenu.set(!showEditMenu())"
+        [attr.aria-expanded]="showEditMenu()"
+        [paTooltip]="'tooltips.menu.edit' | transloco"
+      >
+        {{ "menu.edit" | transloco }}
+      </button>
+      @if (showEditMenu()) {
+        <div
+          id="menu-edit-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onEditMenuFocusIn()"
+          (focusout)="onEditMenuFocusOut()"
+        >
+          <button
+            id="menu-edit-cut-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCut()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.cut')"
+          >
+            <span id="menu-edit-cut-label">{{ "menu.cut" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.cut")) {
+              <span
+                id="menu-edit-cut-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.cut")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-copy-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCopy()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copy')"
+          >
+            <span id="menu-edit-copy-label">{{ "menu.copy" | transloco }}</span>
+            @if (hotkeys.getBinding("edit.copy")) {
+              <span
+                id="menu-edit-copy-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.copy")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-copy-merged-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onCopyMerged()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.copyMerged')"
+          >
+            <span id="menu-edit-copy-merged-label">{{
+              "menu.copyMerged" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.copyMerged")) {
+              <span
+                id="menu-edit-copy-merged-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.copyMerged")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-1"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-paste-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaste()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.paste')"
+          >
+            <span id="menu-edit-paste-label">{{
+              "menu.paste" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.paste")) {
+              <span
+                id="menu-edit-paste-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.paste")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-paste-in-place-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPasteInPlace()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInPlace')"
+          >
+            <span id="menu-edit-paste-in-place-label">{{
+              "menu.pasteInPlace" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.pasteInPlace")) {
+              <span
+                id="menu-edit-paste-in-place-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.pasteInPlace")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-paste-into-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPasteInto()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.pasteInto')"
+          >
+            <span id="menu-edit-paste-into-label">{{
+              "menu.pasteInto" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.pasteInto")) {
+              <span
+                id="menu-edit-paste-into-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.pasteInto")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-2"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-clear-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onClear()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.clear')"
+          >
+            <span id="menu-edit-clear-label">{{
+              "menu.clear" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.clear")) {
+              <span
+                id="menu-edit-clear-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.clear")!)
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-3"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-define-pattern-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onDefinePattern()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.definePattern')"
+          >
+            <ng-icon
+              id="menu-edit-define-pattern-icon"
+              name="heroSquare2Stack"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-define-pattern-label" class="flex-1">{{
+              "definePattern.title" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.definePattern")) {
+              <span
+                id="menu-edit-define-pattern-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.definePattern")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-define-brush-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onDefineBrush()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.defineBrush')"
+          >
+            <ng-icon
+              id="menu-edit-define-brush-icon"
+              name="heroPaintBrush"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-define-brush-label" class="flex-1">{{
+              "defineBrush.title" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.defineBrush")) {
+              <span
+                id="menu-edit-define-brush-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.defineBrush")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-define-shape-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onDefineShape()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.defineShape')"
+          >
+            <ng-icon
+              id="menu-edit-define-shape-icon"
+              name="heroSquares2x2"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-define-shape-label" class="flex-1">{{
+              "defineShape.title" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.defineShape")) {
+              <span
+                id="menu-edit-define-shape-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.defineShape")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-edit-stroke-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onStroke()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.stroke')"
+          >
+            <ng-icon
+              id="menu-edit-stroke-icon"
+              name="heroRectangleGroup"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-stroke-label" class="flex-1">{{
+              "menu.stroke" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.stroke")) {
+              <span
+                id="menu-edit-stroke-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.stroke")!)
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
+      id="menu-fill-wrapper"
+      class="relative"
+      (mouseenter)="openFillMenuHover()"
+      (mouseleave)="closeFillMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-fill-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showFillMenu.set(!showFillMenu())"
+        [attr.aria-expanded]="showFillMenu()"
+        [paTooltip]="'tooltips.menu.fill' | transloco"
+      >
+        {{ "menu.fill" | transloco }}
+      </button>
+      @if (showFillMenu()) {
+        <div
+          id="menu-fill-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onFillMenuFocusIn()"
+          (focusout)="onFillMenuFocusOut()"
+        >
+          <button
+            id="menu-fill-selection-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onFillSelection()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.fillSelection')"
+          >
+            <span id="menu-fill-selection-label">{{
+              "menu.fillSelection" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.fillSelection")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.fillSelection")!
+                  )
+                }}</span
+              >
+            }
+          </button>
+          <button
+            id="menu-content-aware-fill-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onContentAwareFill()"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('edit.contentAwareFill')
+            "
+          >
+            <ng-icon
+              id="menu-content-aware-fill-icon"
+              name="heroSparkles"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-content-aware-fill-label" class="flex-1">{{
+              "menu.contentAwareFill" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.contentAwareFill")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.contentAwareFill")!
+                  )
+                }}</span
+              >
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
+      id="menu-insert-wrapper"
+      class="relative"
+      (mouseenter)="openInsertMenuHover()"
+      (mouseleave)="closeInsertMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-insert-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showInsertMenu.set(!showInsertMenu())"
+        [attr.aria-expanded]="showInsertMenu()"
+        [paTooltip]="'tooltips.menu.insert' | transloco"
+      >
+        {{ "menu.insert" | transloco }}
+      </button>
+      @if (showInsertMenu()) {
+        <div
+          id="menu-insert-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-44"
+          tabindex="0"
+          (focusin)="onInsertMenuFocusIn()"
+          (focusout)="onInsertMenuFocusOut()"
+        >
+          <button
+            id="menu-insert-image-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onInsertImage()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('insert.image')"
+          >
+            <span>{{ "insert.insertImage" | transloco }}</span>
+            @if (hotkeys.getBinding("insert.image")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("insert.image")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
+      id="menu-transform-wrapper"
+      class="relative"
+      (mouseenter)="openTransformMenuHover()"
+      (mouseleave)="closeTransformMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-transform-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showTransformMenu.set(!showTransformMenu())"
+        [attr.aria-expanded]="showTransformMenu()"
+        [paTooltip]="'tooltips.menu.transform' | transloco"
+      >
+        {{ "menu.transform" | transloco }}
+      </button>
+      @if (showTransformMenu()) {
+        <div
+          id="menu-transform-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-64"
+          tabindex="0"
+          (focusin)="onTransformMenuFocusIn()"
+          (focusout)="onTransformMenuFocusOut()"
+        >
+          <button
+            id="menu-transform-free-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onFreeTransform()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.freeTransform')"
+          >
+            <span id="menu-transform-free-label">{{
+              "menu.freeTransform" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("tool.freeTransform")) {
+              <span
+                id="menu-transform-free-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.freeTransform")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-transform-divider-1"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-scale-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onScale()"
+          >
+            <span id="menu-transform-scale-label">{{
+              "menu.scale" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onRotate()"
+          >
+            <span id="menu-transform-rotate-label">{{
+              "menu.rotate" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-skew-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onSkew()"
+            aria-keyshortcuts="Ctrl+Shift+K"
+          >
+            <span id="menu-transform-skew-label">{{
+              "menu.skew" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-distort-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onDistort()"
+            aria-keyshortcuts="Ctrl+Shift+D"
+          >
+            <span id="menu-transform-distort-label">{{
+              "menu.distort" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-perspective-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onPerspective()"
+          >
+            <span id="menu-transform-perspective-label">{{
+              "menu.perspective" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-warp-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onWarp()"
+            aria-keyshortcuts="Ctrl+Shift+W"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span id="menu-transform-warp-label">{{
+                "menu.warp" | transloco
+              }}</span>
+              <span
+                id="menu-transform-warp-dev-badge"
+                class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+              >
+                {{ "badges.dev" | transloco }}
+              </span>
+            </div>
+          </button>
+          <button
+            id="menu-transform-puppet-warp-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onPuppetWarp()"
+            aria-keyshortcuts="Ctrl+Shift+Alt+W"
+          >
+            <div class="w-full flex items-center justify-between">
+              <span id="menu-transform-puppet-warp-label">{{
+                "menu.puppetWarp" | transloco
+              }}</span>
+              <span
+                id="menu-transform-puppet-warp-dev-badge"
+                class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+              >
+                {{ "badges.dev" | transloco }}
+              </span>
+            </div>
+          </button>
+          <div
+            id="menu-transform-divider-2"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-content-aware-scale-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onContentAwareScale()"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.contentAwareScale')
+            "
+          >
+            <span id="menu-transform-content-aware-scale-label">{{
+              "menu.contentAwareScale" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("transform.contentAwareScale")) {
+              <span
+                id="menu-transform-content-aware-scale-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.contentAwareScale")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-transform-divider-3"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-auto-align-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onAutoAlignLayers()"
+          >
+            <span id="menu-transform-auto-align-label">{{
+              "menu.autoAlignLayers" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-auto-blend-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onAutoBlendLayers()"
+          >
+            <span id="menu-transform-auto-blend-label">{{
+              "menu.autoBlendLayers" | transloco
+            }}</span>
+          </button>
+          <div
+            id="menu-transform-divider-4"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-transform-flip-horizontal-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onFlipHorizontal()"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.flipHorizontal')
+            "
+          >
+            <span id="menu-transform-flip-horizontal-label">{{
+              "menu.flipHorizontal" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("transform.flipHorizontal")) {
+              <span
+                id="menu-transform-flip-horizontal-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.flipHorizontal")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-transform-flip-vertical-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onFlipVertical()"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('transform.flipVertical')
+            "
+          >
+            <span id="menu-transform-flip-vertical-label">{{
+              "menu.flipVertical" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("transform.flipVertical")) {
+              <span
+                id="menu-transform-flip-vertical-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("transform.flipVertical")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-transform-rotate-90cw-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onRotate90CW()"
+          >
+            <span id="menu-transform-rotate-90cw-label">{{
+              "menu.rotate90CW" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-90ccw-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onRotate90CCW()"
+          >
+            <span id="menu-transform-rotate-90ccw-label">{{
+              "menu.rotate90CCW" | transloco
+            }}</span>
+          </button>
+          <button
+            id="menu-transform-rotate-180-action"
+            class="w-full text-left px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [class.hover:bg-neutral-100]="!!document.selectionRect()"
+            [class.dark:hover:bg-neutral-700]="!!document.selectionRect()"
+            [disabled]="!document.selectionRect()"
+            (click)="onRotate180()"
+          >
+            <span id="menu-transform-rotate-180-label">{{
+              "menu.rotate180" | transloco
+            }}</span>
           </button>
         </div>
       }
     </div>
     <button
       type="button"
-      class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-    >
-      {{ "menu.edit" | transloco }}
-    </button>
-    <button
-      type="button"
+      id="menu-undo-button"
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onUndo()"
-      title="{{ 'menu.undo' | transloco }}"
+      [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.undo')"
+      [paTooltip]="'tooltips.menu.undo' | transloco"
+      [paTooltipHotkeyId]="'edit.undo'"
     >
       {{ "menu.undo" | transloco }}
     </button>
     <button
       type="button"
+      id="menu-redo-button"
       class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
       (click)="onRedo()"
-      title="{{ 'menu.redo' | transloco }}"
+      [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.redo')"
+      [paTooltip]="'tooltips.menu.redo' | transloco"
+      [paTooltipHotkeyId]="'edit.redo'"
     >
       {{ "menu.redo" | transloco }}
     </button>
-    <button
-      type="button"
-      class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+    <div
+      id="menu-tool-wrapper"
+      class="relative"
+      (mouseenter)="openToolMenuHover()"
+      (mouseleave)="closeToolMenuHover()"
     >
-      {{ "menu.tool" | transloco }}
-    </button>
-    <button
-      type="button"
-      class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
-    >
-      {{ "menu.help" | transloco }}
-    </button>
-  </nav>
-  <div class="ml-auto flex items-center gap-2 text-xs text-neutral-500">
-    <span>{{ "badges.title" | transloco }}</span>
-    <div class="ml-2 flex items-center gap-1">
       <button
         type="button"
+        id="menu-tool-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showToolMenu.set(!showToolMenu())"
+        [attr.aria-expanded]="showToolMenu()"
+        [paTooltip]="'tooltips.menu.tool' | transloco"
+      >
+        {{ "menu.tool" | transloco }}
+      </button>
+      @if (showToolMenu()) {
+        <div
+          id="menu-tool-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onToolMenuFocusIn()"
+          (focusout)="onToolMenuFocusOut()"
+        >
+          <button
+            id="menu-tool-select-layer-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('select-layer')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.selectLayer')"
+          >
+            <span>{{ "tools.selectLayer" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.selectLayer")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.selectLayer")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-rect-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('rect-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.rectSelect')"
+          >
+            <span>{{ "tools.rectSelect" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.rectSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.rectSelect")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-ellipse-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('ellipse-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.ellipseSelect')"
+          >
+            <span>{{ "tools.ellipseSelect" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.ellipseSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.ellipseSelect")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-lasso-select-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('lasso-select')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.lassoSelect')"
+          >
+            <span>{{ "tools.lassoSelect" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.lassoSelect")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.lassoSelect")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-tool-brush-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('brush')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.brush')"
+          >
+            <span>{{ "tools.brush" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.brush")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.brush")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-eraser-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('eraser')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eraser')"
+          >
+            <span>{{ "tools.eraser" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.eraser")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.eraser")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-fill-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('fill')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.fill')"
+          >
+            <span>{{ "tools.fill" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.fill")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.fill")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-eyedropper-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('eyedropper')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.eyedropper')"
+          >
+            <span>{{ "tools.eyedropper" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.eyedropper")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("tool.eyedropper")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-tool-line-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('line')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.line')"
+          >
+            <span>{{ "tools.line" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.line")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.line")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-circle-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('circle')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.circle')"
+          >
+            <span>{{ "tools.circle" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.circle")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.circle")!)
+                }}
+              </span>
+            }
+          </button>
+          <button
+            id="menu-tool-square-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('square')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.square')"
+          >
+            <span>{{ "tools.square" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.square")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.square")!)
+                }}
+              </span>
+            }
+          </button>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-tool-bone-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('bone')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.bone')"
+          >
+            <span>{{ "tools.bone" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.bone")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.bone")!)
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
+      id="menu-help-wrapper"
+      class="relative"
+      (mouseenter)="openHelpMenuHover()"
+      (mouseleave)="closeHelpMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-help-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showHelpMenu.set(!showHelpMenu())"
+        [attr.aria-expanded]="showHelpMenu()"
+        [paTooltip]="'tooltips.menu.help' | transloco"
+      >
+        {{ "menu.help" | transloco }}
+      </button>
+      @if (showHelpMenu()) {
+        <div
+          id="menu-help-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-44"
+          tabindex="0"
+          (focusin)="onHelpMenuFocusIn()"
+          (focusout)="onHelpMenuFocusOut()"
+        >
+          <button
+            id="menu-help-hotkeys-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+            (click)="onConfigureHotkeys()"
+          >
+            {{ "hotkeys.title" | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+  </nav>
+  <div
+    id="header-badges-container"
+    class="ml-auto flex items-center gap-2 text-xs text-neutral-500"
+  >
+    <span id="header-badges-title">{{ "badges.title" | transloco }}</span>
+    <div id="header-controls" class="ml-2 flex items-center gap-1">
+      <button
+        type="button"
+        id="lang-vi-button"
         class="px-2 py-0.5 rounded-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="setLang('vi')"
       >
@@ -98,6 +1144,7 @@
       </button>
       <button
         type="button"
+        id="lang-en-button"
         class="px-2 py-0.5 rounded-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="setLang('en')"
       >
@@ -105,6 +1152,7 @@
       </button>
       <button
         type="button"
+        id="theme-toggle-button"
         class="px-2 py-0.5 rounded-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
         (click)="toggleTheme()"
         title="{{ 'theme.toggle' | transloco }}"
@@ -117,3 +1165,35 @@
     </div>
   </div>
 </div>
+
+<pa-insert-image-dialog
+  (onConfirm)="handleInsertImageConfirm($event)"
+  (onCancel)="handleInsertImageCancel()"
+/>
+
+<pa-scale-dialog
+  (onConfirm)="handleScaleConfirm($event)"
+  (onCancel)="handleScaleCancel()"
+/>
+
+<pa-rotate-dialog
+  (onConfirm)="handleRotateConfirm($event)"
+  (onCancel)="handleRotateCancel()"
+/>
+
+<pa-skew-dialog
+  (onConfirm)="handleSkewConfirm($event)"
+  (onCancel)="handleSkewCancel()"
+/>
+
+<pa-warp-dialog />
+
+<pa-puppet-warp-dialog />
+
+<pa-content-aware-scale-dialog
+  (onConfirm)="handleContentAwareScaleConfirm($event)"
+  (onCancel)="handleContentAwareScaleCancel()"
+/>
+
+<pa-hotkey-config-dialog />
+<pa-fill-selection-dialog />

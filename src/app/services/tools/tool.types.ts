@@ -9,7 +9,8 @@ export type ToolId =
   | 'eraser'
   | 'line'
   | 'circle'
-  | 'square';
+  | 'square'
+  | 'bone';
 
 export interface ToolDefinition {
   id: ToolId;
@@ -43,11 +44,13 @@ export type ToolMetaKey =
   | 'squareGradientStart'
   | 'squareGradientEnd'
   | 'squareGradientType'
-  | 'squareGradientAngle';
+  | 'squareGradientAngle'
+  | 'boneThickness'
+  | 'boneColor';
 
 export type ShapeFillMode = 'solid' | 'gradient';
 export type GradientType = 'linear' | 'radial';
-export type FillToolMode = 'color' | 'erase';
+export type FillToolMode = 'color' | 'erase' | 'pattern' | 'gradient';
 
 export interface ToolRestoreContext {
   maxBrush?: number;
@@ -110,6 +113,18 @@ export interface SquareToolSnapshot {
 export interface FillToolSnapshot {
   color: string;
   mode: FillToolMode;
+  patternId?: string;
+  gradientStartColor?: string;
+  gradientEndColor?: string;
+  gradientType?: GradientType;
+  gradientAngle?: number;
+}
+
+export interface BoneToolSnapshot {
+  thickness: number;
+  color: string;
+  autoBindEnabled?: boolean;
+  autoBindRadius?: number;
 }
 
 export interface ToolSnapshot {
@@ -120,4 +135,5 @@ export interface ToolSnapshot {
   line: LineToolSnapshot;
   circle: CircleToolSnapshot;
   square: SquareToolSnapshot;
+  bone: BoneToolSnapshot;
 }

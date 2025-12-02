@@ -1,0 +1,89 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'bones.editPoint' | transloco"
+  [size]="'sm'"
+  [modalId]="'edit-point-dialog'"
+  [showCloseButton]="false"
+  (onClose)="handleCancel()"
+>
+  <div id="edit-point-dialog-body" class="space-y-4">
+    <div id="edit-point-name-field" class="space-y-1">
+      <label
+        for="edit-point-name-input"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "bones.pointName" | transloco }}
+      </label>
+      <input
+        type="text"
+        id="edit-point-name-input"
+        class="w-full px-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+        [value]="pointName()"
+        (input)="onNameInput($event)"
+        [placeholder]="'bones.pointNamePlaceholder' | transloco"
+      />
+    </div>
+
+    <div id="edit-point-color-field" class="space-y-1">
+      <label
+        for="edit-point-color-input"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "bones.pointColor" | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          type="color"
+          id="edit-point-color-input"
+          class="h-10 w-20 cursor-pointer rounded-sm border border-neutral-300 dark:border-neutral-600"
+          [value]="pointColor()"
+          (input)="onColorInput($event)"
+        />
+        <input
+          type="text"
+          id="edit-point-color-text-input"
+          class="flex-1 px-3 py-2 text-sm bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+          [value]="pointColor()"
+          (input)="onColorInput($event)"
+          pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+          [title]="'bones.colorFormatHint' | transloco"
+        />
+      </div>
+    </div>
+
+    <div
+      id="edit-point-color-preview"
+      class="p-4 rounded-sm border border-neutral-200 dark:border-neutral-700"
+      [style.backgroundColor]="pointColor()"
+    >
+      <div
+        class="text-center text-sm font-medium text-white mix-blend-difference"
+      >
+        {{ "bones.colorPreview" | transloco }}
+      </div>
+    </div>
+  </div>
+
+  <div
+    modal-footer
+    id="edit-point-dialog-footer"
+    class="flex items-center justify-end gap-2"
+  >
+    <button
+      type="button"
+      id="edit-point-cancel-button"
+      class="px-4 py-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-sm hover:bg-neutral-50 dark:hover:bg-neutral-600"
+      (click)="handleCancel()"
+    >
+      {{ "bones.cancel" | transloco }}
+    </button>
+    <button
+      type="button"
+      id="edit-point-ok-button"
+      class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-sm"
+      (click)="handleConfirm()"
+    >
+      {{ "bones.ok" | transloco }}
+    </button>
+  </div>
+</pa-modal>

@@ -7,8 +7,12 @@ import {
   effect,
   EffectRef,
   EnvironmentInjector,
+  OnDestroy,
 } from '@angular/core';
-import { EditorDocumentService } from '../../../services/editor-document.service';
+import {
+  EditorDocumentService,
+  isLayer,
+} from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import {
   GradientType,
@@ -17,7 +21,37 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
-
+import {
+  EditorBoneService,
+  Bone,
+  BonePoint,
+} from '../../../services/editor/editor-bone.service';
+import { HotkeysService } from '../../../services/hotkeys.service';
+import {
+  PixelGenerationDialog,
+  GeneratePixelArtRequest,
+} from '../../../shared/pixel-generation-dialog/pixel-generation-dialog';
+import { PixelGenerationEngineService } from '../../../services/pixel-generation';
+import { EditorTransformService } from '../../../services/editor/editor-transform.service';
+import {
+  EditorFreeTransformService,
+  TransformHandle,
+} from '../../../services/editor/editor-free-transform.service';
+import {
+  EditorDistortService,
+  DistortHandle,
+} from '../../../services/editor/editor-distort.service';
+import {
+  EditorPerspectiveService,
+  PerspectiveHandle,
+} from '../../../services/editor/editor-perspective.service';
+import { EditorWarpService } from '../../../services/editor/editor-warp.service';
+import { EditorPuppetWarpService } from '../../../services/editor/editor-puppet-warp.service';
+import {
+  FillSelectionDialog,
+  FillSelectionDialogResult,
+} from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
+import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -29,34 +63,68 @@ interface ShapeDrawOptions {
   gradientAngle: number;
 }
 
-type ContextMenuActionId = 'deselect';
+type ContextMenuActionId =
+  | 'deselect'
+  | 'invertSelection'
+  | 'growSelection'
+  | 'growBy1px'
+  | 'growBy2px'
+  | 'growBy5px'
+  | 'growCustom'
+  | 'makeCopyLayer'
+  | 'mergeVisibleToNewLayer'
+  | 'generate'
+  | 'generateFromLayer'
+  | 'generateFromVisible';
 
 interface ContextMenuAction {
   id: ContextMenuActionId;
   labelKey: string;
   icon: string;
+  disabled?: boolean;
+  submenu?: ContextMenuAction[];
 }
 
 @Component({
   selector: 'pa-editor-canvas',
   templateUrl: './editor-canvas.component.html',
   styleUrls: ['./editor-canvas.component.css'],
-  imports: [CommonModule, TranslocoPipe, NgIcon],
+  imports: [
+    CommonModule,
+    TranslocoPipe,
+    NgIcon,
+    PixelGenerationDialog,
+    FillSelectionDialog,
+  ],
   host: {
     class: 'block h-full w-full',
     '(wheel)': 'onWheel($event)',
   },
 })
-export class EditorCanvas {
+export class EditorCanvas implements OnDestroy {
   @ViewChild('canvasEl', { static: true })
   canvasEl!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasContainer', { static: true })
   canvasContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('canvasWrapper', { static: true })
   canvasWrapper!: ElementRef<HTMLDivElement>;
+  @ViewChild(PixelGenerationDialog, { static: false })
+  pixelGenerationDialog!: PixelGenerationDialog;
+  @ViewChild(FillSelectionDialog, { static: false })
+  fillSelectionDialog!: FillSelectionDialog;
   readonly document = inject(EditorDocumentService);
   readonly documentSvc: EditorDocumentService = this.document;
   readonly tools = inject(EditorToolsService);
+  readonly boneService = inject(EditorBoneService);
+  readonly hotkeys = inject(HotkeysService);
+  readonly pixelGenEngine = inject(PixelGenerationEngineService);
+  readonly transformService = inject(EditorTransformService);
+  readonly freeTransform = inject(EditorFreeTransformService);
+  readonly distort = inject(EditorDistortService);
+  readonly perspective = inject(EditorPerspectiveService);
+  readonly warp = inject(EditorWarpService);
+  readonly puppetWarp = inject(EditorPuppetWarpService);
+  readonly fillSelectionService = inject(FillSelectionService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -79,14 +147,81 @@ export class EditorCanvas {
   private readonly shapeConstrainUniform = signal(false);
 
   private panning = false;
-  // painting state
   private painting = false;
   private lastPaintPos: { x: number; y: number } | null = null;
   private selectionStart: { x: number; y: number } | null = null;
   private selectionDragging = false;
+  private selectionMoving = false;
+  private selectionMoveStart: { x: number; y: number } | null = null;
+  private generationCheckInterval: number | null = null;
+  private moveSelectionHotkeyActive = false;
+  private moveSelectionHotkeyParts = new Set<string>();
+  private selectionContentMoving = false;
+  private selectionContentMoveStart: { x: number; y: number } | null = null;
+  private movingContentBuffer: string[] | null = null;
+  private movingContentOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private originalLayerId: string | null = null;
+  private freeTransformOriginalBuffer: string[] | null = null;
+  private freeTransformOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private freeTransformLayerId: string | null = null;
+  private freeTransformPreviewIndices: number[] | null = null;
+  private freeTransformPreviewBackup: Map<number, string> | null = null;
+  private freeTransformDuplicate = false;
+  private freeTransformMirrorX = false;
+  private freeTransformMirrorY = false;
+  private distortOriginalBuffer: string[] | null = null;
+  private distortOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private distortLayerId: string | null = null;
+  private distortFullLayerBackup: string[] | null = null;
+  private perspectiveOriginalBuffer: string[] | null = null;
+  private perspectiveOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private perspectiveLayerId: string | null = null;
+  private perspectiveFullLayerBackup: string[] | null = null;
+  private warpOriginalBuffer: string[] | null = null;
+  private warpOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private warpLayerId: string | null = null;
+  private warpFullLayerBackup: string[] | null = null;
+  private puppetWarpOriginalBuffer: string[] | null = null;
+  private puppetWarpOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  private puppetWarpLayerId: string | null = null;
+  private puppetWarpFullLayerBackup: string[] | null = null;
+  private shiftPressed = false;
   private lastPointer = { x: 0, y: 0 };
   private shaping = false;
   private stopRenderEffect: EffectRef | null = null;
+  private currentBoneId: string | null = null;
+  private draggingPointId: string | null = null;
+  private draggingPointBoneId: string | null = null;
   readonly tileSize = signal(1);
   readonly contextMenuVisible = signal(false);
   readonly contextMenuPosition = signal<{ x: number; y: number }>({
@@ -94,6 +229,17 @@ export class EditorCanvas {
     y: 0,
   });
   readonly contextMenuActions = signal<ContextMenuAction[]>([]);
+  readonly submenuVisible = signal(false);
+  readonly submenuPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  readonly submenuActions = signal<ContextMenuAction[]>([]);
+  readonly inputDialogVisible = signal(false);
+  readonly inputDialogPosition = signal<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  readonly inputDialogValue = signal('10');
+  readonly inputDialogTitle = signal('');
+  readonly inputDialogCallback = signal<((value: string) => void) | null>(null);
   private resizeListener: (() => void) | null = null;
   private keyListener: ((e: KeyboardEvent) => void) | null = null;
   private readonly defaultCursor = `url('/cursors/link.png') 12 12, link`;
@@ -108,11 +254,271 @@ export class EditorCanvas {
   ];
   private readonly gradientSteps = 8;
 
+  private capturePointer(ev: PointerEvent): void {
+    const target = ev.currentTarget as HTMLElement;
+    if (target?.setPointerCapture) {
+      target.setPointerCapture(ev.pointerId);
+    }
+  }
+
+  private releasePointer(ev: PointerEvent): void {
+    const target = ev.currentTarget as HTMLElement;
+    if (target?.releasePointerCapture) {
+      try {
+        if (target.hasPointerCapture(ev.pointerId)) {
+          target.releasePointerCapture(ev.pointerId);
+        }
+      } catch {}
+    }
+  }
+
   constructor() {
     this.stopRenderEffect = effect(() => {
       this.drawCanvas();
       return null as any;
     });
+
+    // If selection is cleared while free transform is active, cancel and clean state.
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.freeTransform.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelFreeTransform();
+      }
+    });
+
+    effect(() => {
+      const tool = this.tools.currentTool();
+      if (tool !== 'bone' && this.currentBoneId) {
+        this.currentBoneId = null;
+      }
+    });
+
+    effect(() => {
+      const active = this.freeTransform.isActive();
+      if (active && !this.freeTransformOriginalBuffer) {
+        this.activateFreeTransform();
+      }
+    });
+
+    effect(() => {
+      const active = this.distort.isActive();
+      if (active && !this.distortOriginalBuffer) {
+        this.activateDistort();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.distort.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelDistort();
+      }
+    });
+
+    effect(() => {
+      const active = this.perspective.isActive();
+      if (active && !this.perspectiveOriginalBuffer) {
+        this.activatePerspective();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.perspective.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelPerspective();
+      }
+    });
+
+    effect(() => {
+      const active = this.warp.isActive();
+      if (active && !this.warpOriginalBuffer) {
+        this.activateWarp();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.warp.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelWarp();
+      }
+    });
+
+    effect(() => {
+      const active = this.puppetWarp.isActive();
+      if (active && !this.puppetWarpOriginalBuffer) {
+        this.activatePuppetWarp();
+      }
+    });
+
+    effect(() => {
+      const sel = this.document.selectionRect();
+      const active = this.puppetWarp.isActive();
+      if (active && (!sel || sel.width <= 0 || sel.height <= 0)) {
+        this.cancelPuppetWarp();
+      }
+    });
+
+    this.registerCanvasHotkeys();
+  }
+
+  private registerCanvasHotkeys() {
+    this.hotkeys.register({
+      id: 'edit.deselect',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+d',
+      handler: () => this.document.clearSelection(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.invertSelection',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+i',
+      handler: () => this.document.invertSelection(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy1px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+1',
+      handler: () => this.document.growSelection(1),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy2px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+2',
+      handler: () => this.document.growSelection(2),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.growBy5px',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+5',
+      handler: () => this.document.growSelection(5),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.makeCopyLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+j',
+      handler: () => this.document.makeCopyLayer(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.mergeVisibleToNewLayer',
+      category: 'edit',
+      defaultKey: 'ctrl+shift+m',
+      handler: () => this.document.mergeVisibleToNewLayer(),
+    });
+
+    this.hotkeys.register({
+      id: 'edit.moveSelectionPixels',
+      category: 'edit',
+      defaultKey: 'shift+v',
+      handler: () => this.activateMoveSelectionHotkey(),
+    });
+
+    this.hotkeys.register({
+      id: 'tool.freeTransform',
+      category: 'tool',
+      defaultKey: 'shift+t',
+      handler: () => {
+        const sel = this.document.selectionRect();
+        if (!sel || sel.width <= 0 || sel.height <= 0) {
+          return;
+        }
+        this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'edit.fillSelection',
+      category: 'edit',
+      defaultKey: 'shift+f5',
+      handler: () => this.openFillSelectionDialog(),
+    });
+  }
+
+  async openFillSelectionDialog() {
+    const selectionRect = this.document.selectionRect();
+    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0)
+      return;
+
+    const result = await this.fillSelectionDialog?.open();
+    if (!result) return;
+
+    const success = this.fillSelectionService.fillSelection({
+      mode: result.mode,
+      color: result.color,
+      patternId: result.patternId,
+      gradientStartColor: result.gradientStartColor,
+      gradientEndColor: result.gradientEndColor,
+      gradientType: result.gradientType,
+      gradientAngle: result.gradientAngle,
+    });
+
+    if (success) {
+      this.tools.setFillMode(result.mode);
+      if (result.color) {
+        this.tools.setFillColor(result.color);
+      }
+      if (result.patternId) {
+        this.tools.setFillPatternId(result.patternId);
+      }
+      if (result.gradientStartColor) {
+        this.tools.setFillGradientStartColor(result.gradientStartColor);
+      }
+      if (result.gradientEndColor) {
+        this.tools.setFillGradientEndColor(result.gradientEndColor);
+      }
+      if (result.gradientType) {
+        this.tools.setFillGradientType(result.gradientType);
+      }
+      if (result.gradientAngle !== undefined) {
+        this.tools.setFillGradientAngle(result.gradientAngle);
+      }
+    }
+  }
+
+  private activateMoveSelectionHotkey() {
+    const binding = this.hotkeys.getBinding('edit.moveSelectionPixels');
+    if (!binding) return;
+    this.moveSelectionHotkeyActive = true;
+    this.moveSelectionHotkeyParts.clear();
+    for (const part of binding.split('+')) {
+      if (part) {
+        this.moveSelectionHotkeyParts.add(part);
+      }
+    }
+  }
+
+  private deactivateMoveSelectionHotkey() {
+    this.moveSelectionHotkeyActive = false;
+    this.moveSelectionHotkeyParts.clear();
+  }
+
+  private handleMoveSelectionHotkeyRelease(event: KeyboardEvent) {
+    if (!this.moveSelectionHotkeyActive) {
+      return;
+    }
+    const part = this.normalizeMoveSelectionKey(event.key);
+    if (part && this.moveSelectionHotkeyParts.has(part)) {
+      this.deactivateMoveSelectionHotkey();
+    }
+  }
+
+  private normalizeMoveSelectionKey(key: string): string | null {
+    const lower = key.toLowerCase();
+    if (lower === 'control' || lower === 'meta') {
+      return 'ctrl';
+    }
+    if (lower === 'shift' || lower === 'alt') {
+      return lower;
+    }
+    return lower;
   }
 
   private readonly layoutEffect = effect(
@@ -143,6 +549,7 @@ export class EditorCanvas {
     if (tool === 'eraser') return this.eraserCursor;
     if (tool === 'line' || tool === 'circle' || tool === 'square')
       return `crosshair`;
+    if (tool === 'bone') return `crosshair`;
     return this.defaultCursor;
   }
 
@@ -157,8 +564,8 @@ export class EditorCanvas {
     }
     this.updateTileSize(this.tools.brushSize());
 
-    // ensure pixel buffers exist for all layers
-    for (const l of this.document.layers()) {
+    const flatLayers = this.document.getFlattenedLayers();
+    for (const l of flatLayers) {
       this.document.ensureLayerBuffer(
         l.id,
         this.document.canvasWidth(),
@@ -172,14 +579,41 @@ export class EditorCanvas {
       window.addEventListener('resize', this.resizeListener as EventListener);
       // listen for Escape to cancel in-progress lasso selections
       this.keyListener = (ev: KeyboardEvent) => {
+        const target = ev.target as HTMLElement | null;
+        if (target) {
+          const tag = target.tagName.toLowerCase();
+          if (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            target.isContentEditable
+          ) {
+            return;
+          }
+        }
         if (ev.key === 'Escape') {
+          if (this.freeTransform.isActive()) {
+            this.cancelFreeTransform();
+            return;
+          }
+          if (this.distort.isActive()) {
+            this.cancelDistort();
+            return;
+          }
+          if (this.perspective.isActive()) {
+            this.cancelPerspective();
+            return;
+          }
           if (this.contextMenuVisible()) {
             this.closeContextMenu();
             return;
           }
           const tool = this.tools.currentTool();
+          if (tool === 'bone') {
+            this.currentBoneId = null;
+            this.boneService.clearSelection();
+            return;
+          }
           if (tool === 'lasso-select') {
-            // cancel any in-progress lasso without recording history
             this.document.selectionPolygon.set(null as any);
             this.document.selectionRect.set(null as any);
             this.document.selectionShape.set('rect');
@@ -188,13 +622,75 @@ export class EditorCanvas {
           }
           return;
         }
+        if (ev.key === 'Enter') {
+          if (this.freeTransform.isActive()) {
+            this.commitFreeTransform();
+            return;
+          }
+          if (this.distort.isActive()) {
+            this.commitDistort();
+            return;
+          }
+          if (this.perspective.isActive()) {
+            this.commitPerspective();
+            return;
+          }
+        }
         const key = ev.key?.toLowerCase?.() ?? ev.key;
         if (ev.ctrlKey && ev.shiftKey && key === 'd') {
           ev.preventDefault();
           this.document.clearSelection();
+          return;
+        }
+        if (ev.ctrlKey && key === 'd') {
+          ev.preventDefault();
+          this.document.duplicateLayer();
+          return;
+        }
+        if (ev.ctrlKey && key === 'l') {
+          ev.preventDefault();
+          const selectedId = this.document.selectedLayerId();
+          if (selectedId) {
+            this.document.toggleLayerLock(selectedId);
+          }
+          return;
+        }
+        if (ev.key === 'Delete') {
+          ev.preventDefault();
+          const selectedIds = Array.from(this.document.selectedLayerIds());
+          for (const id of selectedIds) {
+            this.document.removeLayer(id);
+          }
+          return;
+        }
+        if (ev.ctrlKey && ev.shiftKey && key === 'g') {
+          ev.preventDefault();
+          const selectedIds = Array.from(this.document.selectedLayerIds());
+          if (selectedIds.length >= 2) {
+            this.document.ungroupLayers(selectedIds[0]);
+          }
+          return;
+        }
+        // Ctrl+T is browser-reserved (new tab) and cannot be reliably overridden.
+        // Free Transform is bound to Shift+T via HotkeysService.
+        if (ev.ctrlKey && key === 'g') {
+          ev.preventDefault();
+          const selectedIds = Array.from(this.document.selectedLayerIds());
+          if (selectedIds.length >= 2) {
+            this.document.groupLayers(selectedIds);
+          }
+          return;
         }
       };
       window.addEventListener('keydown', this.keyListener as EventListener);
+      window.addEventListener('keyup', (ev: KeyboardEvent) => {
+        this.handleMoveSelectionHotkeyRelease(ev);
+        if (ev.key === 'Shift') {
+          this.shiftPressed = false;
+          this.freeTransform.setSnapRotation(false);
+          this.freeTransform.setConstrainProportions(false);
+        }
+      });
     }
 
     this.viewReady.set(true);
@@ -251,39 +747,102 @@ export class EditorCanvas {
       this.lastPointer.y = ev.clientY;
     }
 
-    // If dragging a rectangle/ellipse selection, update selection.
-    // If Shift is held, constrain to a square so ellipse-select becomes a circle.
-    // NOTE: lasso-select does NOT add points on pointermove; vertices are added on click.
+    if (this.freeTransform.isDraggingHandle()) {
+      const handle = this.freeTransform.isDraggingHandle();
+      if (handle === 'rotate-center') {
+        this.freeTransform.setSnapRotation(ev.shiftKey || this.shiftPressed);
+        this.freeTransform.setConstrainProportions(false);
+      } else {
+        this.freeTransform.setConstrainProportions(
+          ev.shiftKey || this.shiftPressed,
+        );
+        this.freeTransform.setSnapRotation(false);
+      }
+      this.freeTransform.updateHandleDrag(logicalX, logicalY);
+      this.renderLiveFreeTransformPreview();
+      return;
+    }
+
+    if (this.distort.isDraggingHandle()) {
+      this.distort.updateHandleDrag(logicalX, logicalY);
+      this.renderLiveDistortPreview();
+      return;
+    }
+
+    if (this.perspective.isDraggingHandle()) {
+      this.perspective.updateHandleDrag(logicalX, logicalY);
+      this.renderLivePerspectivePreview();
+      return;
+    }
+
+    if (this.warp.isDraggingNode()) {
+      this.warp.updateNodeDrag(logicalX, logicalY);
+      this.renderLiveWarpPreview();
+      return;
+    }
+
+    if (this.puppetWarp.isDraggingPin()) {
+      this.puppetWarp.updatePinDrag(logicalX, logicalY);
+      this.renderLivePuppetWarpPreview();
+      return;
+    }
+
+    if (this.selectionMoving && this.selectionMoveStart) {
+      if (logicalX < 0 || logicalX >= w || logicalY < 0 || logicalY >= h) {
+        return;
+      }
+      const dx = logicalX - this.selectionMoveStart.x;
+      const dy = logicalY - this.selectionMoveStart.y;
+      if (dx !== 0 || dy !== 0) {
+        this.document.moveSelection(dx, dy);
+        this.selectionMoveStart = { x: logicalX, y: logicalY };
+      }
+      return;
+    }
+
+    if (this.selectionContentMoving && this.selectionContentMoveStart) {
+      if (logicalX < 0 || logicalX >= w || logicalY < 0 || logicalY >= h) {
+        return;
+      }
+      const dx = logicalX - this.selectionContentMoveStart.x;
+      const dy = logicalY - this.selectionContentMoveStart.y;
+      if (dx !== 0 || dy !== 0) {
+        this.moveSelectionContent(dx, dy);
+        this.selectionContentMoveStart = { x: logicalX, y: logicalY };
+      }
+      return;
+    }
+
     if (this.selectionDragging) {
-      if (logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h) {
-        const tool = this.tools.currentTool();
-        if (tool !== 'lasso-select') {
-          let endX = logicalX;
-          let endY = logicalY;
-          if (ev.shiftKey && this.selectionStart) {
-            // Constrain to a square anchored at the selection start.
-            const dx = logicalX - this.selectionStart.x;
-            const dy = logicalY - this.selectionStart.y;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-            const max = Math.max(absDx, absDy);
-            const sx = dx >= 0 ? 1 : -1;
-            const sy = dy >= 0 ? 1 : -1;
-            endX = this.selectionStart.x + sx * max;
-            endY = this.selectionStart.y + sy * max;
-            // clamp to canvas bounds
-            endX = Math.max(0, Math.min(endX, w - 1));
-            endY = Math.max(0, Math.min(endY, h - 1));
-          }
-          this.document.updateSelection(endX, endY);
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+      const tool = this.tools.currentTool();
+      if (tool === 'lasso-select') {
+        this.document.addLassoPoint(clampedX, clampedY);
+      } else {
+        let endX = clampedX;
+        let endY = clampedY;
+        if (ev.shiftKey && this.selectionStart) {
+          const dx = clampedX - this.selectionStart.x;
+          const dy = clampedY - this.selectionStart.y;
+          const absDx = Math.abs(dx);
+          const absDy = Math.abs(dy);
+          const max = Math.max(absDx, absDy);
+          const sx = dx >= 0 ? 1 : -1;
+          const sy = dy >= 0 ? 1 : -1;
+          endX = this.selectionStart.x + sx * max;
+          endY = this.selectionStart.y + sy * max;
+          endX = Math.max(0, Math.min(endX, w - 1));
+          endY = Math.max(0, Math.min(endY, h - 1));
         }
+        this.document.updateSelection(endX, endY);
       }
       return;
     }
 
     if (this.shaping) {
-      const clampedX = this.clampCoord(logicalX, w);
-      const clampedY = this.clampCoord(logicalY, h);
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
       const active = this.activeShapeTool();
       if (active === 'square' || active === 'circle') {
         this.shapeConstrainUniform.set(ev.shiftKey);
@@ -293,55 +852,66 @@ export class EditorCanvas {
       this.shapeCurrent.set({ x: clampedX, y: clampedY });
     }
 
-    // rotation disabled: no-op
+    if (this.draggingPointId && this.draggingPointBoneId) {
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+      const frameId = this.getCurrentFrameId();
+      const currentAnim = this.document.getCurrentAnimation();
+      const animationId = currentAnim?.id;
+      const currentTime = this.document.keyframeService?.getCurrentTime();
+      this.boneService.updatePoint(
+        frameId,
+        this.draggingPointBoneId,
+        this.draggingPointId,
+        clampedX,
+        clampedY,
+        animationId,
+        currentTime,
+      );
+      return;
+    }
 
-    // Painting: if left button pressed and current tool is brush/eraser, apply
     if (this.painting) {
-      if (logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h) {
-        const layerId = this.document.selectedLayerId();
-        const tool = this.tools.currentTool();
-        const color = tool === 'eraser' ? null : this.tools.brushColor();
-        const size =
-          tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
-        if (this.lastPaintPos) {
-          this.drawLinePaint(
-            layerId,
-            this.lastPaintPos.x,
-            this.lastPaintPos.y,
-            logicalX,
-            logicalY,
-            size,
-            color,
-          );
-        } else {
-          this.document.applyBrushToLayer(
-            layerId,
-            logicalX,
-            logicalY,
-            size,
-            color,
-            tool === 'eraser'
-              ? { eraserStrength: this.tools.eraserStrength() }
-              : undefined,
-          );
-        }
-        this.lastPaintPos = { x: logicalX, y: logicalY };
+      const selectedLayer = this.document.selectedLayer();
+      if (selectedLayer?.locked) {
+        return;
       }
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+      const layerId = this.document.selectedLayerId();
+      const tool = this.tools.currentTool();
+      const color = tool === 'eraser' ? null : this.tools.brushColor();
+      const size =
+        tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
+      if (this.lastPaintPos) {
+        this.drawLinePaint(
+          layerId,
+          this.lastPaintPos.x,
+          this.lastPaintPos.y,
+          clampedX,
+          clampedY,
+          size,
+          color,
+        );
+      } else {
+        this.document.applyBrushToLayer(
+          layerId,
+          clampedX,
+          clampedY,
+          size,
+          color,
+          tool === 'eraser'
+            ? { eraserStrength: this.tools.eraserStrength() }
+            : undefined,
+        );
+      }
+      this.lastPaintPos = { x: clampedX, y: clampedY };
     }
   }
 
   onPointerLeave() {
     this.hoverX.set(null);
     this.hoverY.set(null);
-    if (this.painting) {
-      // finalize current paint action if pointer leaves
-      this.painting = false;
-      this.lastPaintPos = null;
-      this.document.endAction();
-    }
-    if (this.shaping) {
-      this.cancelShape();
-    }
   }
 
   onWheel(ev: WheelEvent) {
@@ -385,14 +955,12 @@ export class EditorCanvas {
     if (this.contextMenuVisible()) {
       this.closeContextMenu();
     }
-    // Middle-click (button 1) or Ctrl for panning. Shift no longer starts panning
-    // so Shift can be used for other modifiers like constraining selection to a circle.
     if (ev.button === 1 || ev.ctrlKey) {
       this.panning = true;
       this.lastPointer.x = ev.clientX;
       this.lastPointer.y = ev.clientY;
+      this.capturePointer(ev);
     }
-    // right-click rotation disabled
 
     const rect = this.canvasEl.nativeElement.getBoundingClientRect();
     const visX = ev.clientX - rect.left;
@@ -411,45 +979,349 @@ export class EditorCanvas {
       return;
     }
 
-    // Left-button painting start (draw into selected layer)
     if (ev.button === 0) {
-      // Rectangle / Ellipse / Lasso selection handling
+      const distortState = this.distort.distortState();
+      if (distortState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computeDistortButtonPositions(
+          distortState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitDistort();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelDistort();
+          return;
+        }
+
+        const handles: DistortHandle[] = [
+          'top-left',
+          'top-right',
+          'bottom-right',
+          'bottom-left',
+        ];
+
+        for (const handle of handles) {
+          const pos = this.distort.getHandlePosition(handle);
+          if (pos) {
+            const dx = logicalX - pos.x;
+            const dy = logicalY - pos.y;
+            if (dx * dx + dy * dy <= handleSize * handleSize) {
+              this.capturePointer(ev);
+              this.distort.startHandleDrag(handle, logicalX, logicalY);
+              return;
+            }
+          }
+        }
+
+        return;
+      }
+
+      const perspectiveState = this.perspective.perspectiveState();
+      if (perspectiveState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computePerspectiveButtonPositions(
+          perspectiveState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitPerspective();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelPerspective();
+          return;
+        }
+
+        const handles: PerspectiveHandle[] = [
+          'top-left',
+          'top-right',
+          'bottom-right',
+          'bottom-left',
+        ];
+
+        for (const handle of handles) {
+          const pos = this.perspective.getHandlePosition(handle);
+          if (pos) {
+            const dx = logicalX - pos.x;
+            const dy = logicalY - pos.y;
+            if (dx * dx + dy * dy <= handleSize * handleSize) {
+              this.capturePointer(ev);
+              this.perspective.startHandleDrag(handle, logicalX, logicalY);
+              return;
+            }
+          }
+        }
+
+        return;
+      }
+
+      const warpState = this.warp.warpState();
+      if (warpState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computeWarpButtonPositions(
+          warpState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitWarp();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelWarp();
+          return;
+        }
+
+        for (const node of warpState.nodes) {
+          const dx = logicalX - node.x;
+          const dy = logicalY - node.y;
+          if (dx * dx + dy * dy <= handleSize * handleSize) {
+            this.capturePointer(ev);
+            this.warp.startNodeDrag(node, logicalX, logicalY);
+            return;
+          }
+        }
+
+        return;
+      }
+
+      const puppetWarpState = this.puppetWarp.puppetWarpState();
+      if (puppetWarpState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+
+        const buttonPositions = this.computePuppetWarpButtonPositions(
+          puppetWarpState,
+          this.scale(),
+        );
+        const btnSize = buttonPositions.btnSize;
+
+        if (
+          logicalX >= buttonPositions.commitX &&
+          logicalX <= buttonPositions.commitX + btnSize &&
+          logicalY >= buttonPositions.commitY &&
+          logicalY <= buttonPositions.commitY + btnSize
+        ) {
+          this.commitPuppetWarp();
+          return;
+        }
+
+        if (
+          logicalX >= buttonPositions.cancelX &&
+          logicalX <= buttonPositions.cancelX + btnSize &&
+          logicalY >= buttonPositions.cancelY &&
+          logicalY <= buttonPositions.cancelY + btnSize
+        ) {
+          this.cancelPuppetWarp();
+          return;
+        }
+
+        const clickedPin = this.puppetWarp.findPinAtPosition(
+          logicalX,
+          logicalY,
+          handleSize,
+        );
+        if (clickedPin) {
+          this.capturePointer(ev);
+          this.puppetWarp.startPinDrag(clickedPin, logicalX, logicalY);
+          this.puppetWarp.selectedPin.set(clickedPin);
+          return;
+        }
+
+        if (insideCanvas) {
+          this.puppetWarp.addPin(logicalX, logicalY);
+          return;
+        }
+
+        return;
+      }
+
+      const freeTransformState = this.freeTransform.transformState();
+      if (freeTransformState) {
+        const handleSize = Math.max(
+          3,
+          Math.round(5 / Math.max(0.001, this.scale())),
+        );
+        const positions = this.computeTransformButtonPositions(
+          freeTransformState,
+          this.scale(),
+        );
+        const buttonSize = positions.btnSize;
+
+        if (
+          logicalX >= positions.mirrorXX &&
+          logicalX <= positions.mirrorXX + buttonSize &&
+          logicalY >= positions.mirrorXY &&
+          logicalY <= positions.mirrorXY + buttonSize
+        ) {
+          this.freeTransformMirrorX = !this.freeTransformMirrorX;
+          this.renderLiveFreeTransformPreview();
+          return;
+        }
+
+        if (
+          logicalX >= positions.mirrorYX &&
+          logicalX <= positions.mirrorYX + buttonSize &&
+          logicalY >= positions.mirrorYY &&
+          logicalY <= positions.mirrorYY + buttonSize
+        ) {
+          this.freeTransformMirrorY = !this.freeTransformMirrorY;
+          this.renderLiveFreeTransformPreview();
+          return;
+        }
+
+        if (
+          logicalX >= positions.commitX &&
+          logicalX <= positions.commitX + buttonSize &&
+          logicalY >= positions.commitY &&
+          logicalY <= positions.commitY + buttonSize
+        ) {
+          this.commitFreeTransform();
+          return;
+        }
+
+        if (
+          logicalX >= positions.cancelX &&
+          logicalX <= positions.cancelX + buttonSize &&
+          logicalY >= positions.cancelY &&
+          logicalY <= positions.cancelY + buttonSize
+        ) {
+          this.cancelFreeTransform();
+          return;
+        }
+
+        const handles: TransformHandle[] = [
+          'top-left',
+          'top-center',
+          'top-right',
+          'middle-left',
+          'middle-right',
+          'bottom-left',
+          'bottom-center',
+          'bottom-right',
+          'rotate-center',
+        ];
+
+        for (const handle of handles) {
+          if (
+            this.freeTransform.isPointNearHandle(
+              logicalX,
+              logicalY,
+              handle,
+              freeTransformState,
+              handleSize,
+            )
+          ) {
+            this.capturePointer(ev);
+            this.freeTransform.startHandleDrag(handle, logicalX, logicalY);
+            return;
+          }
+        }
+
+        return;
+      }
+
+      const hasExistingSelection = !!this.document.selectionRect();
+      const clickedInSelection =
+        hasExistingSelection && this.isPointInSelection(logicalX, logicalY);
+      const isSelectTool =
+        tool === 'rect-select' ||
+        tool === 'ellipse-select' ||
+        tool === 'lasso-select';
       if (
-        (tool === 'rect-select' ||
-          tool === 'ellipse-select' ||
-          tool === 'lasso-select') &&
-        insideCanvas
+        clickedInSelection &&
+        insideCanvas &&
+        this.moveSelectionHotkeyActive
       ) {
-        // Lasso behaves as click-to-add-vertex: each click adds a vertex.
+        const selectedLayer = this.document.selectedLayer();
+        if (selectedLayer?.locked) {
+          return;
+        }
+        this.document.beginMoveSelection('Move pixels');
+        this.capturePointer(ev);
+        this.selectionContentMoving = true;
+        this.selectionContentMoveStart = { x: logicalX, y: logicalY };
+        this.startSelectionContentMove();
+        return;
+      }
+      if (
+        clickedInSelection &&
+        insideCanvas &&
+        !ev.shiftKey &&
+        !ev.ctrlKey &&
+        isSelectTool
+      ) {
+        this.capturePointer(ev);
+        this.document.beginMoveSelection('Move selection');
+        this.selectionMoving = true;
+        this.selectionMoveStart = { x: logicalX, y: logicalY };
+        return;
+      }
+      if (isSelectTool && insideCanvas) {
+        this.capturePointer(ev);
         if (tool === 'lasso-select') {
-          const poly = this.document.selectionPolygon();
-          // If no polygon yet, start one
-          if (!poly || poly.length === 0) {
-            this.selectionStart = { x: logicalX, y: logicalY };
-            this.selectionDragging = true;
-            this.document.beginSelection(logicalX, logicalY, 'lasso' as any);
-            this.document.addLassoPoint(logicalX, logicalY);
-            return;
-          }
-          // If clicking near the first vertex, close the polygon and finish selection
-          const first = poly[0];
-          const dx = logicalX - first.x;
-          const dy = logicalY - first.y;
-          const distSq = dx * dx + dy * dy;
-          const closeThreshold = 4 * 4; // 4px radius
-          if (poly.length >= 3 && distSq <= closeThreshold) {
-            // finalize selection
-            this.selectionDragging = false;
-            this.selectionStart = null;
-            this.document.endSelection();
-            return;
-          }
-          // otherwise add a new vertex
+          this.selectionStart = { x: logicalX, y: logicalY };
+          this.selectionDragging = true;
+          this.document.beginSelection(logicalX, logicalY, 'lasso' as any);
           this.document.addLassoPoint(logicalX, logicalY);
           return;
         }
 
-        // rect/ellipse start drag behavior
         this.selectionStart = { x: logicalX, y: logicalY };
         this.selectionDragging = true;
         const shape = tool === 'ellipse-select' ? 'ellipse' : 'rect';
@@ -460,6 +1332,11 @@ export class EditorCanvas {
         (tool === 'line' || tool === 'circle' || tool === 'square') &&
         insideCanvas
       ) {
+        const selectedLayer = this.document.selectedLayer();
+        if (selectedLayer?.locked) {
+          return;
+        }
+        this.capturePointer(ev);
         if (tool === 'square' || tool === 'circle') {
           this.shapeConstrainUniform.set(ev.shiftKey);
         } else {
@@ -469,21 +1346,110 @@ export class EditorCanvas {
         return;
       }
       if (tool === 'fill' && insideCanvas) {
-        // One-shot fill action
+        const selectedLayer = this.document.selectedLayer();
+        if (selectedLayer?.locked) {
+          return;
+        }
         const selectionActive = this.document.selectionRect();
         if (selectionActive && !this.isPointInSelection(logicalX, logicalY)) {
           return;
         }
-        this.document.beginAction('fill');
+        this.document.saveSnapshot('Fill');
         const layerId = this.document.selectedLayerId();
         const fillMode = this.tools.fillMode();
         const fillColor = fillMode === 'erase' ? null : this.tools.fillColor();
         this.document.applyFillToLayer(layerId, logicalX, logicalY, fillColor);
-        this.document.endAction();
+      } else if (tool === 'bone' && insideCanvas) {
+        this.capturePointer(ev);
+        const frameId = this.getCurrentFrameId();
+        const clickedPoint = this.findBonePointAt(frameId, logicalX, logicalY);
+
+        if (clickedPoint) {
+          this.document.saveSnapshot('Move bone point');
+          this.draggingPointId = clickedPoint.pointId;
+          this.draggingPointBoneId = clickedPoint.boneId;
+          this.currentBoneId = clickedPoint.boneId;
+          this.boneService.selectPoint(clickedPoint.pointId);
+        } else {
+          this.document.saveSnapshot('Add bone point');
+          if (!this.currentBoneId) {
+            const newBone: Bone = {
+              id: `bone-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+              points: [],
+              color: this.tools.boneColor(),
+              thickness: this.tools.boneThickness(),
+            };
+            this.currentBoneId = newBone.id;
+            this.boneService.addBone(frameId, newBone);
+          }
+
+          const newPoint: BonePoint = {
+            id: `point-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+            x: logicalX,
+            y: logicalY,
+            parentId: undefined,
+          };
+
+          const bones = this.boneService.getBones(frameId);
+          const currentBone = bones.find((b) => b.id === this.currentBoneId);
+          if (currentBone && currentBone.points.length > 0) {
+            const selectedPoint = this.boneService.getSelectedPoint();
+            if (selectedPoint) {
+              newPoint.parentId = selectedPoint;
+            } else {
+              newPoint.parentId =
+                currentBone.points[currentBone.points.length - 1].id;
+            }
+          }
+
+          this.boneService.addPointToBone(
+            frameId,
+            this.currentBoneId,
+            newPoint,
+          );
+          this.boneService.selectPoint(newPoint.id);
+
+          const currentAnim = this.document.getCurrentAnimation();
+          if (currentAnim) {
+            const currentTime =
+              this.document.keyframeService?.getCurrentTime() || 0;
+            this.boneService.updatePoint(
+              frameId,
+              this.currentBoneId,
+              newPoint.id,
+              logicalX,
+              logicalY,
+              currentAnim.id,
+              currentTime,
+            );
+          }
+
+          if (this.tools.boneAutoBindEnabled()) {
+            const layerId = this.document.selectedLayerId();
+            const layerBuffer = this.document.getLayerBuffer(layerId);
+            if (layerBuffer) {
+              const radius = this.tools.boneAutoBindRadius();
+              this.boneService.autoBindPixels(
+                frameId,
+                layerBuffer,
+                w,
+                h,
+                this.currentBoneId,
+                newPoint.id,
+                logicalX,
+                logicalY,
+                radius,
+              );
+            }
+          }
+        }
       } else if ((tool === 'brush' || tool === 'eraser') && insideCanvas) {
-        // Begin a grouped user action so the whole stroke is a single undoable
-        // section. The action will be collected until pointer up/leave.
-        this.document.beginAction('paint');
+        const selectedLayer = this.document.selectedLayer();
+        if (selectedLayer?.locked) {
+          return;
+        }
+        this.capturePointer(ev);
+        this.document.saveSnapshot('Paint');
         this.painting = true;
         this.lastPaintPos = { x: logicalX, y: logicalY };
         const layerId = this.document.selectedLayerId();
@@ -522,7 +1488,73 @@ export class EditorCanvas {
       return;
     }
     const actions: ContextMenuAction[] = [];
-    if (this.document.selectionRect()) {
+    const hasSelection = !!this.document.selectionRect();
+    const hasNonEmptySelection = this.hasNonEmptySelection();
+    if (hasSelection) {
+      actions.push({
+        id: 'generate',
+        labelKey: 'editor.canvas.menu.generate',
+        icon: 'heroIconsSparklesMini',
+        disabled: !hasNonEmptySelection,
+        submenu: [
+          {
+            id: 'generateFromLayer',
+            labelKey: 'pixelGeneration.generateFromLayer',
+            icon: 'heroIconsSquare2StackMini',
+          },
+          {
+            id: 'generateFromVisible',
+            labelKey: 'pixelGeneration.generateFromVisible',
+            icon: 'heroIconsEyeMini',
+          },
+        ],
+      });
+      actions.push({
+        id: 'invertSelection',
+        labelKey: 'editor.canvas.menu.invertSelection',
+        icon: 'heroIconsBarsArrowUpMini',
+        disabled: false,
+      });
+      actions.push({
+        id: 'growSelection',
+        labelKey: 'editor.canvas.menu.growSelection',
+        icon: 'heroIconsArrowsPointingOutMini',
+        disabled: false,
+        submenu: [
+          {
+            id: 'growBy1px',
+            labelKey: 'editor.canvas.menu.growBy1px',
+            icon: 'heroIconsPlusSmallMini',
+          },
+          {
+            id: 'growBy2px',
+            labelKey: 'editor.canvas.menu.growBy2px',
+            icon: 'heroIconsPlusSmallMini',
+          },
+          {
+            id: 'growBy5px',
+            labelKey: 'editor.canvas.menu.growBy5px',
+            icon: 'heroIconsPlusSmallMini',
+          },
+          {
+            id: 'growCustom',
+            labelKey: 'editor.canvas.menu.growCustom',
+            icon: 'heroIconsEllipsisHorizontalMini',
+          },
+        ],
+      });
+      actions.push({
+        id: 'makeCopyLayer',
+        labelKey: 'editor.canvas.menu.makeCopyLayer',
+        icon: 'heroIconsDocumentDuplicateMini',
+        disabled: !hasNonEmptySelection,
+      });
+      actions.push({
+        id: 'mergeVisibleToNewLayer',
+        labelKey: 'editor.canvas.menu.mergeVisibleToNewLayer',
+        icon: 'heroIconsRectangleStackMini',
+        disabled: false,
+      });
       actions.push({
         id: 'deselect',
         labelKey: 'editor.canvas.menu.deselect',
@@ -537,7 +1569,7 @@ export class EditorCanvas {
       this.canvasContainer.nativeElement.getBoundingClientRect();
     const offsetX = ev.clientX - containerRect.left;
     const offsetY = ev.clientY - containerRect.top;
-    const estimatedWidth = 160;
+    const estimatedWidth = 200;
     const estimatedHeight = Math.max(40, actions.length * 36);
     const maxX = Math.max(0, containerRect.width - estimatedWidth);
     const maxY = Math.max(0, containerRect.height - estimatedHeight);
@@ -548,29 +1580,189 @@ export class EditorCanvas {
     this.contextMenuVisible.set(true);
   }
 
+  private hasNonEmptySelection(): boolean {
+    const sel = this.document.selectionRect();
+    if (!sel) return false;
+    const shape = this.document.selectionShape();
+    const poly = this.document.selectionPolygon();
+    const layerId = this.document.selectedLayerId();
+    const buf = this.document.getLayerBuffer(layerId);
+    if (!buf) return false;
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    for (let y = sel.y; y < sel.y + sel.height && y < h; y++) {
+      for (let x = sel.x; x < sel.x + sel.width && x < w; x++) {
+        if (
+          this.isPointInSelection(x, y) &&
+          buf[y * w + x] &&
+          buf[y * w + x].length > 0
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   closeContextMenu() {
     this.contextMenuVisible.set(false);
     this.contextMenuActions.set([]);
+    this.submenuVisible.set(false);
+    this.submenuActions.set([]);
   }
 
-  onContextMenuAction(actionId: ContextMenuActionId) {
-    if (actionId === 'deselect') {
+  onSubmenuTrigger(
+    action: ContextMenuAction,
+    event: MouseEvent,
+    buttonElement: HTMLElement,
+  ) {
+    if (!action.submenu || action.submenu.length === 0) return;
+    event.stopPropagation();
+    const rect = buttonElement.getBoundingClientRect();
+    const containerRect =
+      this.canvasContainer.nativeElement.getBoundingClientRect();
+    const submenuX = rect.right - containerRect.left + 4;
+    const submenuY = rect.top - containerRect.top;
+    this.submenuPosition.set({ x: submenuX, y: submenuY });
+    this.submenuActions.set(action.submenu);
+    this.submenuVisible.set(true);
+  }
+
+  onContextMenuAction(actionId: ContextMenuActionId, event?: MouseEvent) {
+    if (actionId === 'generateFromLayer') {
+      this.handleGenerateFromSelection('layer');
+    } else if (actionId === 'generateFromVisible') {
+      this.handleGenerateFromSelection('visible');
+    } else if (actionId === 'deselect') {
       this.document.clearSelection();
+    } else if (actionId === 'invertSelection') {
+      this.document.invertSelection();
+    } else if (actionId === 'growBy1px') {
+      this.document.growSelection(1);
+    } else if (actionId === 'growBy2px') {
+      this.document.growSelection(2);
+    } else if (actionId === 'growBy5px') {
+      this.document.growSelection(5);
+    } else if (actionId === 'growCustom') {
+      if (event) {
+        const containerRect =
+          this.canvasContainer.nativeElement.getBoundingClientRect();
+        const offsetX = event.clientX - containerRect.left;
+        const offsetY = event.clientY - containerRect.top;
+        this.inputDialogPosition.set({ x: offsetX + 10, y: offsetY });
+        this.inputDialogTitle.set('Enter growth amount (pixels):');
+        this.inputDialogValue.set('10');
+        this.inputDialogCallback.set((value: string) => {
+          const parsed = parseInt(value, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            this.document.growSelection(parsed);
+          }
+          this.closeInputDialog();
+        });
+        this.inputDialogVisible.set(true);
+        return;
+      }
+    } else if (actionId === 'makeCopyLayer') {
+      this.document.makeCopyLayer();
+    } else if (actionId === 'mergeVisibleToNewLayer') {
+      this.document.mergeVisibleToNewLayer();
     }
     this.closeContextMenu();
   }
 
+  closeInputDialog() {
+    this.inputDialogVisible.set(false);
+    this.inputDialogCallback.set(null);
+  }
+
+  getShortcutForAction(actionId: ContextMenuActionId): string | null {
+    const hotkeyMap: Record<ContextMenuActionId, string | null> = {
+      deselect: 'edit.deselect',
+      invertSelection: 'edit.invertSelection',
+      growSelection: null,
+      growBy1px: 'edit.growBy1px',
+      growBy2px: 'edit.growBy2px',
+      growBy5px: 'edit.growBy5px',
+      growCustom: null,
+      makeCopyLayer: 'edit.makeCopyLayer',
+      mergeVisibleToNewLayer: 'edit.mergeVisibleToNewLayer',
+      generate: null,
+      generateFromLayer: null,
+      generateFromVisible: null,
+    };
+    const hotkeyId = hotkeyMap[actionId];
+    if (!hotkeyId) return null;
+    const binding = this.hotkeys.getBinding(hotkeyId);
+    return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
+  }
+
+  onInputDialogSubmit() {
+    const callback = this.inputDialogCallback();
+    if (callback) {
+      callback(this.inputDialogValue());
+    }
+  }
+
+  onInputDialogCancel() {
+    this.closeInputDialog();
+  }
+
   onPointerUp(ev: PointerEvent) {
+    this.releasePointer(ev);
     this.panning = false;
+
+    if (this.freeTransform.isDraggingHandle()) {
+      this.freeTransform.endHandleDrag();
+      return;
+    }
+
+    if (this.distort.isDraggingHandle()) {
+      this.distort.endHandleDrag();
+      return;
+    }
+
+    if (this.perspective.isDraggingHandle()) {
+      this.perspective.endHandleDrag();
+      return;
+    }
+
+    if (this.warp.isDraggingNode()) {
+      this.warp.endNodeDrag();
+      return;
+    }
+
+    if (this.puppetWarp.isDraggingPin()) {
+      this.puppetWarp.endPinDrag();
+      return;
+    }
+
     if (this.shaping) {
       this.finishShape(ev.shiftKey);
     }
-    // rotation disabled
-    // stop painting on any pointer up
     if (this.painting) {
       this.painting = false;
       this.lastPaintPos = null;
-      this.document.endAction();
+    }
+
+    if (this.draggingPointId) {
+      this.draggingPointId = null;
+      this.draggingPointBoneId = null;
+      return;
+    }
+
+    if (this.selectionMoving) {
+      this.selectionMoving = false;
+      this.selectionMoveStart = null;
+      this.document.endMoveSelection('Move selection');
+      return;
+    }
+
+    if (this.selectionContentMoving) {
+      this.selectionContentMoving = false;
+      this.selectionContentMoveStart = null;
+      this.endSelectionContentMove();
+      this.document.endMoveSelection('Move pixels');
+      return;
     }
 
     if (this.selectionDragging) {
@@ -582,13 +1774,81 @@ export class EditorCanvas {
 
   infoVisible = signal(true);
 
+  startSelectionContentMove() {
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+    const layerId = this.document.selectedLayerId();
+    const sourceBuf = this.document.getLayerBuffer(layerId);
+    if (!sourceBuf) return;
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    this.originalLayerId = layerId;
+    this.movingContentOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.movingContentBuffer = [];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        if (this.isPointInSelection(x, y)) {
+          this.movingContentBuffer[idx] = sourceBuf[idx] || '';
+          sourceBuf[idx] = '';
+        } else {
+          this.movingContentBuffer[idx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  moveSelectionContent(dx: number, dy: number) {
+    this.document.moveSelection(dx, dy);
+  }
+
+  endSelectionContentMove() {
+    if (
+      !this.movingContentBuffer ||
+      !this.originalLayerId ||
+      !this.movingContentOriginalRect
+    )
+      return;
+    const originalBuf = this.document.getLayerBuffer(this.originalLayerId);
+    if (!originalBuf) return;
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+    const dx = sel.x - this.movingContentOriginalRect.x;
+    const dy = sel.y - this.movingContentOriginalRect.y;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        if (this.movingContentBuffer[idx]) {
+          const newX = x + dx;
+          const newY = y + dy;
+          if (newX >= 0 && newX < w && newY >= 0 && newY < h) {
+            const newIdx = newY * w + newX;
+            originalBuf[newIdx] = this.movingContentBuffer[idx];
+          }
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.movingContentBuffer = null;
+    this.movingContentOriginalRect = null;
+    this.originalLayerId = null;
+  }
+
   setCanvasWidth(event: Event) {
     const target = event.target as HTMLInputElement;
     const width = parseInt(target.value, 10);
     if (width > 0) {
       this.document.setCanvasSize(width, this.document.canvasHeight());
-      // ensure buffers for all layers
-      for (const l of this.document.layers()) {
+      const flatLayers = this.document.getFlattenedLayers();
+      for (const l of flatLayers) {
         this.document.ensureLayerBuffer(
           l.id,
           width,
@@ -603,8 +1863,8 @@ export class EditorCanvas {
     const height = parseInt(target.value, 10);
     if (height > 0) {
       this.document.setCanvasSize(this.document.canvasWidth(), height);
-      // ensure buffers for all layers
-      for (const l of this.document.layers()) {
+      const flatLayers = this.document.getFlattenedLayers();
+      for (const l of flatLayers) {
         this.document.ensureLayerBuffer(
           l.id,
           this.document.canvasWidth(),
@@ -685,6 +1945,1175 @@ export class EditorCanvas {
     this.applyZoom(this.scale() / factor);
   }
 
+  private activateFreeTransform(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
+    // Pre-change snapshot so a single undo reverts the whole transform session.
+    this.document.saveSnapshot('Free Transform');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.freeTransformOriginalBuffer = original;
+    this.freeTransformOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.freeTransformLayerId = layer.id;
+    this.freeTransform.startTransform(sel.x, sel.y, sel.width, sel.height);
+    // Render initial preview into layer so user sees live pixels immediately
+    this.renderLiveFreeTransformPreview();
+  }
+
+  private commitFreeTransform(): void {
+    const state = this.freeTransform.commitTransform();
+    if (!state) return;
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+
+    const scaleX = state.width / sel.width;
+    const scaleY = state.height / sel.height;
+    const doScale =
+      Math.abs(scaleX - 1) > 0.0001 || Math.abs(scaleY - 1) > 0.0001;
+    const doRotate = Math.abs(state.rotation) > 0.0001;
+
+    // Restore pixels from backup first to avoid losing content outside selection
+    if (
+      this.freeTransformPreviewIndices &&
+      this.freeTransformPreviewIndices.length &&
+      this.freeTransformLayerId &&
+      this.freeTransformPreviewBackup
+    ) {
+      const layerBuffer = this.document.getLayerBuffer(
+        this.freeTransformLayerId,
+      );
+      if (layerBuffer) {
+        for (const idx of this.freeTransformPreviewIndices) {
+          if (idx >= 0 && idx < layerBuffer.length) {
+            const backupValue = this.freeTransformPreviewBackup.get(idx);
+            layerBuffer[idx] = backupValue !== undefined ? backupValue : '';
+          }
+        }
+      }
+    }
+    if (
+      this.freeTransformDuplicate &&
+      this.freeTransformOriginalBuffer &&
+      this.freeTransformOriginalRect &&
+      this.freeTransformLayerId
+    ) {
+      this.restoreOriginalTransformPixels();
+      this.applyTransformToSelection(
+        state,
+        scaleX,
+        scaleY,
+        this.freeTransformOriginalBuffer,
+        this.freeTransformOriginalRect,
+      );
+    } else {
+      if (doScale || doRotate) {
+        if (
+          this.freeTransformOriginalBuffer &&
+          this.freeTransformOriginalRect &&
+          this.freeTransformLayerId
+        ) {
+          this.applyTransformToSelection(
+            state,
+            scaleX,
+            scaleY,
+            this.freeTransformOriginalBuffer,
+            this.freeTransformOriginalRect,
+          );
+        }
+      } else {
+        this.restoreOriginalTransformPixels();
+      }
+    }
+
+    this.document.updateSelectionBounds(
+      Math.floor(state.x),
+      Math.floor(state.y),
+      Math.floor(state.width),
+      Math.floor(state.height),
+    );
+    // Mark canvas dirty after transform
+    this.document.setCanvasSaved(false);
+    this.freeTransformOriginalBuffer = null;
+    this.freeTransformOriginalRect = null;
+    this.freeTransformLayerId = null;
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
+  }
+
+  private cancelFreeTransform(): void {
+    // Restore pixels from backup before clearing preview
+    if (
+      this.freeTransformPreviewIndices &&
+      this.freeTransformLayerId &&
+      this.freeTransformPreviewBackup
+    ) {
+      const buf = this.document.getLayerBuffer(this.freeTransformLayerId);
+      if (buf) {
+        for (const idx of this.freeTransformPreviewIndices) {
+          if (idx >= 0 && idx < buf.length) {
+            const backupValue = this.freeTransformPreviewBackup.get(idx);
+            buf[idx] = backupValue !== undefined ? backupValue : '';
+          }
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+    this.restoreOriginalTransformPixels();
+    this.freeTransform.cancelTransform();
+    this.freeTransformOriginalBuffer = null;
+    this.freeTransformOriginalRect = null;
+    this.freeTransformLayerId = null;
+    this.freeTransformDuplicate = false;
+    this.freeTransformPreviewIndices = null;
+    this.freeTransformPreviewBackup = null;
+  }
+
+  private activateDistort(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Distort');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    this.distortFullLayerBackup = [...layerBuf];
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.distortOriginalBuffer = original;
+    this.distortOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.distortLayerId = layer.id;
+    this.renderLiveDistortPreview();
+  }
+
+  private activatePerspective(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Perspective');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    this.perspectiveFullLayerBackup = [...layerBuf];
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.perspectiveOriginalBuffer = original;
+    this.perspectiveOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.perspectiveLayerId = layer.id;
+    this.renderLivePerspectivePreview();
+  }
+
+  private commitDistort(): void {
+    const state = this.distort.commitDistort();
+    if (!state) return;
+
+    if (
+      !this.distortOriginalBuffer ||
+      !this.distortOriginalRect ||
+      !this.distortLayerId ||
+      !this.distortFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.distortLayerId,
+    );
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.distortFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.distortOriginalRect.height; y++) {
+      for (let x = 0; x < this.distortOriginalRect.width; x++) {
+        const destX: number = this.distortOriginalRect.x + x;
+        const destY: number = this.distortOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          originalLayerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const originalSelectionLayer = this.document.addLayer('Original Selection');
+    const origSelLayerBuf = this.document.getLayerBuffer(
+      originalSelectionLayer.id,
+    );
+
+    if (origSelLayerBuf) {
+      for (let y = 0; y < this.distortOriginalRect.height; y++) {
+        for (let x = 0; x < this.distortOriginalRect.width; x++) {
+          const srcIdx = y * this.distortOriginalRect.width + x;
+          const destX: number = this.distortOriginalRect.x + x;
+          const destY: number = this.distortOriginalRect.y + y;
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            origSelLayerBuf[destIdx] = this.distortOriginalBuffer[srcIdx] || '';
+          }
+        }
+      }
+    }
+
+    this.document.toggleLayerVisibility(originalSelectionLayer.id);
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.distortOriginalBuffer,
+      this.distortOriginalRect.width,
+      this.distortOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    const distortedLayer = this.document.addLayer('Distorted Layer');
+    const distortedLayerBuf = this.document.getLayerBuffer(distortedLayer.id);
+
+    if (distortedLayerBuf) {
+      for (let y = 0; y < result.height; y++) {
+        for (let x = 0; x < result.width; x++) {
+          const srcIdx = y * result.width + x;
+          const color = result.buffer[srcIdx];
+          if (color) {
+            const destX = Math.floor(result.minX + x);
+            const destY = Math.floor(result.minY + y);
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              distortedLayerBuf[destIdx] = color;
+            }
+          }
+        }
+      }
+    }
+
+    this.document.selectLayer(distortedLayer.id);
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.distortOriginalBuffer = null;
+    this.distortOriginalRect = null;
+    this.distortLayerId = null;
+    this.distortFullLayerBackup = null;
+  }
+
+  private cancelDistort(): void {
+    if (this.distortFullLayerBackup && this.distortLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.distortFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.distort.cancelDistort();
+    this.distortOriginalBuffer = null;
+    this.distortOriginalRect = null;
+    this.distortLayerId = null;
+    this.distortFullLayerBackup = null;
+  }
+
+  private renderLiveDistortPreview(): void {
+    const state = this.distort.distortState();
+    if (
+      !state ||
+      !this.distortOriginalBuffer ||
+      !this.distortOriginalRect ||
+      !this.distortLayerId ||
+      !this.distortFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.distortLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.distortFullLayerBackup[i];
+    }
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.distortOriginalBuffer,
+      this.distortOriginalRect.width,
+      this.distortOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private commitPerspective(): void {
+    const state = this.perspective.commitPerspective();
+    if (!state) return;
+
+    if (
+      !this.perspectiveOriginalBuffer ||
+      !this.perspectiveOriginalRect ||
+      !this.perspectiveLayerId ||
+      !this.perspectiveFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.perspectiveLayerId,
+    );
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.perspectiveFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+      for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+        const destX: number = this.perspectiveOriginalRect.x + x;
+        const destY: number = this.perspectiveOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          originalLayerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const originalSelectionLayer = this.document.addLayer('Original Selection');
+    const origSelLayerBuf = this.document.getLayerBuffer(
+      originalSelectionLayer.id,
+    );
+
+    if (origSelLayerBuf) {
+      for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+        for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+          const srcIdx = y * this.perspectiveOriginalRect.width + x;
+          const destX: number = this.perspectiveOriginalRect.x + x;
+          const destY: number = this.perspectiveOriginalRect.y + y;
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            origSelLayerBuf[destIdx] =
+              this.perspectiveOriginalBuffer[srcIdx] || '';
+          }
+        }
+      }
+    }
+
+    this.document.toggleLayerVisibility(originalSelectionLayer.id);
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.perspectiveOriginalBuffer,
+      this.perspectiveOriginalRect.width,
+      this.perspectiveOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    const perspectiveLayer = this.document.addLayer('Perspective Layer');
+    const perspectiveLayerBuf = this.document.getLayerBuffer(
+      perspectiveLayer.id,
+    );
+
+    if (perspectiveLayerBuf) {
+      for (let y = 0; y < result.height; y++) {
+        for (let x = 0; x < result.width; x++) {
+          const srcIdx = y * result.width + x;
+          const color = result.buffer[srcIdx];
+          if (color) {
+            const destX = Math.floor(result.minX + x);
+            const destY = Math.floor(result.minY + y);
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              perspectiveLayerBuf[destIdx] = color;
+            }
+          }
+        }
+      }
+    }
+
+    this.document.selectLayer(perspectiveLayer.id);
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.perspectiveOriginalBuffer = null;
+    this.perspectiveOriginalRect = null;
+    this.perspectiveLayerId = null;
+    this.perspectiveFullLayerBackup = null;
+  }
+
+  private cancelPerspective(): void {
+    if (this.perspectiveFullLayerBackup && this.perspectiveLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.perspectiveLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.perspectiveFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.perspective.cancelPerspective();
+    this.perspectiveOriginalBuffer = null;
+    this.perspectiveOriginalRect = null;
+    this.perspectiveLayerId = null;
+    this.perspectiveFullLayerBackup = null;
+  }
+
+  private activateWarp(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Warp');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    this.warpFullLayerBackup = [...layerBuf];
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.warpOriginalBuffer = original;
+    this.warpOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.warpLayerId = layer.id;
+    this.renderLiveWarpPreview();
+  }
+
+  private activatePuppetWarp(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    this.document.saveSnapshot('Puppet Warp');
+    const layer = this.document.selectedLayer();
+    if (!layer || !isLayer(layer)) return;
+    const layerBuf = this.document.getLayerBuffer(layer.id);
+    if (!layerBuf) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    this.puppetWarpFullLayerBackup = [...layerBuf];
+
+    const original: string[] = new Array<string>(sel.width * sel.height).fill(
+      '',
+    );
+    for (let y = 0; y < sel.height; y++) {
+      for (let x = 0; x < sel.width; x++) {
+        const srcX = sel.x + x;
+        const srcY = sel.y + y;
+        if (srcX >= 0 && srcX < canvasW && srcY >= 0 && srcY < canvasH) {
+          const srcIdx = srcY * canvasW + srcX;
+          const dstIdx = y * sel.width + x;
+          original[dstIdx] = layerBuf[srcIdx] || '';
+          layerBuf[srcIdx] = '';
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.puppetWarpOriginalBuffer = original;
+    this.puppetWarpOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
+    this.puppetWarpLayerId = layer.id;
+    this.renderLivePuppetWarpPreview();
+  }
+
+  private commitWarp(): void {
+    const state = this.warp.commitWarp();
+    if (!state) return;
+
+    if (
+      !this.warpOriginalBuffer ||
+      !this.warpOriginalRect ||
+      !this.warpLayerId ||
+      !this.warpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.warpFullLayerBackup[i];
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.warpOriginalBuffer = null;
+    this.warpOriginalRect = null;
+    this.warpLayerId = null;
+    this.warpFullLayerBackup = null;
+  }
+
+  private cancelWarp(): void {
+    if (this.warpFullLayerBackup && this.warpLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.warpFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.warp.cancelWarp();
+    this.warpOriginalBuffer = null;
+    this.warpOriginalRect = null;
+    this.warpLayerId = null;
+    this.warpFullLayerBackup = null;
+  }
+
+  private commitPuppetWarp(): void {
+    const state = this.puppetWarp.commitPuppetWarp();
+    if (!state) return;
+
+    if (
+      !this.puppetWarpOriginalBuffer ||
+      !this.puppetWarpOriginalRect ||
+      !this.puppetWarpLayerId ||
+      !this.puppetWarpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const originalLayerBuffer = this.document.getLayerBuffer(
+      this.puppetWarpLayerId,
+    );
+    if (!originalLayerBuffer) return;
+
+    for (let i = 0; i < originalLayerBuffer.length; i++) {
+      originalLayerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+    this.document.setCanvasSaved(false);
+    this.puppetWarpOriginalBuffer = null;
+    this.puppetWarpOriginalRect = null;
+    this.puppetWarpLayerId = null;
+    this.puppetWarpFullLayerBackup = null;
+  }
+
+  private cancelPuppetWarp(): void {
+    if (this.puppetWarpFullLayerBackup && this.puppetWarpLayerId) {
+      const layerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+      if (layerBuffer) {
+        for (let i = 0; i < layerBuffer.length; i++) {
+          layerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+        }
+        this.document.layerPixelsVersion.update((v) => v + 1);
+      }
+    }
+
+    this.puppetWarp.cancelPuppetWarp();
+    this.puppetWarpOriginalBuffer = null;
+    this.puppetWarpOriginalRect = null;
+    this.puppetWarpLayerId = null;
+    this.puppetWarpFullLayerBackup = null;
+  }
+
+  private renderLiveWarpPreview(): void {
+    const state = this.warp.warpState();
+    if (
+      !state ||
+      !this.warpOriginalBuffer ||
+      !this.warpOriginalRect ||
+      !this.warpLayerId ||
+      !this.warpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.warpLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.warpFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.warpOriginalRect.height; y++) {
+      for (let x = 0; x < this.warpOriginalRect.width; x++) {
+        const destX: number = this.warpOriginalRect.x + x;
+        const destY: number = this.warpOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const dims = this.warp.getGridDimensions();
+    if (!dims) return;
+
+    const result = this.transformService.applyWarp(
+      this.warpOriginalBuffer,
+      this.warpOriginalRect.width,
+      this.warpOriginalRect.height,
+      state.nodes,
+      dims.rows,
+      dims.cols,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private renderLivePuppetWarpPreview(): void {
+    const state = this.puppetWarp.puppetWarpState();
+    if (
+      !state ||
+      !this.puppetWarpOriginalBuffer ||
+      !this.puppetWarpOriginalRect ||
+      !this.puppetWarpLayerId ||
+      !this.puppetWarpFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.puppetWarpLayerId);
+    if (!layerBuffer) return;
+
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.puppetWarpFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.puppetWarpOriginalRect.height; y++) {
+      for (let x = 0; x < this.puppetWarpOriginalRect.width; x++) {
+        const destX: number = this.puppetWarpOriginalRect.x + x;
+        const destY: number = this.puppetWarpOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    if (state.pins.length === 0) {
+      for (let y = 0; y < this.puppetWarpOriginalRect.height; y++) {
+        for (let x = 0; x < this.puppetWarpOriginalRect.width; x++) {
+          const srcIdx = y * this.puppetWarpOriginalRect.width + x;
+          const color = this.puppetWarpOriginalBuffer[srcIdx];
+          if (color) {
+            const destX: number = this.puppetWarpOriginalRect.x + x;
+            const destY: number = this.puppetWarpOriginalRect.y + y;
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              layerBuffer[destIdx] = color;
+            }
+          }
+        }
+      }
+      this.document.layerPixelsVersion.update((v) => v + 1);
+      return;
+    }
+
+    const result = this.transformService.applyPuppetWarp(
+      this.puppetWarpOriginalBuffer,
+      this.puppetWarpOriginalRect.width,
+      this.puppetWarpOriginalRect.height,
+      state.pins,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private renderLivePerspectivePreview(): void {
+    const state = this.perspective.perspectiveState();
+    if (
+      !state ||
+      !this.perspectiveOriginalBuffer ||
+      !this.perspectiveOriginalRect ||
+      !this.perspectiveLayerId ||
+      !this.perspectiveFullLayerBackup
+    ) {
+      return;
+    }
+
+    const layerBuffer = this.document.getLayerBuffer(this.perspectiveLayerId);
+    if (!layerBuffer) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    for (let i = 0; i < layerBuffer.length; i++) {
+      layerBuffer[i] = this.perspectiveFullLayerBackup[i];
+    }
+
+    for (let y = 0; y < this.perspectiveOriginalRect.height; y++) {
+      for (let x = 0; x < this.perspectiveOriginalRect.width; x++) {
+        const destX: number = this.perspectiveOriginalRect.x + x;
+        const destY: number = this.perspectiveOriginalRect.y + y;
+        if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+          const destIdx = destY * canvasW + destX;
+          layerBuffer[destIdx] = '';
+        }
+      }
+    }
+
+    const srcCorners = [
+      { x: 0, y: 0 },
+      { x: state.sourceWidth, y: 0 },
+      { x: state.sourceWidth, y: state.sourceHeight },
+      { x: 0, y: state.sourceHeight },
+    ];
+
+    const dstCorners = [
+      state.corners.topLeft,
+      state.corners.topRight,
+      state.corners.bottomRight,
+      state.corners.bottomLeft,
+    ];
+
+    const result = this.transformService.applyDistort(
+      this.perspectiveOriginalBuffer,
+      this.perspectiveOriginalRect.width,
+      this.perspectiveOriginalRect.height,
+      srcCorners,
+      dstCorners,
+    );
+
+    for (let y = 0; y < result.height; y++) {
+      for (let x = 0; x < result.width; x++) {
+        const srcIdx = y * result.width + x;
+        const color = result.buffer[srcIdx];
+        if (color) {
+          const destX = Math.floor(result.minX + x);
+          const destY = Math.floor(result.minY + y);
+          if (destX >= 0 && destX < canvasW && destY >= 0 && destY < canvasH) {
+            const destIdx = destY * canvasW + destX;
+            layerBuffer[destIdx] = color;
+          }
+        }
+      }
+    }
+
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private applyTransformToSelection(
+    state: any,
+    scaleX: number,
+    scaleY: number,
+    originalBuffer: string[],
+    originalRect: { x: number; y: number; width: number; height: number },
+  ): void {
+    const layerId = this.freeTransformLayerId;
+    if (!layerId) return;
+    const layerBuffer = this.document.getLayerBuffer(layerId);
+    if (!layerBuffer) return;
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+
+    const cos = Math.cos((state.rotation * Math.PI) / 180);
+    const sin = Math.sin((state.rotation * Math.PI) / 180);
+    const centerX = originalRect.width / 2;
+    const centerY = originalRect.height / 2;
+
+    const targetW = Math.max(1, Math.round(state.width));
+    const targetH = Math.max(1, Math.round(state.height));
+    const targetX = Math.floor(state.x);
+    const targetY = Math.floor(state.y);
+
+    const transformedBuffer = new Array<string>(targetW * targetH).fill('');
+    for (let y = 0; y < targetH; y++) {
+      for (let x = 0; x < targetW; x++) {
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
+        const dx = srcX - centerX;
+        const dy = srcY - centerY;
+        const rotX = centerX + dx * cos + dy * sin;
+        const rotY = centerY - dx * sin + dy * cos;
+        let sx = Math.floor(rotX);
+        let sy = Math.floor(rotY);
+        if (this.freeTransformMirrorX) sx = originalRect.width - 1 - sx;
+        if (this.freeTransformMirrorY) sy = originalRect.height - 1 - sy;
+        if (
+          sx >= 0 &&
+          sx < originalRect.width &&
+          sy >= 0 &&
+          sy < originalRect.height
+        ) {
+          const srcIdx = sy * originalRect.width + sx;
+          const destIdx = y * targetW + x;
+          transformedBuffer[destIdx] = originalBuffer[srcIdx] || '';
+        }
+      }
+    }
+    for (let y = 0; y < targetH; y++) {
+      for (let x = 0; x < targetW; x++) {
+        const destX = targetX + x;
+        const destY = targetY + y;
+        if (
+          destX >= 0 &&
+          destX < canvasWidth &&
+          destY >= 0 &&
+          destY < canvasHeight
+        ) {
+          const srcIdx = y * targetW + x;
+          const destIdx = destY * canvasWidth + destX;
+          const col = transformedBuffer[srcIdx];
+          if (col) layerBuffer[destIdx] = col;
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private restoreOriginalTransformPixels(): void {
+    if (
+      !this.freeTransformOriginalBuffer ||
+      !this.freeTransformOriginalRect ||
+      !this.freeTransformLayerId
+    )
+      return;
+    const layerBuffer = this.document.getLayerBuffer(this.freeTransformLayerId);
+    if (!layerBuffer) return;
+    const canvasWidth = this.document.canvasWidth();
+    const canvasHeight = this.document.canvasHeight();
+    const rect = this.freeTransformOriginalRect;
+    for (let y = 0; y < rect.height; y++) {
+      for (let x = 0; x < rect.width; x++) {
+        const srcIdx = y * rect.width + x;
+        const destX = rect.x + x;
+        const destY = rect.y + y;
+        if (
+          destX >= 0 &&
+          destX < canvasWidth &&
+          destY >= 0 &&
+          destY < canvasHeight
+        ) {
+          const destIdx = destY * canvasWidth + destX;
+          const col = this.freeTransformOriginalBuffer[srcIdx];
+          if (col) layerBuffer[destIdx] = col;
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  // Live preview: apply transformed pixels directly to layer buffer while dragging,
+  // restoring previous preview first to avoid accumulation.
+  private renderLiveFreeTransformPreview(): void {
+    const state = this.freeTransform.transformState();
+    if (
+      !state ||
+      !this.freeTransformOriginalBuffer ||
+      !this.freeTransformOriginalRect ||
+      !this.freeTransformLayerId
+    )
+      return;
+    const layerBuffer = this.document.getLayerBuffer(this.freeTransformLayerId);
+    if (!layerBuffer) return;
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    // Restore pixels from backup before clearing preview.
+    // This ensures pixels outside the original selection are preserved.
+    if (
+      this.freeTransformPreviewIndices &&
+      this.freeTransformPreviewIndices.length &&
+      this.freeTransformPreviewBackup
+    ) {
+      for (const idx of this.freeTransformPreviewIndices) {
+        if (idx >= 0 && idx < layerBuffer.length) {
+          const backupValue = this.freeTransformPreviewBackup.get(idx);
+          layerBuffer[idx] = backupValue !== undefined ? backupValue : '';
+        }
+      }
+    }
+    this.freeTransformPreviewIndices = [];
+    this.freeTransformPreviewBackup = new Map<number, string>();
+
+    const srcW = this.freeTransformOriginalRect.width;
+    const srcH = this.freeTransformOriginalRect.height;
+    const scaleX = state.width / srcW;
+    const scaleY = state.height / srcH;
+    const rad = (state.rotation * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const cX = srcW / 2;
+    const cY = srcH / 2;
+    const tgtW = Math.max(1, Math.round(state.width));
+    const tgtH = Math.max(1, Math.round(state.height));
+    const baseX = Math.floor(state.x);
+    const baseY = Math.floor(state.y);
+
+    for (let y = 0; y < tgtH; y++) {
+      for (let x = 0; x < tgtW; x++) {
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
+        const dx = srcX - cX;
+        const dy = srcY - cY;
+        const rotX = cX + dx * cos + dy * sin;
+        const rotY = cY - dx * sin + dy * cos;
+        let sx = Math.floor(rotX);
+        let sy = Math.floor(rotY);
+        if (this.freeTransformMirrorX) sx = srcW - 1 - sx;
+        if (this.freeTransformMirrorY) sy = srcH - 1 - sy;
+        if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
+          const srcIdx = sy * srcW + sx;
+          const col = this.freeTransformOriginalBuffer[srcIdx];
+          if (col && col.length) {
+            const destX = baseX + x;
+            const destY = baseY + y;
+            if (
+              destX >= 0 &&
+              destX < canvasW &&
+              destY >= 0 &&
+              destY < canvasH
+            ) {
+              const destIdx = destY * canvasW + destX;
+              // Backup the current pixel value before overwriting
+              if (!this.freeTransformPreviewBackup.has(destIdx)) {
+                this.freeTransformPreviewBackup.set(
+                  destIdx,
+                  layerBuffer[destIdx] || '',
+                );
+              }
+              layerBuffer[destIdx] = col;
+              this.freeTransformPreviewIndices.push(destIdx);
+            }
+          }
+        }
+      }
+    }
+    this.document.layerPixelsVersion.update((v) => v + 1);
+  }
+
+  private isPixelInSelection(x: number, y: number): boolean {
+    const sel = this.document.selectionRect();
+    const shape = this.document.selectionShape();
+    const poly = this.document.selectionPolygon();
+    return this.document.isPixelWithinSelection(x, y, sel, shape, poly);
+  }
+
   ngOnDestroy(): void {
     this.viewReady.set(false);
     this.closeContextMenu();
@@ -716,6 +3145,10 @@ export class EditorCanvas {
         );
       } catch {}
       this.keyListener = null;
+    }
+    if (this.generationCheckInterval !== null) {
+      clearInterval(this.generationCheckInterval);
+      this.generationCheckInterval = null;
     }
   }
 
@@ -838,26 +3271,227 @@ export class EditorCanvas {
     // depend on layer pixel version so effect reruns when any layer buffer changes
     this.document.layerPixelsVersion();
 
-    // draw layers in reverse order so the first layer in the UI (layers()[0])
-    // is treated as the topmost and drawn last. Iterate from last -> first to
-    // draw bottom layers first and top layers last (so top overlays lower ones).
-    const layers = this.document.layers();
+    const frameId = this.getCurrentFrameId();
+    const currentAnim = this.document.getCurrentAnimation();
+    const animationId = currentAnim?.id;
+    const currentTime = this.document.keyframeService?.getCurrentTime();
+    const isInTimelineMode = this.document.keyframeService?.isTimelineMode();
+    const shouldApplyBoneTransforms = !!(
+      animationId &&
+      typeof currentTime === 'number' &&
+      isInTimelineMode
+    );
+
+    const layers = this.document.getFlattenedLayers();
     for (let li = layers.length - 1; li >= 0; li--) {
       const layer = layers[li];
       if (!layer.visible) continue;
       const buf = this.document.getLayerBuffer(layer.id);
       if (!buf || buf.length !== w * h) continue;
       ctx.save();
-      for (let yy = 0; yy < h; yy++) {
-        for (let xx = 0; xx < w; xx++) {
-          const col = buf[yy * w + xx];
-          if (col && col.length) {
-            ctx.fillStyle = col;
-            ctx.fillRect(xx, yy, 1, 1);
+
+      if (shouldApplyBoneTransforms) {
+        const boundSourcePixels = new Set<number>();
+        const destinationPixelMap = new Map<
+          number,
+          { color: string; priority: number }
+        >();
+        const bindings =
+          this.document.keyframeService.getPixelBindings(frameId);
+
+        const transformCache = new Map<string, any>();
+        const pixelBindingsMap = new Map<number, typeof bindings>();
+
+        for (const binding of bindings) {
+          const sourceIdx = binding.pixelY * w + binding.pixelX;
+          const existingBindings = pixelBindingsMap.get(sourceIdx) || [];
+          existingBindings.push(binding);
+          pixelBindingsMap.set(sourceIdx, existingBindings);
+        }
+
+        for (const [sourceIdx, pixelBindings] of pixelBindingsMap.entries()) {
+          const col = buf[sourceIdx];
+          if (!col || !col.length) continue;
+
+          const dominantBinding = pixelBindings.reduce((prev, current) =>
+            current.weight > prev.weight ? current : prev,
+          );
+
+          const cacheKey = `${dominantBinding.boneId}:${dominantBinding.bonePointId}`;
+          let transform = transformCache.get(cacheKey);
+
+          if (!transform) {
+            transform = this.document.keyframeService.interpolateBoneTransform(
+              animationId,
+              dominantBinding.boneId,
+              dominantBinding.bonePointId,
+              currentTime,
+            );
+            transformCache.set(cacheKey, transform);
+          }
+
+          if (transform) {
+            const transformedX = Math.round(
+              transform.x + dominantBinding.offsetX,
+            );
+            const transformedY = Math.round(
+              transform.y + dominantBinding.offsetY,
+            );
+
+            if (
+              transformedX >= 0 &&
+              transformedX < w &&
+              transformedY >= 0 &&
+              transformedY < h
+            ) {
+              const destIdx = transformedY * w + transformedX;
+              const distSq =
+                dominantBinding.offsetX * dominantBinding.offsetX +
+                dominantBinding.offsetY * dominantBinding.offsetY;
+              const priority = -distSq;
+
+              const existing = destinationPixelMap.get(destIdx);
+              if (!existing || priority > existing.priority) {
+                destinationPixelMap.set(destIdx, { color: col, priority });
+              }
+              boundSourcePixels.add(sourceIdx);
+            }
+          } else {
+            const pixelY = Math.floor(sourceIdx / w);
+            const pixelX = sourceIdx % w;
+            const destIdx = pixelY * w + pixelX;
+            destinationPixelMap.set(destIdx, { color: col, priority: 0 });
+            boundSourcePixels.add(sourceIdx);
+          }
+        }
+
+        const bones = this.boneService.getBones(frameId);
+        for (const bone of bones) {
+          for (const point of bone.points) {
+            if (!point.parentId) continue;
+
+            const parent = bone.points.find((p) => p.id === point.parentId);
+            if (!parent) continue;
+
+            const pointTransform =
+              this.document.keyframeService.interpolateBoneTransform(
+                animationId,
+                bone.id,
+                point.id,
+                currentTime,
+              );
+            const parentTransform =
+              this.document.keyframeService.interpolateBoneTransform(
+                animationId,
+                bone.id,
+                parent.id,
+                currentTime,
+              );
+
+            const p1x = pointTransform ? pointTransform.x : point.x;
+            const p1y = pointTransform ? pointTransform.y : point.y;
+            const p2x = parentTransform ? parentTransform.x : parent.x;
+            const p2y = parentTransform ? parentTransform.y : parent.y;
+
+            const dx = p2x - p1x;
+            const dy = p2y - p1y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const steps = Math.ceil(dist);
+
+            for (let i = 0; i <= steps; i++) {
+              const t = steps > 0 ? i / steps : 0;
+              const interpX = Math.round(p1x + dx * t);
+              const interpY = Math.round(p1y + dy * t);
+
+              if (interpX >= 0 && interpX < w && interpY >= 0 && interpY < h) {
+                const interpIdx = interpY * w + interpX;
+                const sourcePixelX = Math.round(
+                  point.x + (parent.x - point.x) * t,
+                );
+                const sourcePixelY = Math.round(
+                  point.y + (parent.y - point.y) * t,
+                );
+
+                if (
+                  sourcePixelX >= 0 &&
+                  sourcePixelX < w &&
+                  sourcePixelY >= 0 &&
+                  sourcePixelY < h
+                ) {
+                  const sourceIdx = sourcePixelY * w + sourcePixelX;
+                  const sourceColor = buf[sourceIdx];
+
+                  if (
+                    sourceColor &&
+                    sourceColor.length &&
+                    !destinationPixelMap.has(interpIdx)
+                  ) {
+                    destinationPixelMap.set(interpIdx, {
+                      color: sourceColor,
+                      priority: -1000,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const idx = yy * w + xx;
+
+            if (destinationPixelMap.has(idx)) {
+              const pixelData = destinationPixelMap.get(idx);
+              if (pixelData) {
+                ctx.fillStyle = pixelData.color;
+                ctx.fillRect(xx, yy, 1, 1);
+              }
+            } else if (!boundSourcePixels.has(idx)) {
+              const col = buf[idx];
+              if (col && col.length) {
+                ctx.fillStyle = col;
+                ctx.fillRect(xx, yy, 1, 1);
+              }
+            }
+          }
+        }
+      } else {
+        for (let yy = 0; yy < h; yy++) {
+          for (let xx = 0; xx < w; xx++) {
+            const col = buf[yy * w + xx];
+            if (col && col.length) {
+              ctx.fillStyle = col;
+              ctx.fillRect(xx, yy, 1, 1);
+            }
           }
         }
       }
       ctx.restore();
+    }
+
+    if (this.movingContentBuffer && this.movingContentOriginalRect) {
+      const sel = this.document.selectionRect();
+      if (sel) {
+        const dx = sel.x - this.movingContentOriginalRect.x;
+        const dy = sel.y - this.movingContentOriginalRect.y;
+        ctx.save();
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const idx = y * w + x;
+            const col = this.movingContentBuffer[idx];
+            if (col && col.length) {
+              const newX = x + dx;
+              const newY = y + dy;
+              if (newX >= 0 && newX < w && newY >= 0 && newY < h) {
+                ctx.fillStyle = col;
+                ctx.fillRect(newX, newY, 1, 1);
+              }
+            }
+          }
+        }
+        ctx.restore();
+      }
     }
 
     const activeShape = this.activeShapeTool();
@@ -957,71 +3591,1327 @@ export class EditorCanvas {
       }
     }
 
-    // Draw active selection if present
+    const tool = this.tools.currentTool();
+    if (tool === 'bone') {
+      const bones = this.boneService.getBones(frameId);
+
+      const getPointPosition = (
+        boneId: string,
+        point: BonePoint,
+      ): { x: number; y: number } => {
+        if (shouldApplyBoneTransforms) {
+          const transform =
+            this.document.keyframeService.interpolateBoneTransform(
+              animationId,
+              boneId,
+              point.id,
+              currentTime,
+            );
+          if (transform) {
+            return { x: transform.x, y: transform.y };
+          }
+        }
+        return { x: point.x, y: point.y };
+      };
+
+      ctx.save();
+      for (const bone of bones) {
+        if (bone.points.length === 0) continue;
+
+        ctx.strokeStyle = bone.color;
+        ctx.lineWidth = Math.max(pxLineWidth, bone.thickness);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const drawnConnections = new Set<string>();
+
+        const drawConnection = (point: BonePoint) => {
+          if (point.parentId) {
+            const connectionKey = `${point.parentId}->${point.id}`;
+            if (drawnConnections.has(connectionKey)) return;
+
+            const parent = bone.points.find((p) => p.id === point.parentId);
+            if (parent) {
+              const parentPos = getPointPosition(bone.id, parent);
+              const pointPos = getPointPosition(bone.id, point);
+              ctx.beginPath();
+              ctx.moveTo(parentPos.x + 0.5, parentPos.y + 0.5);
+              ctx.lineTo(pointPos.x + 0.5, pointPos.y + 0.5);
+              ctx.stroke();
+              drawnConnections.add(connectionKey);
+            }
+          }
+        };
+
+        for (const point of bone.points) {
+          drawConnection(point);
+        }
+
+        for (const point of bone.points) {
+          const isSelected = this.boneService.getSelectedPoint() === point.id;
+          const radius = Math.max(3 / scale, 0.5);
+          const pos = getPointPosition(bone.id, point);
+
+          ctx.fillStyle = point.color || bone.color;
+          ctx.beginPath();
+          ctx.arc(pos.x + 0.5, pos.y + 0.5, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (isSelected) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = Math.max(pxLineWidth * 2, 0.3);
+            ctx.stroke();
+          }
+
+          ctx.strokeStyle = isDark
+            ? 'rgba(255,255,255,0.8)'
+            : 'rgba(0,0,0,0.8)';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.2);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      const bindings = this.document.keyframeService?.getPixelBindings(frameId);
+      if (bindings && bindings.length > 0 && this.tools.boneAutoBindEnabled()) {
+        ctx.save();
+
+        const getBoneDisplayColor = (boneId: string): string => {
+          let hash = 0;
+          for (let i = 0; i < boneId.length; i++) {
+            hash = (hash << 5) - hash + boneId.charCodeAt(i);
+            hash = hash & hash;
+          }
+
+          const hue = Math.abs(hash) % 360;
+          const saturation = 60 + (Math.abs(hash >> 8) % 20);
+          const lightness = 50 + (Math.abs(hash >> 16) % 15);
+
+          return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        };
+
+        const boneColorCache = new Map<
+          string,
+          { r: number; g: number; b: number }
+        >();
+
+        const pixelBindingCounts = new Map<string, number>();
+        for (const binding of bindings) {
+          const key = `${binding.pixelX},${binding.pixelY}`;
+          pixelBindingCounts.set(key, (pixelBindingCounts.get(key) || 0) + 1);
+        }
+
+        for (const binding of bindings) {
+          const pixelKey = `${binding.pixelX},${binding.pixelY}`;
+          const bindingCount = pixelBindingCounts.get(pixelKey) || 1;
+          const isMultiBound = bindingCount > 1;
+
+          let rgb = boneColorCache.get(binding.boneId);
+
+          if (!rgb) {
+            const hslColor = getBoneDisplayColor(binding.boneId);
+            const tempDiv =
+              typeof document !== 'undefined'
+                ? document.createElement('div')
+                : null;
+            if (tempDiv) {
+              tempDiv.style.color = hslColor;
+              document.body.appendChild(tempDiv);
+              const computed = getComputedStyle(tempDiv).color;
+              document.body.removeChild(tempDiv);
+
+              const match = computed.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+              if (match) {
+                rgb = {
+                  r: parseInt(match[1]),
+                  g: parseInt(match[2]),
+                  b: parseInt(match[3]),
+                };
+              } else {
+                rgb = { r: 255, g: 102, b: 0 };
+              }
+            } else {
+              const hue =
+                Math.abs(
+                  binding.boneId
+                    .split('')
+                    .reduce((a, c) => a + c.charCodeAt(0), 0),
+                ) % 360;
+              const s = 0.7;
+              const l = 0.6;
+              const c = (1 - Math.abs(2 * l - 1)) * s;
+              const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+              const m = l - c / 2;
+              let r = 0,
+                g = 0,
+                b = 0;
+              if (hue < 60) {
+                r = c;
+                g = x;
+              } else if (hue < 120) {
+                r = x;
+                g = c;
+              } else if (hue < 180) {
+                g = c;
+                b = x;
+              } else if (hue < 240) {
+                g = x;
+                b = c;
+              } else if (hue < 300) {
+                r = x;
+                b = c;
+              } else {
+                r = c;
+                b = x;
+              }
+              rgb = {
+                r: Math.round((r + m) * 255),
+                g: Math.round((g + m) * 255),
+                b: Math.round((b + m) * 255),
+              };
+            }
+            if (rgb) {
+              boneColorCache.set(binding.boneId, rgb);
+            }
+          }
+
+          if (rgb) {
+            if (isMultiBound) {
+              ctx.fillStyle = `rgba(255, 255, 0, 0.4)`;
+            } else {
+              ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
+            }
+            ctx.fillRect(binding.pixelX, binding.pixelY, 1, 1);
+          }
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // Draw active selection if present (but hide when Free Transform, Distort, Perspective, Warp, or Puppet Warp is active)
     const sel = this.document.selectionRect();
     const selShape = this.document.selectionShape();
-    if (sel && sel.width > 0 && sel.height > 0) {
+    const isFreeTransformActive = this.freeTransform.isActive();
+    const isDistortActive = this.distort.isActive();
+    const isPerspectiveActive = this.perspective.isActive();
+    const isWarpActive = this.warp.isActive();
+    const isPuppetWarpActive = this.puppetWarp.isActive();
+    if (
+      sel &&
+      sel.width > 0 &&
+      sel.height > 0 &&
+      !isFreeTransformActive &&
+      !isDistortActive &&
+      !isPerspectiveActive &&
+      !isWarpActive &&
+      !isPuppetWarpActive
+    ) {
       ctx.save();
-      // translucent fill
-      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
-      if (selShape === 'ellipse') {
-        const cx = sel.x + sel.width / 2 - 0.5;
-        const cy = sel.y + sel.height / 2 - 0.5;
-        const rx = Math.max(0.5, sel.width / 2);
-        const ry = Math.max(0.5, sel.height / 2);
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // dashed stroke
+
+      // Check if we have a mask-based selection
+      const mask = this.document.selectionMask();
+
+      if (mask) {
+        // Draw mask-based selection by rendering individual pixels
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+        for (const key of mask) {
+          const [xStr, yStr] = key.split(',');
+          const x = parseInt(xStr, 10);
+          const y = parseInt(yStr, 10);
+          ctx.fillRect(x, y, 1, 1);
+        }
+
+        // Draw marching ants border by detecting edges
+        // An edge exists where a selected pixel borders an unselected pixel
         ctx.setLineDash([4 / scale, 3 / scale]);
         ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
         ctx.lineWidth = pxLineWidth;
-        ctx.stroke();
-      } else if (selShape === 'lasso') {
-        const poly = this.document.selectionPolygon();
-        if (poly && poly.length > 0) {
-          ctx.beginPath();
-          ctx.moveTo(poly[0].x + 0.5, poly[0].y + 0.5);
-          for (let i = 1; i < poly.length; i++) {
-            ctx.lineTo(poly[i].x + 0.5, poly[i].y + 0.5);
+        ctx.beginPath();
+
+        for (const key of mask) {
+          const [xStr, yStr] = key.split(',');
+          const x = parseInt(xStr, 10);
+          const y = parseInt(yStr, 10);
+
+          // Check all 4 neighbors to see if we need to draw an edge
+          // Top edge
+          if (!mask.has(`${x},${y - 1}`)) {
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 1, y);
           }
-          // Optionally close the path for visual completeness
-          ctx.closePath();
+          // Right edge
+          if (!mask.has(`${x + 1},${y}`)) {
+            ctx.moveTo(x + 1, y);
+            ctx.lineTo(x + 1, y + 1);
+          }
+          // Bottom edge
+          if (!mask.has(`${x},${y + 1}`)) {
+            ctx.moveTo(x, y + 1);
+            ctx.lineTo(x + 1, y + 1);
+          }
+          // Left edge
+          if (!mask.has(`${x - 1},${y}`)) {
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + 1);
+          }
+        }
+
+        ctx.stroke();
+      } else {
+        // translucent fill
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+        if (selShape === 'ellipse') {
+          const cx = sel.x + sel.width / 2 - 0.5;
+          const cy = sel.y + sel.height / 2 - 0.5;
+          const rx = Math.max(0.5, sel.width / 2);
+          const ry = Math.max(0.5, sel.height / 2);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
           ctx.fill();
+          // dashed stroke
           ctx.setLineDash([4 / scale, 3 / scale]);
           ctx.strokeStyle = isDark
             ? 'rgba(255,255,255,0.8)'
             : 'rgba(0,0,0,0.8)';
           ctx.lineWidth = pxLineWidth;
           ctx.stroke();
-          // Draw a small marker on the first vertex to help users close the polygon
-          const first = poly[0];
-          const markerR = 1; // px radius
-          ctx.beginPath();
-          ctx.arc(first.x + 0.5, first.y + 0.5, markerR, 0, Math.PI * 2);
-          ctx.fillStyle = isDark ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)';
-          ctx.fill();
-          ctx.lineWidth = pxLineWidth;
+        } else if (selShape === 'lasso') {
+          const poly = this.document.selectionPolygon();
+          if (poly && poly.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(poly[0].x + 0.5, poly[0].y + 0.5);
+            for (let i = 1; i < poly.length; i++) {
+              ctx.lineTo(poly[i].x + 0.5, poly[i].y + 0.5);
+            }
+            // Optionally close the path for visual completeness
+            ctx.closePath();
+            ctx.fill();
+            ctx.setLineDash([4 / scale, 3 / scale]);
+            ctx.strokeStyle = isDark
+              ? 'rgba(255,255,255,0.8)'
+              : 'rgba(0,0,0,0.8)';
+            ctx.lineWidth = pxLineWidth;
+            ctx.stroke();
+          }
+        } else {
+          // ctx.fillRect(sel.x, sel.y, sel.width, sel.height);
+          // dashed stroke
+          ctx.setLineDash([4 / scale, 3 / scale]);
           ctx.strokeStyle = isDark
-            ? 'rgba(255,255,255,0.9)'
-            : 'rgba(0,0,0,0.9)';
-          ctx.stroke();
+            ? 'rgba(255,255,255,0.8)'
+            : 'rgba(0,0,0,0.8)';
+          ctx.lineWidth = pxLineWidth;
+          ctx.strokeRect(
+            sel.x,
+            sel.y,
+            Math.max(0, sel.width),
+            Math.max(0, sel.height),
+          );
         }
-      } else {
-        // ctx.fillRect(sel.x, sel.y, sel.width, sel.height);
-        // dashed stroke
-        ctx.setLineDash([4 / scale, 3 / scale]);
-        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
-        ctx.lineWidth = pxLineWidth;
-        ctx.strokeRect(
-          sel.x,
-          sel.y,
-          Math.max(0, sel.width),
-          Math.max(0, sel.height),
-        );
       }
       ctx.restore();
     }
+
+    const freeTransformState = this.freeTransform.transformState();
+    if (freeTransformState) {
+      // removed duplicate overlay drawing; handled in the dedicated overlay section below
+    }
+
+    // Free transform overlay (selection live preview)
+    const ftState = this.freeTransform.transformState();
+    if (ftState && this.document.selectionRect()) {
+      ctx.save();
+      // Draw transformed preview only if we are NOT applying live preview to the layer
+      if (
+        (!this.freeTransformPreviewIndices ||
+          this.freeTransformPreviewIndices.length === 0) &&
+        this.freeTransformOriginalBuffer &&
+        this.freeTransformOriginalRect
+      ) {
+        const canvasW = this.document.canvasWidth();
+        const canvasH = this.document.canvasHeight();
+        const srcW = this.freeTransformOriginalRect.width;
+        const srcH = this.freeTransformOriginalRect.height;
+        const srcBuf = this.freeTransformOriginalBuffer;
+        const scaleX = ftState.width / srcW;
+        const scaleY = ftState.height / srcH;
+        const cosR = Math.cos((ftState.rotation * Math.PI) / 180);
+        const sinR = Math.sin((ftState.rotation * Math.PI) / 180);
+        const cX = srcW / 2;
+        const cY = srcH / 2;
+        for (let y = 0; y < ftState.height; y++) {
+          for (let x = 0; x < ftState.width; x++) {
+            const srcX = x / scaleX;
+            const srcY = y / scaleY;
+            const dx = srcX - cX;
+            const dy = srcY - cY;
+            const rotX = cX + dx * cosR + dy * sinR;
+            const rotY = cY - dx * sinR + dy * cosR;
+            const sx = Math.floor(rotX);
+            const sy = Math.floor(rotY);
+            if (sx >= 0 && sx < srcW && sy >= 0 && sy < srcH) {
+              const srcIdx = sy * srcW + sx;
+              const col = srcBuf[srcIdx];
+              if (col && col.length) {
+                const destX = Math.floor(ftState.x + x);
+                const destY = Math.floor(ftState.y + y);
+                if (
+                  destX >= 0 &&
+                  destX < canvasW &&
+                  destY >= 0 &&
+                  destY < canvasH
+                ) {
+                  ctx.fillStyle = col;
+                  ctx.fillRect(destX, destY, 1, 1);
+                }
+              }
+            }
+          }
+        }
+      }
+      // Draw rotated bounding box
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)';
+      const rad = (ftState.rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const cx = ftState.x + ftState.width / 2;
+      const cy = ftState.y + ftState.height / 2;
+      const corners = [
+        { dx: -ftState.width / 2, dy: -ftState.height / 2 },
+        { dx: ftState.width / 2, dy: -ftState.height / 2 },
+        { dx: ftState.width / 2, dy: ftState.height / 2 },
+        { dx: -ftState.width / 2, dy: ftState.height / 2 },
+      ].map((c) => ({
+        x: cx + c.dx * cos - c.dy * sin,
+        y: cy + c.dx * sin + c.dy * cos,
+      }));
+      ctx.beginPath();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for (let i = 1; i < corners.length; i++)
+        ctx.lineTo(corners[i].x, corners[i].y);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Handles (smaller)
+      const handles: TransformHandle[] = [
+        'top-left',
+        'top-center',
+        'top-right',
+        'middle-left',
+        'middle-right',
+        'bottom-left',
+        'bottom-center',
+        'bottom-right',
+        'rotate-center',
+      ];
+      for (const h of handles) {
+        const pos = this.freeTransform.getHandlePosition(h, ftState);
+        const rOuter = Math.max(0.5, 0.8 / Math.max(0.001, scale));
+        ctx.fillStyle =
+          h === 'rotate-center'
+            ? isDark
+              ? '#3b82f6'
+              : '#1d4ed8'
+            : isDark
+              ? '#ffffff'
+              : '#000000';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+        ctx.fill();
+        if (h === 'rotate-center') {
+          const rr = Math.max(2, 4 / Math.max(0.001, scale));
+          ctx.strokeStyle = ctx.fillStyle;
+          ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rr, -Math.PI * 0.2, Math.PI * 1.1);
+          ctx.stroke();
+        }
+      }
+      const positions = this.computeTransformButtonPositions(ftState, scale);
+      const {
+        btnSize,
+        commitX,
+        commitY,
+        cancelX,
+        cancelY,
+        mirrorXX,
+        mirrorXY,
+        mirrorYX,
+        mirrorYY,
+      } = positions;
+      // mirror Y button (vertical arrows)
+      ctx.fillStyle = this.freeTransformMirrorY
+        ? isDark
+          ? '#047857'
+          : '#059669'
+        : isDark
+          ? '#065f46'
+          : '#047857';
+      ctx.fillRect(mirrorYX, mirrorYY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+      ctx.lineTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+      ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+      ctx.lineTo(mirrorYX + btnSize * 0.35, mirrorYY + btnSize * 0.35);
+      ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.2);
+      ctx.lineTo(mirrorYX + btnSize * 0.65, mirrorYY + btnSize * 0.35);
+      ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+      ctx.lineTo(mirrorYX + btnSize * 0.35, mirrorYY + btnSize * 0.65);
+      ctx.moveTo(mirrorYX + btnSize * 0.5, mirrorYY + btnSize * 0.8);
+      ctx.lineTo(mirrorYX + btnSize * 0.65, mirrorYY + btnSize * 0.65);
+      ctx.stroke();
+
+      // mirror X button (horizontal arrows)
+      ctx.fillStyle = this.freeTransformMirrorX
+        ? isDark
+          ? '#047857'
+          : '#059669'
+        : isDark
+          ? '#065f46'
+          : '#047857';
+      ctx.fillRect(mirrorXX, mirrorXY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+      ctx.lineTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+      ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+      ctx.lineTo(mirrorXX + btnSize * 0.35, mirrorXY + btnSize * 0.35);
+      ctx.moveTo(mirrorXX + btnSize * 0.2, mirrorXY + btnSize * 0.5);
+      ctx.lineTo(mirrorXX + btnSize * 0.35, mirrorXY + btnSize * 0.65);
+      ctx.moveTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+      ctx.lineTo(mirrorXX + btnSize * 0.65, mirrorXY + btnSize * 0.35);
+      ctx.moveTo(mirrorXX + btnSize * 0.8, mirrorXY + btnSize * 0.5);
+      ctx.lineTo(mirrorXX + btnSize * 0.65, mirrorXY + btnSize * 0.65);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#1e40af' : '#1d4ed8';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+
+      ctx.strokeStyle = '#d1d5db';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#991b1b' : '#b91c1c';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.strokeStyle = '#d1d5db';
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const distortState = this.distort.distortState();
+    if (distortState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(59,130,246,0.9)' : 'rgba(37,99,235,0.9)';
+
+      const corners = distortState.corners;
+      ctx.beginPath();
+      ctx.moveTo(corners.topLeft.x, corners.topLeft.y);
+      ctx.lineTo(corners.topRight.x, corners.topRight.y);
+      ctx.lineTo(corners.bottomRight.x, corners.bottomRight.y);
+      ctx.lineTo(corners.bottomLeft.x, corners.bottomLeft.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.strokeStyle = isDark ? 'rgba(59,130,246,0.5)' : 'rgba(37,99,235,0.5)';
+      const gridSteps = 3;
+      for (let i = 1; i < gridSteps; i++) {
+        const t = i / gridSteps;
+        const topX =
+          corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
+        const topY =
+          corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
+        const bottomX =
+          corners.bottomLeft.x +
+          (corners.bottomRight.x - corners.bottomLeft.x) * t;
+        const bottomY =
+          corners.bottomLeft.y +
+          (corners.bottomRight.y - corners.bottomLeft.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(topX, topY);
+        ctx.lineTo(bottomX, bottomY);
+        ctx.stroke();
+
+        const leftX =
+          corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
+        const leftY =
+          corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
+        const rightX =
+          corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
+        const rightY =
+          corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(rightX, rightY);
+        ctx.stroke();
+      }
+
+      const handles: DistortHandle[] = [
+        'top-left',
+        'top-right',
+        'bottom-right',
+        'bottom-left',
+      ];
+      for (const h of handles) {
+        const pos = this.distort.getHandlePosition(h);
+        if (pos) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#3b82f6' : '#2563eb';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      const buttonPositions = this.computeDistortButtonPositions(
+        distortState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const perspectiveState = this.perspective.perspectiveState();
+    if (perspectiveState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.setLineDash([4 / Math.max(0.001, scale), 4 / Math.max(0.001, scale)]);
+      ctx.strokeStyle = isDark
+        ? 'rgba(147,51,234,0.9)'
+        : 'rgba(126,34,206,0.9)';
+
+      const corners = perspectiveState.corners;
+      ctx.beginPath();
+      ctx.moveTo(corners.topLeft.x, corners.topLeft.y);
+      ctx.lineTo(corners.topRight.x, corners.topRight.y);
+      ctx.lineTo(corners.bottomRight.x, corners.bottomRight.y);
+      ctx.lineTo(corners.bottomLeft.x, corners.bottomLeft.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.strokeStyle = isDark
+        ? 'rgba(147,51,234,0.5)'
+        : 'rgba(126,34,206,0.5)';
+      const gridSteps = 3;
+      for (let i = 1; i < gridSteps; i++) {
+        const t = i / gridSteps;
+        const topX =
+          corners.topLeft.x + (corners.topRight.x - corners.topLeft.x) * t;
+        const topY =
+          corners.topLeft.y + (corners.topRight.y - corners.topLeft.y) * t;
+        const bottomX =
+          corners.bottomLeft.x +
+          (corners.bottomRight.x - corners.bottomLeft.x) * t;
+        const bottomY =
+          corners.bottomLeft.y +
+          (corners.bottomRight.y - corners.bottomLeft.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(topX, topY);
+        ctx.lineTo(bottomX, bottomY);
+        ctx.stroke();
+
+        const leftX =
+          corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * t;
+        const leftY =
+          corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * t;
+        const rightX =
+          corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * t;
+        const rightY =
+          corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * t;
+        ctx.beginPath();
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(rightX, rightY);
+        ctx.stroke();
+      }
+
+      ctx.setLineDash([]);
+
+      const handles: PerspectiveHandle[] = [
+        'top-left',
+        'top-right',
+        'bottom-right',
+        'bottom-left',
+      ];
+      for (const h of handles) {
+        const pos = this.perspective.getHandlePosition(h);
+        if (pos) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#9333ea' : '#7e22ce';
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      const buttonPositions = this.computePerspectiveButtonPositions(
+        perspectiveState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const warpState = this.warp.warpState();
+    if (warpState) {
+      ctx.save();
+      ctx.lineWidth = pxLineWidth;
+      ctx.strokeStyle = isDark ? 'rgba(34,197,94,0.9)' : 'rgba(22,163,74,0.9)';
+
+      const dims = this.warp.getGridDimensions();
+      if (dims) {
+        const { rows, cols } = dims;
+
+        for (let row = 0; row <= rows; row++) {
+          for (let col = 0; col <= cols; col++) {
+            const node = this.warp.getNode(row, col);
+            if (!node) continue;
+
+            if (col < cols) {
+              const nextNode = this.warp.getNode(row, col + 1);
+              if (nextNode) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(nextNode.x, nextNode.y);
+                ctx.stroke();
+              }
+            }
+
+            if (row < rows) {
+              const nextNode = this.warp.getNode(row + 1, col);
+              if (nextNode) {
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(nextNode.x, nextNode.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        for (const node of warpState.nodes) {
+          const rOuter = Math.max(1.2, 1.5 / Math.max(0.001, scale));
+          ctx.fillStyle = isDark ? '#22c55e' : '#16a34a';
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, rOuter, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+          ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, rOuter, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      const buttonPositions = this.computeWarpButtonPositions(warpState, scale);
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    const puppetWarpState = this.puppetWarp.puppetWarpState();
+    if (puppetWarpState) {
+      ctx.save();
+
+      for (const pin of puppetWarpState.pins) {
+        ctx.fillStyle = isDark
+          ? 'rgba(236,72,153,0.2)'
+          : 'rgba(219,39,119,0.2)';
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = isDark
+          ? 'rgba(236,72,153,0.4)'
+          : 'rgba(219,39,119,0.4)';
+        ctx.lineWidth = pxLineWidth;
+        ctx.setLineDash([
+          4 / Math.max(0.001, scale),
+          4 / Math.max(0.001, scale),
+        ]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const rOuter = Math.max(1.5, 2 / Math.max(0.001, scale));
+        ctx.fillStyle = pin.locked
+          ? isDark
+            ? '#ef4444'
+            : '#dc2626'
+          : isDark
+            ? '#ec4899'
+            : '#db2777';
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, rOuter, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = isDark ? '#ffffff' : '#000000';
+        ctx.lineWidth = Math.max(pxLineWidth, 0.5 / Math.max(0.001, scale));
+        ctx.beginPath();
+        ctx.arc(pin.x, pin.y, rOuter, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (pin.locked) {
+          const lockSize = rOuter * 0.8;
+          ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+          ctx.fillRect(
+            pin.x - lockSize * 0.3,
+            pin.y - lockSize * 0.5,
+            lockSize * 0.6,
+            lockSize,
+          );
+        }
+      }
+
+      const buttonPositions = this.computePuppetWarpButtonPositions(
+        puppetWarpState,
+        scale,
+      );
+      const { btnSize, commitX, commitY, cancelX, cancelY } = buttonPositions;
+
+      ctx.fillStyle = isDark ? '#059669' : '#047857';
+      ctx.fillRect(commitX, commitY, btnSize, btnSize);
+      ctx.strokeStyle = isDark ? '#d1d5db' : '#f9fafb';
+      ctx.lineWidth = Math.max(pxLineWidth, 0.8 / Math.max(0.001, scale));
+      ctx.beginPath();
+      ctx.moveTo(commitX + btnSize * 0.2, commitY + btnSize * 0.5);
+      ctx.lineTo(commitX + btnSize * 0.4, commitY + btnSize * 0.7);
+      ctx.lineTo(commitX + btnSize * 0.8, commitY + btnSize * 0.25);
+      ctx.stroke();
+
+      ctx.fillStyle = isDark ? '#dc2626' : '#991b1b';
+      ctx.fillRect(cancelX, cancelY, btnSize, btnSize);
+      ctx.beginPath();
+      ctx.moveTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.72);
+      ctx.moveTo(cancelX + btnSize * 0.72, cancelY + btnSize * 0.28);
+      ctx.lineTo(cancelX + btnSize * 0.28, cancelY + btnSize * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
+  private computeTransformButtonPositions(
+    ftState: { x: number; y: number; width: number; height: number },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+    mirrorXX: number;
+    mirrorXY: number;
+    mirrorYX: number;
+    mirrorYY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const totalButtonsWidth = 4 * btnSize + 3 * margin;
+    const spaceAbove = ftState.y;
+    const spaceBelow = canvasH - (ftState.y + ftState.height);
+    const spaceRight = canvasW - (ftState.x + ftState.width);
+    const spaceLeft = ftState.x;
+
+    let baseX: number;
+    let baseY: number;
+    let horizontal = true;
+
+    if (spaceAbove >= btnSize + 2 * margin && spaceRight >= totalButtonsWidth) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = ftState.y - btnSize - margin;
+    } else if (
+      spaceBelow >= btnSize + 2 * margin &&
+      spaceRight >= totalButtonsWidth
+    ) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = ftState.y + ftState.height + margin;
+    } else if (spaceRight >= totalButtonsWidth) {
+      baseX = ftState.x + ftState.width - totalButtonsWidth;
+      baseY = Math.max(
+        margin,
+        Math.min(ftState.y + margin, canvasH - btnSize - margin),
+      );
+    } else if (spaceLeft >= totalButtonsWidth) {
+      baseX = ftState.x + margin;
+      baseY = Math.max(
+        margin,
+        Math.min(ftState.y + margin, canvasH - btnSize - margin),
+      );
+    } else {
+      horizontal = false;
+      const totalButtonsHeight = 4 * btnSize + 3 * margin;
+      if (spaceRight >= btnSize + 2 * margin) {
+        baseX = ftState.x + ftState.width + margin;
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
+        );
+      } else if (spaceLeft >= btnSize + 2 * margin) {
+        baseX = ftState.x - btnSize - margin;
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
+        );
+      } else {
+        baseX = Math.max(
+          margin,
+          Math.min(ftState.x + margin, canvasW - btnSize - margin),
+        );
+        baseY = Math.max(
+          margin,
+          Math.min(ftState.y + margin, canvasH - btnSize - margin),
+        );
+      }
+    }
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+    let mirrorXX: number, mirrorXY: number;
+    let mirrorYX: number, mirrorYY: number;
+
+    if (horizontal) {
+      mirrorYX = baseX;
+      mirrorYY = baseY;
+      mirrorXX = mirrorYX + btnSize + margin;
+      mirrorXY = baseY;
+      cancelX = mirrorXX + btnSize + margin;
+      cancelY = baseY;
+      commitX = cancelX + btnSize + margin;
+      commitY = baseY;
+    } else {
+      mirrorYX = baseX;
+      mirrorYY = baseY;
+      mirrorXX = baseX;
+      mirrorXY = mirrorYY + btnSize + margin;
+      cancelX = baseX;
+      cancelY = mirrorXY + btnSize + margin;
+      commitX = baseX;
+      commitY = cancelY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+    mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize);
+    mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize);
+    mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize);
+    mirrorYY = clamp(mirrorYY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+      mirrorXX,
+      mirrorXY,
+      mirrorYX,
+      mirrorYY,
+    };
+  }
+
+  private computeDistortButtonPositions(
+    distortState: {
+      corners: any;
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const corners = distortState.corners;
+    const minX = Math.min(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const maxX = Math.max(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const minY = Math.min(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+    const maxY = Math.max(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+    const spaceRight = canvasW - maxX;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computePerspectiveButtonPositions(
+    perspectiveState: {
+      corners: any;
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const corners = perspectiveState.corners;
+    const minX = Math.min(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const maxX = Math.max(
+      corners.topLeft.x,
+      corners.topRight.x,
+      corners.bottomLeft.x,
+      corners.bottomRight.x,
+    );
+    const minY = Math.min(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+    const maxY = Math.max(
+      corners.topLeft.y,
+      corners.topRight.y,
+      corners.bottomLeft.y,
+      corners.bottomRight.y,
+    );
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+    const spaceRight = canvasW - maxX;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computeWarpButtonPositions(
+    warpState: {
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+      nodes: any[];
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    const minX = Math.min(...warpState.nodes.map((n) => n.x));
+    const maxX = Math.max(...warpState.nodes.map((n) => n.x));
+    const minY = Math.min(...warpState.nodes.map((n) => n.y));
+    const maxY = Math.max(...warpState.nodes.map((n) => n.y));
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
+  }
+
+  private computePuppetWarpButtonPositions(
+    puppetWarpState: {
+      sourceX: number;
+      sourceY: number;
+      sourceWidth: number;
+      sourceHeight: number;
+      pins: any[];
+    },
+    scale: number,
+  ): {
+    btnSize: number;
+    commitX: number;
+    commitY: number;
+    cancelX: number;
+    cancelY: number;
+  } {
+    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
+    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
+    const canvasW = this.document.canvasWidth();
+    const canvasH = this.document.canvasHeight();
+
+    if (puppetWarpState.pins.length === 0) {
+      const minX = puppetWarpState.sourceX;
+      const maxX = puppetWarpState.sourceX + puppetWarpState.sourceWidth;
+      const minY = puppetWarpState.sourceY;
+      const maxY = puppetWarpState.sourceY + puppetWarpState.sourceHeight;
+
+      return {
+        btnSize,
+        commitX: maxX - 2 * btnSize - margin,
+        commitY: maxY + margin,
+        cancelX: maxX - btnSize,
+        cancelY: maxY + margin,
+      };
+    }
+
+    const minX = Math.min(...puppetWarpState.pins.map((p) => p.x));
+    const maxX = Math.max(...puppetWarpState.pins.map((p) => p.x));
+    const minY = Math.min(...puppetWarpState.pins.map((p) => p.y));
+    const maxY = Math.max(...puppetWarpState.pins.map((p) => p.y));
+
+    const spaceAbove = minY;
+    const spaceBelow = canvasH - maxY;
+
+    let commitX: number, commitY: number;
+    let cancelX: number, cancelY: number;
+
+    if (spaceAbove >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = minY - btnSize - margin;
+      cancelX = maxX - btnSize;
+      cancelY = minY - btnSize - margin;
+    } else if (spaceBelow >= btnSize + 2 * margin) {
+      commitX = maxX - 2 * btnSize - margin;
+      commitY = maxY + margin;
+      cancelX = maxX - btnSize;
+      cancelY = maxY + margin;
+    } else {
+      commitX = maxX + margin;
+      commitY = minY;
+      cancelX = maxX + margin;
+      cancelY = minY + btnSize + margin;
+    }
+
+    const clamp = (v: number, min: number, max: number) =>
+      Math.max(min, Math.min(v, max));
+    commitX = clamp(commitX, 0, canvasW - btnSize);
+    commitY = clamp(commitY, 0, canvasH - btnSize);
+    cancelX = clamp(cancelX, 0, canvasW - btnSize);
+    cancelY = clamp(cancelY, 0, canvasH - btnSize);
+
+    return {
+      btnSize,
+      commitX,
+      commitY,
+      cancelX,
+      cancelY,
+    };
   }
 
   private startShape(mode: 'line' | 'circle' | 'square', x: number, y: number) {
@@ -1031,7 +4921,7 @@ export class EditorCanvas {
       x: this.clampCoord(x, width),
       y: this.clampCoord(y, height),
     };
-    this.document.beginAction(mode);
+    this.document.saveSnapshot(mode);
     this.shaping = true;
     this.activeShapeTool.set(mode);
     this.shapeStart.set(point);
@@ -1044,13 +4934,11 @@ export class EditorCanvas {
     const start = this.shapeStart();
     const current = this.shapeCurrent();
     if (!mode || !start || !current) {
-      this.document.endAction();
       this.clearShapeState();
       return;
     }
     const layerId = this.document.selectedLayerId();
     if (!layerId) {
-      this.document.endAction();
       this.clearShapeState();
       return;
     }
@@ -1093,13 +4981,11 @@ export class EditorCanvas {
         constrainSquare,
       );
     }
-    this.document.endAction();
     this.clearShapeState();
   }
 
   private cancelShape() {
     if (!this.shaping) return;
-    this.document.endAction();
     this.clearShapeState();
   }
 
@@ -1530,5 +5416,205 @@ export class EditorCanvas {
       container.clientHeight - paddingTop - paddingBottom,
     );
     return { contentWidth, contentHeight, paddingLeft, paddingTop };
+  }
+
+  private getCurrentFrameId(): string {
+    const frames = this.document.frames();
+    const currentIndex = this.document.currentFrameIndex();
+    const frame = frames[currentIndex];
+    return frame?.id || '';
+  }
+
+  private findBonePointAt(
+    frameId: string,
+    x: number,
+    y: number,
+  ): { boneId: string; pointId: string } | null {
+    const bones = this.boneService.getBones(frameId);
+    const hitRadius = 5;
+
+    for (const bone of bones) {
+      for (const point of bone.points) {
+        const dx = point.x - x;
+        const dy = point.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= hitRadius) {
+          return { boneId: bone.id, pointId: point.id };
+        }
+      }
+    }
+    return null;
+  }
+
+  private handleGenerateFromSelection(sourceType: 'layer' | 'visible'): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      return;
+    }
+
+    const sketchDataUrl = this.extractSketchFromSelection(sourceType);
+    if (!sketchDataUrl) {
+      return;
+    }
+
+    this.pixelGenerationDialog?.show(
+      sketchDataUrl,
+      sel.width,
+      sel.height,
+      'selection',
+    );
+  }
+
+  private extractSketchFromSelection(
+    sourceType: 'layer' | 'visible',
+  ): string | null {
+    const sel = this.document.selectionRect();
+    if (!sel) return null;
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const canvas = document.createElement('canvas');
+    canvas.width = sel.width;
+    canvas.height = sel.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    if (sourceType === 'layer') {
+      const layerId = this.document.selectedLayerId();
+      const buf = this.document.getLayerBuffer(layerId);
+      if (!buf) return null;
+
+      for (let y = 0; y < sel.height; y++) {
+        for (let x = 0; x < sel.width; x++) {
+          const srcX = sel.x + x;
+          const srcY = sel.y + y;
+          if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
+            if (this.isPointInSelection(srcX, srcY)) {
+              const col = buf[srcY * w + srcX];
+              if (col && col.length) {
+                ctx.fillStyle = col;
+                ctx.fillRect(x, y, 1, 1);
+              }
+            }
+          }
+        }
+      }
+    } else {
+      const layers = this.document.getFlattenedLayers();
+      for (let li = layers.length - 1; li >= 0; li--) {
+        const layer = layers[li];
+        if (!layer.visible) continue;
+        const buf = this.document.getLayerBuffer(layer.id);
+        if (!buf) continue;
+
+        for (let y = 0; y < sel.height; y++) {
+          for (let x = 0; x < sel.width; x++) {
+            const srcX = sel.x + x;
+            const srcY = sel.y + y;
+            if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
+              if (this.isPointInSelection(srcX, srcY)) {
+                const col = buf[srcY * w + srcX];
+                if (col && col.length) {
+                  ctx.fillStyle = col;
+                  ctx.fillRect(x, y, 1, 1);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return canvas.toDataURL('image/png');
+  }
+
+  handleGenerate(request: GeneratePixelArtRequest): void {
+    const canvas = document.createElement('canvas');
+    canvas.width = request.width;
+    canvas.height = request.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      this.pixelGenerationDialog?.hide();
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, request.width, request.height);
+      const imageData = ctx.getImageData(0, 0, request.width, request.height);
+
+      this.pixelGenEngine
+        .generatePixelArt(
+          imageData,
+          request.prompt,
+          request.width,
+          request.height,
+          'pixel-modern',
+        )
+        .subscribe({
+          next: (jobId) => {
+            if (this.generationCheckInterval !== null) {
+              clearInterval(this.generationCheckInterval);
+            }
+            this.generationCheckInterval = setInterval(() => {
+              const job = this.pixelGenEngine.getJob(jobId);
+              if (!job || job.response.status === 'processing') {
+                return;
+              }
+
+              if (this.generationCheckInterval !== null) {
+                clearInterval(this.generationCheckInterval);
+                this.generationCheckInterval = null;
+              }
+
+              if (
+                job.response.status === 'completed' &&
+                job.response.resultImageData
+              ) {
+                const newLayer = this.document.addLayer('Generated');
+                const buf = this.document.getLayerBuffer(newLayer.id);
+                if (!buf) {
+                  this.pixelGenerationDialog?.hide();
+                  return;
+                }
+
+                const resultData = job.response.resultImageData;
+                const w = this.document.canvasWidth();
+                const h = this.document.canvasHeight();
+
+                for (let y = 0; y < Math.min(request.height, h); y++) {
+                  for (let x = 0; x < Math.min(request.width, w); x++) {
+                    const srcIdx = (y * request.width + x) * 4;
+                    const r = resultData.data[srcIdx];
+                    const g = resultData.data[srcIdx + 1];
+                    const b = resultData.data[srcIdx + 2];
+                    const a = resultData.data[srcIdx + 3];
+
+                    if (a > 0) {
+                      const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                      buf[y * w + x] = hex;
+                    }
+                  }
+                }
+
+                this.document.layerPixelsVersion.update((v) => v + 1);
+                this.pixelGenerationDialog?.hide();
+              } else {
+                console.error('Generation failed:', job.response.error);
+                this.pixelGenerationDialog?.hide();
+              }
+            }, 500) as unknown as number;
+          },
+          error: (error) => {
+            console.error('Generation failed:', error);
+            this.pixelGenerationDialog?.hide();
+          },
+        });
+    };
+    img.onerror = () => {
+      console.error('Failed to load sketch image');
+      this.pixelGenerationDialog?.hide();
+    };
+    img.src = request.sketchDataUrl;
   }
 }

@@ -1,0 +1,186 @@
+<div
+  id="content-aware-fill-panel-root"
+  class="flex h-full flex-col bg-neutral-50/60 dark:bg-neutral-900/60"
+>
+  <div
+    id="content-aware-fill-panel-header"
+    class="flex items-center justify-between px-3 py-2 border-b border-neutral-200/60 dark:border-neutral-700/60"
+  >
+    <h3
+      id="content-aware-fill-panel-title"
+      class="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+    >
+      {{ "contentAwareFill.title" | transloco }}
+    </h3>
+  </div>
+
+  <div
+    id="content-aware-fill-panel-content"
+    class="flex-1 overflow-y-auto p-3 space-y-4"
+  >
+    <div
+      id="content-aware-fill-description"
+      class="text-xs text-neutral-600 dark:text-neutral-400"
+    >
+      {{ "contentAwareFill.description" | transloco }}
+    </div>
+
+    <section id="content-aware-fill-detail-section" class="space-y-2">
+      <label
+        id="content-aware-fill-detail-label"
+        for="content-aware-fill-detail-input"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "contentAwareFill.detailLevel" | transloco }}
+      </label>
+      <div
+        id="content-aware-fill-detail-row"
+        class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+      >
+        <input
+          id="content-aware-fill-detail-range"
+          type="range"
+          min="1"
+          max="10"
+          [ngModel]="detailLevel"
+          (ngModelChange)="detailLevel = $event"
+          class="w-full accent-blue-500"
+        />
+        <input
+          id="content-aware-fill-detail-input"
+          type="number"
+          min="1"
+          max="10"
+          [ngModel]="detailLevel"
+          (input)="onDetailLevelInput($event)"
+          class="w-14 rounded border border-neutral-300/70 bg-white px-2 py-1 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+        />
+      </div>
+    </section>
+
+    <section id="content-aware-fill-radius-section" class="space-y-2">
+      <label
+        id="content-aware-fill-radius-label"
+        for="content-aware-fill-radius-input"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "contentAwareFill.sampleRadius" | transloco }}
+      </label>
+      <div
+        id="content-aware-fill-radius-row"
+        class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+      >
+        <input
+          id="content-aware-fill-radius-range"
+          type="range"
+          min="1"
+          max="20"
+          [ngModel]="sampleRadius"
+          (ngModelChange)="sampleRadius = $event"
+          class="w-full accent-blue-500"
+        />
+        <div
+          id="content-aware-fill-radius-value-row"
+          class="flex items-center gap-1"
+        >
+          <input
+            id="content-aware-fill-radius-input"
+            type="number"
+            min="1"
+            max="20"
+            [ngModel]="sampleRadius"
+            (input)="onSampleRadiusInput($event)"
+            class="w-14 rounded border border-neutral-300/70 bg-white px-2 py-1 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+          />
+          <span
+            id="content-aware-fill-radius-unit"
+            class="text-xs text-neutral-500 dark:text-neutral-500"
+            >px</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <section
+      id="content-aware-fill-exclusion-section"
+      class="space-y-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-700/60"
+    >
+      <div
+        id="content-aware-fill-exclusion-toggle-row"
+        class="flex items-center gap-2"
+      >
+        <input
+          id="content-aware-fill-exclusion-checkbox"
+          type="checkbox"
+          [ngModel]="exclusionMaskEnabled"
+          (ngModelChange)="exclusionMaskEnabled = $event"
+          class="rounded-sm"
+        />
+        <label
+          id="content-aware-fill-exclusion-label"
+          for="content-aware-fill-exclusion-checkbox"
+          class="text-xs text-neutral-600 dark:text-neutral-400"
+        >
+          {{ "contentAwareFill.exclusionMask" | transloco }}
+        </label>
+      </div>
+      @if (exclusionMaskEnabled) {
+        <button
+          id="content-aware-fill-clear-exclusion-button"
+          type="button"
+          (click)="clearExclusionMask()"
+          class="w-full px-3 py-1.5 text-xs rounded border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
+        >
+          {{ "contentAwareFill.clearExclusion" | transloco }}
+        </button>
+      }
+    </section>
+
+    <section
+      id="content-aware-fill-preview-section"
+      class="space-y-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-700/60"
+    >
+      <div
+        id="content-aware-fill-preview-toggle-row"
+        class="flex items-center gap-2"
+      >
+        <input
+          id="content-aware-fill-preview-checkbox"
+          type="checkbox"
+          [ngModel]="previewEnabled"
+          (ngModelChange)="previewEnabled = $event"
+          class="rounded-sm"
+        />
+        <label
+          id="content-aware-fill-preview-label"
+          for="content-aware-fill-preview-checkbox"
+          class="text-xs text-neutral-600 dark:text-neutral-400"
+        >
+          {{ "contentAwareFill.previewToggle" | transloco }}
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="content-aware-fill-panel-footer"
+    class="shrink-0 flex gap-2 px-3 py-2 border-t border-neutral-200/60 dark:border-neutral-700/60"
+  >
+    <button
+      id="content-aware-fill-cancel-button"
+      type="button"
+      (click)="cancel()"
+      class="flex-1 px-3 py-1.5 text-xs rounded border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
+    >
+      {{ "contentAwareFill.cancel" | transloco }}
+    </button>
+    <button
+      id="content-aware-fill-apply-button"
+      type="button"
+      (click)="apply()"
+      class="flex-1 px-3 py-1.5 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white font-medium"
+    >
+      {{ "contentAwareFill.apply" | transloco }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,232 @@
+<div
+  id="stroke-panel-root"
+  class="flex h-full flex-col bg-neutral-50/60 dark:bg-neutral-900/60"
+>
+  <div
+    id="stroke-panel-header"
+    class="flex items-center justify-between px-3 py-2 border-b border-neutral-200/60 dark:border-neutral-700/60"
+  >
+    <h3
+      id="stroke-panel-title"
+      class="text-sm font-medium text-neutral-800 dark:text-neutral-200"
+    >
+      {{ "stroke.title" | transloco }}
+    </h3>
+  </div>
+
+  <div id="stroke-panel-content" class="flex-1 overflow-y-auto p-3 space-y-4">
+    <div
+      id="stroke-panel-description"
+      class="text-xs text-neutral-600 dark:text-neutral-400"
+    >
+      {{ "stroke.description" | transloco }}
+    </div>
+
+    <section id="stroke-color-section" class="space-y-2">
+      <label
+        id="stroke-color-label"
+        for="stroke-color-input"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "stroke.color" | transloco }}
+      </label>
+      <input
+        id="stroke-color-input"
+        type="color"
+        [ngModel]="strokeColor"
+        (input)="onStrokeColorInput($event)"
+        class="h-9 w-10 rounded border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
+      />
+    </section>
+
+    <section id="stroke-width-section" class="space-y-2">
+      <label
+        id="stroke-width-label"
+        for="stroke-width-input"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "stroke.width" | transloco }}
+      </label>
+      <div
+        id="stroke-width-row"
+        class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+      >
+        <input
+          id="stroke-width-range"
+          type="range"
+          min="1"
+          max="20"
+          [ngModel]="strokeWidth"
+          (ngModelChange)="strokeWidth = $event"
+          class="w-full accent-blue-500"
+        />
+        <div id="stroke-width-value-row" class="flex items-center gap-1">
+          <input
+            id="stroke-width-input"
+            type="number"
+            min="1"
+            max="20"
+            [ngModel]="strokeWidth"
+            (input)="onStrokeWidthInput($event)"
+            class="w-14 rounded border border-neutral-300/70 bg-white px-2 py-1 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+          />
+          <span
+            id="stroke-width-unit"
+            class="text-xs text-neutral-500 dark:text-neutral-500"
+            >px</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <section id="stroke-style-section" class="space-y-2">
+      <label
+        id="stroke-style-label"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "stroke.style" | transloco }}
+      </label>
+      <div id="stroke-style-options" class="flex gap-2">
+        <button
+          id="stroke-style-solid-button"
+          type="button"
+          (click)="strokeStyle = 'solid'"
+          [class.bg-blue-500]="strokeStyle === 'solid'"
+          [class.text-white]="strokeStyle === 'solid'"
+          [class.bg-neutral-100]="strokeStyle !== 'solid'"
+          [class.dark:bg-neutral-800]="strokeStyle !== 'solid'"
+          [class.text-neutral-700]="strokeStyle !== 'solid'"
+          [class.dark:text-neutral-300]="strokeStyle !== 'solid'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.styleSolid" | transloco }}
+        </button>
+        <button
+          id="stroke-style-dashed-button"
+          type="button"
+          (click)="strokeStyle = 'dashed'"
+          [class.bg-blue-500]="strokeStyle === 'dashed'"
+          [class.text-white]="strokeStyle === 'dashed'"
+          [class.bg-neutral-100]="strokeStyle !== 'dashed'"
+          [class.dark:bg-neutral-800]="strokeStyle !== 'dashed'"
+          [class.text-neutral-700]="strokeStyle !== 'dashed'"
+          [class.dark:text-neutral-300]="strokeStyle !== 'dashed'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.styleDashed" | transloco }}
+        </button>
+        <button
+          id="stroke-style-dotted-button"
+          type="button"
+          (click)="strokeStyle = 'dotted'"
+          [class.bg-blue-500]="strokeStyle === 'dotted'"
+          [class.text-white]="strokeStyle === 'dotted'"
+          [class.bg-neutral-100]="strokeStyle !== 'dotted'"
+          [class.dark:bg-neutral-800]="strokeStyle !== 'dotted'"
+          [class.text-neutral-700]="strokeStyle !== 'dotted'"
+          [class.dark:text-neutral-300]="strokeStyle !== 'dotted'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.styleDotted" | transloco }}
+        </button>
+      </div>
+    </section>
+
+    <section id="stroke-position-section" class="space-y-2">
+      <label
+        id="stroke-position-label"
+        class="block text-xs font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "stroke.position" | transloco }}
+      </label>
+      <div id="stroke-position-options" class="flex gap-2">
+        <button
+          id="stroke-position-inside-button"
+          type="button"
+          (click)="strokePosition = 'inside'"
+          [class.bg-blue-500]="strokePosition === 'inside'"
+          [class.text-white]="strokePosition === 'inside'"
+          [class.bg-neutral-100]="strokePosition !== 'inside'"
+          [class.dark:bg-neutral-800]="strokePosition !== 'inside'"
+          [class.text-neutral-700]="strokePosition !== 'inside'"
+          [class.dark:text-neutral-300]="strokePosition !== 'inside'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.positionInside" | transloco }}
+        </button>
+        <button
+          id="stroke-position-center-button"
+          type="button"
+          (click)="strokePosition = 'center'"
+          [class.bg-blue-500]="strokePosition === 'center'"
+          [class.text-white]="strokePosition === 'center'"
+          [class.bg-neutral-100]="strokePosition !== 'center'"
+          [class.dark:bg-neutral-800]="strokePosition !== 'center'"
+          [class.text-neutral-700]="strokePosition !== 'center'"
+          [class.dark:text-neutral-300]="strokePosition !== 'center'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.positionCenter" | transloco }}
+        </button>
+        <button
+          id="stroke-position-outside-button"
+          type="button"
+          (click)="strokePosition = 'outside'"
+          [class.bg-blue-500]="strokePosition === 'outside'"
+          [class.text-white]="strokePosition === 'outside'"
+          [class.bg-neutral-100]="strokePosition !== 'outside'"
+          [class.dark:bg-neutral-800]="strokePosition !== 'outside'"
+          [class.text-neutral-700]="strokePosition !== 'outside'"
+          [class.dark:text-neutral-300]="strokePosition !== 'outside'"
+          class="flex-1 px-2 py-1.5 text-xs rounded border border-neutral-300/70 dark:border-neutral-700/70 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        >
+          {{ "stroke.positionOutside" | transloco }}
+        </button>
+      </div>
+    </section>
+
+    <section
+      id="stroke-preview-section"
+      class="space-y-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-700/60"
+    >
+      <div id="stroke-preview-toggle-row" class="flex items-center gap-2">
+        <input
+          id="stroke-preview-checkbox"
+          type="checkbox"
+          [ngModel]="previewEnabled"
+          (ngModelChange)="previewEnabled = $event"
+          class="rounded-sm"
+        />
+        <label
+          id="stroke-preview-label"
+          for="stroke-preview-checkbox"
+          class="text-xs text-neutral-600 dark:text-neutral-400"
+        >
+          {{ "stroke.previewToggle" | transloco }}
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <div
+    id="stroke-panel-footer"
+    class="shrink-0 flex gap-2 px-3 py-2 border-t border-neutral-200/60 dark:border-neutral-700/60"
+  >
+    <button
+      id="stroke-cancel-button"
+      type="button"
+      (click)="cancel()"
+      class="flex-1 px-3 py-1.5 text-xs rounded border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300"
+    >
+      {{ "stroke.cancel" | transloco }}
+    </button>
+    <button
+      id="stroke-apply-button"
+      type="button"
+      (click)="apply()"
+      class="flex-1 px-3 py-1.5 text-xs rounded bg-blue-500 hover:bg-blue-600 text-white font-medium"
+    >
+      {{ "stroke.apply" | transloco }}
+    </button>
+  </div>
+</div>

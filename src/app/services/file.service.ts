@@ -1,17 +1,6 @@
 import { Injectable } from '@angular/core';
-
-/**
- * FileService (file-based):
- * - read project JSON from user file (open/import)
- * - save project JSON to user file (save/download)
- *
- * Implementation details:
- * - Uses the File System Access API (showOpenFilePicker / showSaveFilePicker) when available.
- * - Falls back to reading File objects (from <input type="file">) and to triggering a download
- *   via Blob/anchor when saving.
- *
- * Methods are mostly async (Promise-based) because file access is asynchronous.
- */
+import { Observable, from, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 export interface Pixel {
   x: number;
@@ -81,15 +70,11 @@ export class FileService {
     return project;
   }
 
-  /**
-   * Open a project by showing a file picker to the user.
-   * Returns the parsed Project and remembers the file handle (when available) to allow saving back.
-   */
-  async openProjectFromPicker(): Promise<Project | null> {
-    // If the File System Access API is available
+  openProjectFromPicker(): Observable<Project | null> {
     if (window && (window as any).showOpenFilePicker) {
-      try {
-        const [handle] = await (window as any).showOpenFilePicker({
+      let fileHandle: any;
+      return from(
+        (window as any).showOpenFilePicker({
           types: [
             {
               description: 'PixArt project (JSON)',
@@ -97,121 +82,159 @@ export class FileService {
             },
           ],
           multiple: false,
-        });
+        }) as Promise<any[]>,
+      ).pipe(
+        switchMap((handles: any[]) => {
+          fileHandle = handles[0];
+          return from(fileHandle.getFile() as Promise<File>);
+        }),
+        switchMap((file: File) => from(file.text())),
+        map((text: string) => {
+          const parsed = JSON.parse(text) as Project;
+          const projectId =
+            parsed.id ||
+            `proj_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+          parsed.id = projectId;
+          this.fileHandles.set(projectId, fileHandle);
+          return parsed;
+        }),
+        catchError((e) => {
+          console.warn('Open project canceled or failed', e);
+          return of(null);
+        }),
+      );
+    }
 
-        const file = await handle.getFile();
-        const text = await file.text();
+    return this.openProjectFromInputFile().pipe(
+      catchError((e) => {
+        console.warn('Open project from input file failed', e);
+        return of(null);
+      }),
+    );
+  }
+
+  openProjectFromFile(file: File): Observable<Project | null> {
+    return from(file.text()).pipe(
+      map((text: string) => {
         const parsed = JSON.parse(text) as Project;
-        // remember handle by project id if present or by new id
-        const projectId =
+        parsed.id =
           parsed.id ||
           `proj_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-        parsed.id = projectId;
-        this.fileHandles.set(projectId, handle);
         return parsed;
-      } catch (e) {
-        console.warn('Open project canceled or failed', e);
-        return null;
-      }
-    }
-
-    // Fallback: create and dispatch an <input type="file"> and read first file
-    return await this.openProjectFromInputFile();
+      }),
+      catchError((e) => {
+        console.error('Failed to open project from file', e);
+        return of(null);
+      }),
+    );
   }
 
-  /**
-   * Read project from a supplied File object (useful if the user selected a file via an <input>).
-   */
-  async openProjectFromFile(file: File): Promise<Project | null> {
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text) as Project;
-      parsed.id =
-        parsed.id ||
-        `proj_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-      // Note: cannot obtain a persistent file handle from a plain File
-      return parsed;
-    } catch (e) {
-      console.error('Failed to open project from file', e);
-      return null;
-    }
-  }
-
-  private openProjectFromInputFile(): Promise<Project | null> {
-    return new Promise((resolve) => {
+  private openProjectFromInputFile(): Observable<Project | null> {
+    return new Observable<Project | null>((observer) => {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json';
-      input.onchange = async () => {
+      input.onchange = () => {
         const f = input.files && input.files[0];
-        if (!f) return resolve(null);
-        const project = await this.openProjectFromFile(f);
-        resolve(project);
+        if (!f) {
+          observer.next(null);
+          observer.complete();
+          return;
+        }
+        this.openProjectFromFile(f).subscribe({
+          next: (project) => {
+            observer.next(project);
+            observer.complete();
+          },
+          error: (err) => {
+            observer.error(err);
+          },
+        });
       };
       input.click();
     });
   }
 
-  /**
-   * Save a project. If a file handle is known for the project, attempt to write back to it.
-   * Otherwise, prompt the user to pick a save location (File System Access API) or fall back to
-   * downloading a JSON file.
-   */
-  async saveProjectToFile(
+  saveProjectToFile(
     project: Project,
     suggestedName?: string,
-  ): Promise<boolean> {
+  ): Observable<boolean> {
     const contents = this.projectToJson(project);
 
-    // If we have a file handle for this project, try to write to it
     const knownHandle = this.fileHandles.get(project.id);
     if (knownHandle && knownHandle.createWritable) {
-      try {
-        const writable = await knownHandle.createWritable();
-        await writable.write(contents);
-        await writable.close();
-        project.modified = new Date().toISOString();
-        return true;
-      } catch (e) {
-        console.warn(
-          'Failed to write to known handle, will fallback to save-as',
-          e,
-        );
-      }
+      return from(knownHandle.createWritable()).pipe(
+        switchMap((writable: any) =>
+          from(writable.write(contents)).pipe(
+            switchMap(() => from(writable.close())),
+            map(() => {
+              project.modified = new Date().toISOString();
+              return true;
+            }),
+          ),
+        ),
+        catchError((e) => {
+          console.warn(
+            'Failed to write to known handle, will fallback to save-as',
+            e,
+          );
+          return this.saveAsNewFile(project, contents, suggestedName);
+        }),
+      );
     }
 
-    // If the platform supports showSaveFilePicker, use it
     if (window && (window as any).showSaveFilePicker) {
-      try {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: suggestedName || `${project.name || 'project'}.json`,
-          types: [
-            {
-              description: 'PixArt project (JSON)',
-              accept: { 'application/json': ['.json', '.pix'] },
-            },
-          ],
-        });
-        const writable = await handle.createWritable();
-        await writable.write(contents);
-        await writable.close();
-        // remember handle for future saves
-        this.fileHandles.set(project.id, handle);
-        project.modified = new Date().toISOString();
-        return true;
-      } catch (e) {
-        console.warn('Save-as canceled or failed', e);
-        // fallthrough to download fallback
-      }
+      return this.saveAsNewFile(project, contents, suggestedName);
     }
 
-    // Fallback: trigger a download
     this.downloadString(
       contents,
       suggestedName || `${project.name || 'project'}.json`,
     );
     project.modified = new Date().toISOString();
-    return true;
+    return of(true);
+  }
+
+  private saveAsNewFile(
+    project: Project,
+    contents: string,
+    suggestedName?: string,
+  ): Observable<boolean> {
+    return from(
+      (window as any).showSaveFilePicker({
+        suggestedName: suggestedName || `${project.name || 'project'}.json`,
+        types: [
+          {
+            description: 'PixArt project (JSON)',
+            accept: { 'application/json': ['.json', '.pix'] },
+          },
+        ],
+      }),
+    ).pipe(
+      switchMap((handle: any) =>
+        from(handle.createWritable()).pipe(
+          switchMap((writable: any) =>
+            from(writable.write(contents)).pipe(
+              switchMap(() => from(writable.close())),
+              map(() => {
+                this.fileHandles.set(project.id, handle);
+                project.modified = new Date().toISOString();
+                return true;
+              }),
+            ),
+          ),
+        ),
+      ),
+      catchError((e) => {
+        console.warn('Save-as canceled or failed', e);
+        this.downloadString(
+          contents,
+          suggestedName || `${project.name || 'project'}.json`,
+        );
+        project.modified = new Date().toISOString();
+        return of(true);
+      }),
+    );
   }
 
   /**
@@ -225,10 +248,7 @@ export class FileService {
     );
   }
 
-  /**
-   * Import a project from a selected File object (e.g., from an <input>). Returns parsed Project.
-   */
-  async importProjectFromFile(file: File): Promise<Project | null> {
+  importProjectFromFile(file: File): Observable<Project | null> {
     return this.openProjectFromFile(file);
   }
 

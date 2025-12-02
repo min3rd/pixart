@@ -1,0 +1,60 @@
+@if (isOpen()) {
+<div
+  [id]="modalId() + '-backdrop'"
+  [class]="'fixed inset-0 z-50 flex items-center justify-center ' + (showBackdrop() ? 'bg-black bg-opacity-50' : '')"
+  (click)="handleBackdropClick($event)"
+  role="dialog"
+  [attr.aria-modal]="true"
+  [attr.aria-labelledby]="modalId() + '-title'"
+>
+  <div
+    [id]="modalId() + '-container'"
+    [class]="'bg-white dark:bg-neutral-800 rounded-sm shadow-lg w-full max-h-[90vh] flex flex-col pointer-events-auto ' + (draggable() ? 'absolute cursor-move shadow-2xl border-2 border-neutral-300 dark:border-neutral-700' : '') + ' ' + getSizeClass()"
+    [style.left.px]="draggable() ? dialogX() : null"
+    [style.top.px]="draggable() ? dialogY() : null"
+    (click)="$event.stopPropagation()"
+  >
+    @if (title() || showCloseButton()) {
+    <div
+      [id]="modalId() + '-header'"
+      class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
+      (pointerdown)="draggable() ? onDragStart($event) : null"
+      [class.cursor-move]="draggable()"
+      style="touch-action: none"
+    >
+      @if (title()) {
+      <h2
+        [id]="modalId() + '-title'"
+        class="text-lg font-semibold text-neutral-900 dark:text-neutral-100"
+      >
+        {{ title() }}
+      </h2>
+      } @if (showCloseButton()) {
+      <button
+        type="button"
+        [id]="modalId() + '-close-button'"
+        class="p-1 rounded-sm hover:bg-neutral-100 dark:hover:bg-neutral-700"
+        (click)="handleClose()"
+        [title]="'modal.close' | transloco"
+        [attr.aria-label]="'modal.close' | transloco"
+      >
+        <ng-icon name="heroXMark" class="w-5 h-5"></ng-icon>
+      </button>
+      }
+    </div>
+    }
+
+    <div
+      [id]="modalId() + '-content'"
+      class="flex-1 overflow-y-auto px-4 py-3"
+      style="touch-action: auto"
+    >
+      <ng-content></ng-content>
+    </div>
+
+    <div [id]="modalId() + '-footer'" class="px-4 py-3">
+      <ng-content select="[modal-footer]"></ng-content>
+    </div>
+  </div>
+</div>
+}

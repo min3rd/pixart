@@ -1,0 +1,196 @@
+<pa-modal
+  [isOpen]="visible()"
+  (onClose)="close()"
+  [modalId]="'perspective-dialog-modal'"
+>
+  <div class="flex flex-col gap-4 p-4 w-[500px]">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold" id="perspective-dialog-title">
+        {{ 'perspective.title' | transloco }}
+      </h2>
+      <button
+        (click)="close()"
+        class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+        id="perspective-dialog-close-btn"
+        aria-label="{{ 'modal.close' | transloco }}"
+      >
+        <ng-icon name="heroXMark" size="20"></ng-icon>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div
+        class="text-sm text-gray-600 dark:text-gray-400"
+        id="perspective-dialog-original-size"
+      >
+        {{ 'perspective.originalSize' | transloco }}: {{ originalWidth() }} x {{
+        originalHeight() }} px
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-top-left-label"
+        >
+          {{ 'perspective.topLeft' | transloco }}
+        </label>
+        <div class="flex gap-2">
+          <input
+            type="number"
+            [value]="topLeftX()"
+            (input)="updateTopLeftX($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-top-left-x"
+            aria-label="Top left X"
+          />
+          <input
+            type="number"
+            [value]="topLeftY()"
+            (input)="updateTopLeftY($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-top-left-y"
+            aria-label="Top left Y"
+          />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-top-right-label"
+        >
+          {{ 'perspective.topRight' | transloco }}
+        </label>
+        <div class="flex gap-2">
+          <input
+            type="number"
+            [value]="topRightX()"
+            (input)="updateTopRightX($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-top-right-x"
+            aria-label="Top right X"
+          />
+          <input
+            type="number"
+            [value]="topRightY()"
+            (input)="updateTopRightY($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-top-right-y"
+            aria-label="Top right Y"
+          />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-bottom-left-label"
+        >
+          {{ 'perspective.bottomLeft' | transloco }}
+        </label>
+        <div class="flex gap-2">
+          <input
+            type="number"
+            [value]="bottomLeftX()"
+            (input)="updateBottomLeftX($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-bottom-left-x"
+            aria-label="Bottom left X"
+          />
+          <input
+            type="number"
+            [value]="bottomLeftY()"
+            (input)="updateBottomLeftY($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-bottom-left-y"
+            aria-label="Bottom left Y"
+          />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label
+          class="text-sm font-medium"
+          id="perspective-dialog-bottom-right-label"
+        >
+          {{ 'perspective.bottomRight' | transloco }}
+        </label>
+        <div class="flex gap-2">
+          <input
+            type="number"
+            [value]="bottomRightX()"
+            (input)="updateBottomRightX($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-bottom-right-x"
+            aria-label="Bottom right X"
+          />
+          <input
+            type="number"
+            [value]="bottomRightY()"
+            (input)="updateBottomRightY($any($event.target).value)"
+            class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-sm"
+            id="perspective-dialog-bottom-right-y"
+            aria-label="Bottom right Y"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          [checked]="preserveAspectRatio()"
+          (change)="togglePreserveAspectRatio()"
+          class="w-4 h-4"
+          id="perspective-dialog-preserve-aspect"
+        />
+        <span class="text-sm"
+          >{{ 'perspective.preserveAspectRatio' | transloco }}</span
+        >
+      </label>
+
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          [checked]="keepParallelEdges()"
+          (change)="toggleKeepParallelEdges()"
+          class="w-4 h-4"
+          id="perspective-dialog-keep-parallel"
+        />
+        <span class="text-sm"
+          >{{ 'perspective.keepParallelEdges' | transloco }}</span
+        >
+      </label>
+    </div>
+
+    <div
+      class="flex gap-2 justify-end pt-2 border-t border-gray-200 dark:border-gray-700"
+    >
+      <button
+        (click)="reset()"
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+        id="perspective-dialog-reset-btn"
+      >
+        {{ 'perspective.reset' | transloco }}
+      </button>
+      <button
+        (click)="close()"
+        class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+        id="perspective-dialog-cancel-btn"
+      >
+        {{ 'perspective.cancel' | transloco }}
+      </button>
+      <button
+        (click)="apply()"
+        [disabled]="!canApply()"
+        class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        id="perspective-dialog-apply-btn"
+      >
+        {{ 'perspective.apply' | transloco }}
+      </button>
+    </div>
+  </div>
+</pa-modal>

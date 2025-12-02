@@ -24,8 +24,6 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
 - Prefer inline templates for small components
 - Prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
 - When creating new components or pages, always use external HTML template files (e.g., `my-component.component.html`) and reference them with `templateUrl`.
 - Do NOT use inline `template` or `styles` in the `@Component` decorator. Use `styleUrls` to point to one or more external CSS/SCSS files.
 - Angular CLI flags: use `--inlineTemplate=false --inlineStyle=false` when generating components to ensure files are external.
@@ -35,6 +33,31 @@ Additional project rules:
 - Do NOT leave comments in code. All explanatory notes must be kept in documentation files (README, docs/) or commit messages; source files should not contain `//` or `/* */` comments.
 - Always use Transloco for UI text and do NOT display hard-coded strings in templates or components; all user-facing strings must come from translation keys.
 - Every HTML element you add in templates must include an `id` attribute that is unique within its document to simplify automation tasks.
+- **NEVER use `window.alert()`, `window.prompt()`, `window.confirm()` or similar browser native dialogs.** These look ugly and break the user experience. Instead, create a shared popup/dialog component using Angular Material Dialog or a custom modal component that matches the application's design system.
+
+## Hotkeys and shortcuts
+
+- For every new user-facing feature, you must:
+  - Define a keyboard shortcut and register it in a centralized hotkey registry service (create `src/app/services/hotkeys.service.ts` if it doesn't exist yet). Expose a typed API for registering actions and resolving conflicts.
+  - Add an entry in the Left Tool Palette with:
+    - A label from Transloco (no hard-coded strings)
+    - An icon from `ng-icons` Heroicons
+    - `id` and `aria-keyshortcuts` attributes that match the registered shortcut
+  - Add a corresponding action in the Header Menu with the same requirements (Transloco label, `ng-icons` icon, unique `id`, and `aria-keyshortcuts`).
+- Show the active shortcut in tooltips/menus using Transloco-driven templates.
+- Avoid conflicting browser/system shortcuts. Prefer editor-like conventions and allow remapping via the hotkey registry service.
+- Implement handlers in small services (not components) and wire them via the registry so components remain thin.
+
+## Code organization and service decomposition
+
+- Keep components thin. Move business logic, orchestration, and side-effects to small, focused services with a single responsibility.
+- Prefer many small services over one large service. Group them by domain under `src/app/services/<domain>/`.
+- Use signals inside services for state and `computed()` for derived state. Components read signals and bind them to the UI.
+- Keep public service APIs minimal and typed. Do not export internal helpers.
+- Practical guidelines:
+  - Aim for component files under ~200 lines and service files under ~300 lines. When larger, split by responsibility.
+  - Separate read/write responsibilities where practical (e.g., `FooReaderService` vs `FooWriterService`).
+  - Keep state transformations pure; prefer `.set()`/`.update()` on signals and avoid shared mutable objects.
 
 ## State Management
 

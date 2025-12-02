@@ -1,0 +1,356 @@
+<div id="animation-creator-container" class="h-full flex flex-col">
+  <div
+    id="animation-creator-toolbar"
+    class="shrink-0 border-b border-neutral-200 dark:border-neutral-700 p-1 flex items-center gap-1 bg-white dark:bg-neutral-800"
+  >
+    <button
+      id="creator-play-btn"
+      type="button"
+      (click)="togglePlayback()"
+      class="px-2 py-1 text-xs rounded-sm bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-1"
+      [title]="
+        (isPlaying() ? 'animationCreator.stop' : 'animationCreator.play')
+          | transloco
+      "
+    >
+      <ng-icon [name]="isPlaying() ? 'heroStop' : 'heroPlay'" size="12" />
+    </button>
+
+    <div
+      id="toolbar-divider-1"
+      class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"
+    ></div>
+
+    <div id="animation-selector-container" class="relative">
+      <button
+        id="animation-selector-btn"
+        type="button"
+        (click)="toggleAnimationDropdown()"
+        class="px-2 py-1 text-xs rounded-sm border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-600 flex items-center gap-1 min-w-32"
+      >
+        @if (animationService.getCurrentAnimation(); as anim) {
+          <div
+            id="current-animation-color"
+            class="w-2 h-2 rounded-none shrink-0"
+            [style.background-color]="anim.color || defaultAnimationColor"
+          ></div>
+          <span
+            id="current-animation-name"
+            class="font-medium truncate flex-1 text-left"
+            >{{ anim.name }}</span
+          >
+          <span
+            id="current-animation-stats"
+            class="text-[10px] text-neutral-500 dark:text-neutral-400"
+            >{{ anim.frames.length }}f</span
+          >
+          <ng-icon name="heroChevronDown" size="10" />
+        }
+      </button>
+
+      @if (showAnimationDropdown()) {
+        <div
+          #animationDropdown
+          id="animation-dropdown"
+          class="absolute top-full left-0 mt-1 z-50 w-64 max-h-80 overflow-y-auto bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-sm shadow-lg"
+        >
+          @for (
+            anim of animationService.animations();
+            track anim.id;
+            let idx = $index
+          ) {
+            <div
+              id="animation-dropdown-border-{{ anim.id }}"
+              class="border-b border-neutral-200 dark:border-neutral-600 last:border-b-0"
+            >
+              <div
+                [id]="'animation-item-container-' + anim.id"
+                class="flex items-center gap-1 p-1 hover:bg-neutral-100 dark:hover:bg-neutral-600"
+                [ngClass]="{
+                  'bg-blue-50':
+                    animationService.currentAnimationIndex() === idx,
+                  'dark:bg-blue-900/50':
+                    animationService.currentAnimationIndex() === idx,
+                  'text-neutral-900':
+                    animationService.currentAnimationIndex() === idx,
+                  'dark:text-neutral-100':
+                    animationService.currentAnimationIndex() === idx,
+                }"
+              >
+                <input
+                  [id]="'anim-color-' + anim.id"
+                  type="color"
+                  [value]="anim.color || defaultAnimationColor"
+                  (input)="onColorChange($event, anim.id)"
+                  (click)="$event.stopPropagation()"
+                  class="w-5 h-5 rounded-none border-0 cursor-pointer"
+                  [title]="'animationCreator.changeColor' | transloco"
+                />
+                @if (editingAnimationId() === anim.id) {
+                  <input
+                    [id]="'anim-name-edit-' + anim.id"
+                    type="text"
+                    [value]="editingAnimationName()"
+                    (input)="onNameInput($event)"
+                    (keydown.enter)="saveAnimationNameEdit(anim.id)"
+                    (keydown.escape)="cancelAnimationNameEdit()"
+                    (blur)="saveAnimationNameEdit(anim.id)"
+                    (click)="$event.stopPropagation()"
+                    class="flex-1 px-1 py-0.5 text-xs bg-white dark:bg-neutral-800 border border-blue-500 rounded-sm focus:outline-none"
+                    autofocus
+                  />
+                } @else {
+                  <button
+                    [id]="'anim-select-' + anim.id"
+                    type="button"
+                    (click)="selectAnimation(idx)"
+                    (dblclick)="startEditingAnimationName(anim.id, anim.name)"
+                    class="flex-1 px-1 py-0.5 text-xs text-left font-medium truncate"
+                  >
+                    {{ anim.name }}
+                  </button>
+                }
+                <span
+                  [id]="'anim-stats-' + anim.id"
+                  class="text-[10px] text-neutral-500 dark:text-neutral-400 tabular-nums"
+                  >{{ anim.frames.length }}f •
+                  {{ getKeyframeCount(anim.id) }}k</span
+                >
+                @if (animationService.animations().length > 1) {
+                  <button
+                    [id]="'anim-delete-' + anim.id"
+                    type="button"
+                    (click)="deleteAnimation(anim.id); $event.stopPropagation()"
+                    class="p-0.5 text-neutral-500 hover:text-red-600 dark:text-neutral-400 dark:hover:text-red-400"
+                    [title]="'animationCreator.deleteAnimation' | transloco"
+                  >
+                    <ng-icon name="heroTrash" size="12" />
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          <button
+            id="dropdown-add-animation-btn"
+            type="button"
+            (click)="createNewAnimation()"
+            class="w-full px-2 py-1.5 text-xs text-center bg-green-500 hover:bg-green-600 text-white flex items-center justify-center gap-1"
+          >
+            <ng-icon name="heroPlus" size="12" />
+            <span>{{ "animationCreator.addAnimation" | transloco }}</span>
+          </button>
+        </div>
+      }
+    </div>
+
+    <div
+      id="creator-time-display"
+      class="px-2 py-1 text-[10px] font-mono bg-neutral-100 dark:bg-neutral-700 rounded-sm"
+    >
+      {{ formatTime(currentTime()) }}
+    </div>
+
+    <div
+      id="toolbar-divider-2"
+      class="h-4 w-px bg-neutral-300 dark:bg-neutral-600"
+    ></div>
+
+    <button
+      id="creator-add-keyframe-btn"
+      type="button"
+      (click)="addKeyframe()"
+      class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 flex items-center gap-1"
+      [title]="'animationCreator.addKeyframe' | transloco"
+    >
+      <ng-icon name="heroPlus" size="12" />
+    </button>
+
+    @if (selectedKeyframeId()) {
+      <button
+        id="creator-delete-keyframe-btn"
+        type="button"
+        (click)="deleteSelectedKeyframe()"
+        class="px-2 py-1 text-xs rounded-sm bg-red-500 hover:bg-red-600 text-white flex items-center gap-1"
+        [title]="'animationCreator.deleteKeyframe' | transloco"
+      >
+        <ng-icon name="heroTrash" size="12" />
+      </button>
+    }
+
+    <div id="zoom-controls" class="ml-auto flex items-center gap-1">
+      <button
+        id="creator-zoom-out-btn"
+        type="button"
+        (click)="decreaseZoom()"
+        class="px-1.5 py-0.5 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+      >
+        −
+      </button>
+      <span id="zoom-display" class="text-[10px] font-mono w-10 text-center"
+        >{{ (zoomLevel() * 100).toFixed(0) }}%</span
+      >
+      <button
+        id="creator-zoom-in-btn"
+        type="button"
+        (click)="increaseZoom()"
+        class="px-1.5 py-0.5 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+      >
+        +
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="animation-creator-timeline"
+    class="flex-1 flex flex-col overflow-hidden"
+  >
+    <div
+      id="creator-timeline-info"
+      class="shrink-0 px-3 py-2 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-750"
+    >
+      <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200">
+        {{ "animationCreator.timeline" | transloco }}
+      </div>
+      <div class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+        {{ "animationCreator.timelineSubtitle" | transloco }}
+      </div>
+    </div>
+
+    <div
+      id="creator-timeline-canvas-container"
+      class="flex-1 relative overflow-hidden"
+    >
+      <canvas
+        #timelineCanvas
+        id="creator-timeline-canvas"
+        class="absolute inset-0 w-full h-full"
+        [class.cursor-crosshair]="!isDraggingPlayhead()"
+        [class.cursor-grabbing]="isDraggingPlayhead()"
+        (mousedown)="onTimelineMouseDown($event)"
+        (mousemove)="onTimelineMouseMove($event)"
+        (mouseup)="onTimelineMouseUp($event)"
+        (mouseleave)="onTimelineMouseLeave()"
+        style="--timeline-bg-color: var(--color-neutral-100)"
+      ></canvas>
+
+      @if (hoveredTime() !== null && !isDraggingPlayhead()) {
+        <div
+          id="creator-timeline-hover-indicator"
+          class="absolute top-0 bottom-0 w-px bg-neutral-400 dark:bg-neutral-500 pointer-events-none"
+          [style.left.px]="getTimelinePixelPosition(hoveredTime()!)"
+        >
+          <div
+            id="hover-time-label"
+            class="absolute top-0 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[9px] font-mono bg-neutral-700 dark:bg-neutral-300 text-white dark:text-neutral-900 rounded-sm whitespace-nowrap"
+          >
+            {{ formatTime(hoveredTime()!) }}
+          </div>
+        </div>
+      }
+
+      @if (isDraggingPlayhead()) {
+        <div
+          id="creator-timeline-drag-label"
+          class="absolute px-2 py-1 text-[10px] font-mono bg-red-600 text-white rounded-sm pointer-events-none shadow-lg"
+          [style.left.px]="getTimelinePixelPosition(currentTime()) + 10"
+          [style.top.px]="20"
+        >
+          {{ formatTime(currentTime()) }}
+        </div>
+      }
+    </div>
+
+    <div
+      id="creator-timeline-keyframes-list"
+      class="shrink-0 border-t border-neutral-200 dark:border-neutral-700 p-2 bg-white dark:bg-neutral-800"
+    >
+      <div
+        class="text-[10px] font-medium mb-1 text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "animationCreator.keyframes" | transloco }}
+      </div>
+
+      @if (animationService.getCurrentAnimation(); as animation) {
+        @if (getSortedKeyframes(animation.id); as keyframes) {
+          @if (keyframes.length === 0) {
+            <div
+              class="text-[10px] text-neutral-500 dark:text-neutral-400 italic"
+            >
+              {{ "animationCreator.noKeyframes" | transloco }}
+            </div>
+          } @else {
+            <div class="flex flex-wrap gap-1">
+              @for (kf of keyframes; track kf.id) {
+                @if (editingKeyframeId() === kf.id) {
+                  <input
+                    [id]="'keyframe-edit-' + kf.id"
+                    type="number"
+                    step="0.1"
+                    [value]="editingKeyframeTime()"
+                    (input)="
+                      editingKeyframeTime.set(+$any($event.target).value)
+                    "
+                    (keydown.enter)="
+                      saveKeyframeTimeEdit(kf.id, editingKeyframeTime())
+                    "
+                    (keydown.escape)="cancelKeyframeTimeEdit()"
+                    (blur)="cancelKeyframeTimeEdit()"
+                    class="w-16 px-2 py-1 text-[10px] rounded-sm border border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    autofocus
+                  />
+                } @else {
+                  <button
+                    [id]="'keyframe-' + kf.id"
+                    type="button"
+                    (click)="
+                      selectedKeyframeId.set(kf.id); setCurrentTime(kf.time)
+                    "
+                    (dblclick)="startEditingKeyframeTime(kf.id, kf.time)"
+                    class="px-2 py-1 text-[10px] rounded-sm transition-colors relative"
+                    [class.bg-blue-500]="selectedKeyframeId() === kf.id"
+                    [class.text-white]="selectedKeyframeId() === kf.id"
+                    [class.bg-neutral-300]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:bg-neutral-600]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                    [class.hover\:bg-neutral-400]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                    [class.dark\:hover\:bg-neutral-500]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                    [class.text-neutral-900]="selectedKeyframeId() !== kf.id"
+                    [class.dark\:text-neutral-100]="
+                      selectedKeyframeId() !== kf.id
+                    "
+                  >
+                    {{ formatTime(kf.time) }}
+                    @if (newKeyframeId() === kf.id) {
+                      <span
+                        class="absolute -top-1 -right-1 px-1 text-[8px] bg-green-500 text-white rounded-sm font-bold"
+                        >NEW</span
+                      >
+                    }
+                  </button>
+                }
+              }
+            </div>
+          }
+        }
+      } @else {
+        <div class="text-[10px] text-neutral-500 dark:text-neutral-400 italic">
+          {{ "animationCreator.selectAnimation" | transloco }}
+        </div>
+      }
+    </div>
+
+    <pa-bone-keyframe-info-panel
+      id="bone-keyframe-info-panel"
+      [selectedKeyframeId]="selectedKeyframeId()"
+      [currentTime]="currentTime()"
+      (configCopied)="onBoneConfigCopied($event)"
+      (configPasted)="onBoneConfigPasted($event)"
+      (transformUpdated)="onTransformUpdated()"
+    ></pa-bone-keyframe-info-panel>
+  </div>
+</div>

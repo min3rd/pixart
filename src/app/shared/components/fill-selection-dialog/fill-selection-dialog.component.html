@@ -1,0 +1,226 @@
+<pa-modal
+  [isOpen]="visible()"
+  [title]="'fillSelection.title' | transloco"
+  [size]="'sm'"
+  [draggable]="true"
+  [showBackdrop]="false"
+  [closeOnBackdrop]="false"
+  [closeOnEscape]="true"
+  [showCloseButton]="true"
+  [modalId]="'fill-selection-dialog'"
+  (onClose)="close()"
+>
+  <div id="fill-selection-dialog-content" class="space-y-4">
+    <div id="fill-selection-mode-section" class="mb-4">
+      <label
+        id="fill-selection-mode-label"
+        class="block text-sm font-medium mb-2"
+      >
+        {{ "fillSelection.fillMode" | transloco }}
+      </label>
+      <div id="fill-selection-mode-buttons" class="flex gap-2">
+        <button
+          id="fill-selection-mode-color-button"
+          type="button"
+          class="px-4 py-2 text-sm rounded-none"
+          [class.bg-blue-600]="mode() === 'color'"
+          [class.text-white]="mode() === 'color'"
+          [class.bg-neutral-200]="mode() !== 'color'"
+          [class.dark:bg-neutral-700]="mode() !== 'color'"
+          (click)="selectMode('color')"
+        >
+          {{ "fillSelection.color" | transloco }}
+        </button>
+        <button
+          id="fill-selection-mode-pattern-button"
+          type="button"
+          class="px-4 py-2 text-sm rounded-none"
+          [class.bg-blue-600]="mode() === 'pattern'"
+          [class.text-white]="mode() === 'pattern'"
+          [class.bg-neutral-200]="mode() !== 'pattern'"
+          [class.dark:bg-neutral-700]="mode() !== 'pattern'"
+          (click)="selectMode('pattern')"
+        >
+          {{ "fillSelection.pattern" | transloco }}
+        </button>
+        <button
+          id="fill-selection-mode-gradient-button"
+          type="button"
+          class="px-4 py-2 text-sm rounded-none"
+          [class.bg-blue-600]="mode() === 'gradient'"
+          [class.text-white]="mode() === 'gradient'"
+          [class.bg-neutral-200]="mode() !== 'gradient'"
+          [class.dark:bg-neutral-700]="mode() !== 'gradient'"
+          (click)="selectMode('gradient')"
+        >
+          {{ "fillSelection.gradient" | transloco }}
+        </button>
+      </div>
+    </div>
+
+    @if (mode() === "color") {
+      <div id="fill-selection-color-section" class="mb-4">
+        <label
+          id="fill-selection-color-label"
+          for="fill-selection-color-input"
+          class="block text-sm font-medium mb-2"
+        >
+          {{ "fillSelection.color" | transloco }}
+        </label>
+        <input
+          id="fill-selection-color-input"
+          type="color"
+          [value]="color()"
+          (input)="updateColor($event)"
+          class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+        />
+      </div>
+    }
+
+    @if (mode() === "pattern") {
+      <div id="fill-selection-pattern-section" class="mb-4">
+        <label
+          id="fill-selection-pattern-label"
+          class="block text-sm font-medium mb-2"
+        >
+          {{ "fillSelection.selectPattern" | transloco }}
+        </label>
+        <div
+          id="fill-selection-pattern-grid"
+          class="grid grid-cols-4 gap-2 max-h-64 overflow-y-auto"
+        >
+          @for (pattern of allPatterns(); track pattern.id) {
+            <button
+              [id]="'fill-selection-pattern-' + pattern.id"
+              type="button"
+              class="w-full h-16 border-2 rounded-none overflow-hidden"
+              [class.border-blue-600]="patternId() === pattern.id"
+              [class.border-neutral-300]="patternId() !== pattern.id"
+              [class.dark:border-neutral-600]="patternId() !== pattern.id"
+              (click)="selectPattern(pattern.id)"
+              [title]="pattern.nameKey | transloco"
+            >
+              <canvas
+                [id]="'fill-selection-pattern-canvas-' + pattern.id"
+                class="w-full h-full"
+                width="64"
+                height="64"
+              ></canvas>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (mode() === "gradient") {
+      <div id="fill-selection-gradient-section" class="mb-4">
+        <div class="mb-3">
+          <label
+            id="fill-selection-gradient-start-label"
+            for="fill-selection-gradient-start-input"
+            class="block text-sm font-medium mb-2"
+          >
+            {{ "fillSelection.gradientStart" | transloco }}
+          </label>
+          <input
+            id="fill-selection-gradient-start-input"
+            type="color"
+            [value]="gradientStartColor()"
+            (input)="updateGradientStartColor($event)"
+            class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+          />
+        </div>
+        <div class="mb-3">
+          <label
+            id="fill-selection-gradient-end-label"
+            for="fill-selection-gradient-end-input"
+            class="block text-sm font-medium mb-2"
+          >
+            {{ "fillSelection.gradientEnd" | transloco }}
+          </label>
+          <input
+            id="fill-selection-gradient-end-input"
+            type="color"
+            [value]="gradientEndColor()"
+            (input)="updateGradientEndColor($event)"
+            class="w-full h-12 border border-neutral-300 dark:border-neutral-600 rounded-none cursor-pointer"
+          />
+        </div>
+        <div class="mb-3">
+          <label
+            id="fill-selection-gradient-type-label"
+            class="block text-sm font-medium mb-2"
+          >
+            {{ "fillSelection.gradientType" | transloco }}
+          </label>
+          <div id="fill-selection-gradient-type-buttons" class="flex gap-2">
+            <button
+              id="fill-selection-gradient-type-linear-button"
+              type="button"
+              class="flex-1 px-4 py-2 text-sm rounded-none"
+              [class.bg-blue-600]="gradientType() === 'linear'"
+              [class.text-white]="gradientType() === 'linear'"
+              [class.bg-neutral-200]="gradientType() !== 'linear'"
+              [class.dark:bg-neutral-700]="gradientType() !== 'linear'"
+              (click)="selectGradientType('linear')"
+            >
+              {{ "fillSelection.gradientTypeLinear" | transloco }}
+            </button>
+            <button
+              id="fill-selection-gradient-type-radial-button"
+              type="button"
+              class="flex-1 px-4 py-2 text-sm rounded-none"
+              [class.bg-blue-600]="gradientType() === 'radial'"
+              [class.text-white]="gradientType() === 'radial'"
+              [class.bg-neutral-200]="gradientType() !== 'radial'"
+              [class.dark:bg-neutral-700]="gradientType() !== 'radial'"
+              (click)="selectGradientType('radial')"
+            >
+              {{ "fillSelection.gradientTypeRadial" | transloco }}
+            </button>
+          </div>
+        </div>
+        @if (gradientType() === "linear") {
+          <div>
+            <label
+              id="fill-selection-gradient-angle-label"
+              for="fill-selection-gradient-angle-input"
+              class="block text-sm font-medium mb-2"
+            >
+              {{ "fillSelection.gradientAngle" | transloco }}:
+              {{ gradientAngle() }}°
+            </label>
+            <input
+              id="fill-selection-gradient-angle-input"
+              type="range"
+              min="0"
+              max="360"
+              [value]="gradientAngle()"
+              (input)="updateGradientAngle($event)"
+              class="w-full"
+            />
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div modal-footer class="flex justify-end gap-2">
+    <button
+      id="fill-selection-cancel-button"
+      type="button"
+      class="px-4 py-2 text-sm bg-neutral-200 dark:bg-neutral-700 rounded-none"
+      (click)="cancel()"
+    >
+      {{ "fillSelection.cancel" | transloco }}
+    </button>
+    <button
+      id="fill-selection-apply-button"
+      type="button"
+      class="px-4 py-2 text-sm bg-blue-600 text-white rounded-none"
+      (click)="apply()"
+    >
+      {{ "fillSelection.apply" | transloco }}
+    </button>
+  </div>
+</pa-modal>

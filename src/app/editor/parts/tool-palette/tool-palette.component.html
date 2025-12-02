@@ -16,8 +16,10 @@
           'border border-neutral-200/70 bg-neutral-50/60 text-neutral-600 transition-colors  dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-200':
             !active,
         }"
-        title="{{ t.labelKey ? (t.labelKey | transloco) : t.name }}"
         [attr.aria-pressed]="active"
+        [attr.aria-keyshortcuts]="hotkeys.getBinding(getToolHotkeyId(t.id))"
+        [paTooltip]="getToolTooltipKey(t.id) | transloco"
+        [paTooltipHotkeyId]="getToolHotkeyId(t.id)"
       >
         <ng-icon
           id="tool-palette-button-icon-{{ t.id }}"
@@ -809,6 +811,112 @@
               />
             </div>
           }
+        </section>
+      }
+      @case ("bone") {
+        <section
+          id="palette-bone-panel"
+          class="space-y-3 rounded-md bg-neutral-50/60 p-3 dark:border-neutral-700/60 dark:bg-neutral-900/60"
+        >
+          <div
+            id="palette-bone-thickness-row"
+            class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+          >
+            <label
+              id="palette-bone-thickness-label"
+              class="sr-only col-span-2"
+              for="palette-bone-thickness-range"
+            >
+              {{ "editor.tools.bone.thickness" | transloco }}
+            </label>
+            <input
+              id="palette-bone-thickness-range"
+              type="range"
+              min="1"
+              [max]="maxCanvasDim"
+              [value]="tools.boneThickness()"
+              (input)="onBoneThicknessInput($event)"
+              class="w-full accent-blue-500"
+            />
+            <input
+              id="palette-bone-thickness-number"
+              type="number"
+              min="1"
+              [attr.max]="maxCanvasDim"
+              [value]="tools.boneThickness()"
+              (input)="onBoneThicknessInput($event)"
+              [attr.aria-labelledby]="'palette-bone-thickness-label'"
+              class="w-16 rounded border border-neutral-300/70 bg-white px-2 py-1 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+          <div id="palette-bone-color-row" class="flex items-center gap-2">
+            <label
+              id="palette-bone-color-label"
+              class="sr-only"
+              for="palette-bone-color-input"
+            >
+              {{ "editor.tools.bone.color" | transloco }}
+            </label>
+            <input
+              id="palette-bone-color-input"
+              type="color"
+              [value]="tools.boneColor()"
+              (input)="onBoneColorInput($event)"
+              class="h-9 w-10 rounded border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
+            />
+          </div>
+          <div
+            id="palette-bone-auto-bind-section"
+            class="pt-2 border-t border-neutral-200/60 dark:border-neutral-700/60 space-y-2"
+          >
+            <div
+              class="text-xs font-medium text-neutral-700 dark:text-neutral-300"
+            >
+              {{ "bones.autoBindSettings" | transloco }}
+            </div>
+            <div
+              id="palette-bone-auto-bind-enabled-row"
+              class="flex items-center gap-2"
+            >
+              <input
+                type="checkbox"
+                [(ngModel)]="autoBindEnabled"
+                id="palette-auto-bind-enabled-checkbox"
+                class="rounded-sm"
+              />
+              <label
+                for="palette-auto-bind-enabled-checkbox"
+                class="text-xs text-neutral-600 dark:text-neutral-400"
+              >
+                {{ "bones.autoBindEnabled" | transloco }}
+              </label>
+            </div>
+            <div
+              id="palette-bone-auto-bind-radius-row"
+              class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+            >
+              <label
+                id="palette-auto-bind-radius-label"
+                for="palette-auto-bind-radius-input"
+                class="text-xs text-neutral-600 dark:text-neutral-400"
+              >
+                {{ "bones.autoBindRadius" | transloco }}
+              </label>
+              <div class="flex items-center gap-1">
+                <input
+                  type="number"
+                  [(ngModel)]="autoBindRadius"
+                  id="palette-auto-bind-radius-input"
+                  min="1"
+                  max="100"
+                  class="w-16 px-2 py-1 text-xs text-right border border-neutral-300/70 rounded bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+                />
+                <span class="text-xs text-neutral-500 dark:text-neutral-500"
+                  >px</span
+                >
+              </div>
+            </div>
+          </div>
         </section>
       }
       @default {

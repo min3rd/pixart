@@ -1,0 +1,1189 @@
+import { Injectable, signal } from '@angular/core';
+
+export type TransformMode =
+  | 'none'
+  | 'free'
+  | 'scale'
+  | 'rotate'
+  | 'skew'
+  | 'distort'
+  | 'perspective'
+  | 'warp'
+  | 'puppet-warp';
+
+export interface TransformState {
+  mode: TransformMode;
+  active: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+  skewX: number;
+  skewY: number;
+  anchorX: number;
+  anchorY: number;
+  flipHorizontal: boolean;
+  flipVertical: boolean;
+}
+
+export interface PuppetWarpPin {
+  id: string;
+  x: number;
+  y: number;
+  selected: boolean;
+}
+
+export interface TransformMatrix {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class EditorTransformService {
+  readonly transformState = signal<TransformState>({
+    mode: 'none',
+    active: false,
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    skewX: 0,
+    skewY: 0,
+    anchorX: 0.5,
+    anchorY: 0.5,
+    flipHorizontal: false,
+    flipVertical: false,
+  });
+
+  readonly puppetWarpPins = signal<PuppetWarpPin[]>([]);
+
+  startTransform(
+    mode: TransformMode,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): void {
+    this.transformState.set({
+      mode,
+      active: true,
+      x,
+      y,
+      width,
+      height,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      skewX: 0,
+      skewY: 0,
+      anchorX: 0.5,
+      anchorY: 0.5,
+      flipHorizontal: false,
+      flipVertical: false,
+    });
+  }
+
+  updateTransform(updates: Partial<TransformState>): void {
+    this.transformState.update((state) => ({ ...state, ...updates }));
+  }
+
+  commitTransform(): TransformState {
+    const state = this.transformState();
+    this.transformState.update((s) => ({ ...s, active: false, mode: 'none' }));
+    return state;
+  }
+
+  cancelTransform(): void {
+    this.transformState.update((s) => ({ ...s, active: false, mode: 'none' }));
+  }
+
+  flipHorizontal(): void {
+    this.transformState.update((state) => ({
+      ...state,
+      flipHorizontal: !state.flipHorizontal,
+      scaleX: state.scaleX * -1,
+    }));
+  }
+
+  flipVertical(): void {
+    this.transformState.update((state) => ({
+      ...state,
+      flipVertical: !state.flipVertical,
+      scaleY: state.scaleY * -1,
+    }));
+  }
+
+  rotate90CW(): void {
+    this.transformState.update((state) => ({
+      ...state,
+      rotation: (state.rotation + 90) % 360,
+    }));
+  }
+
+  rotate90CCW(): void {
+    this.transformState.update((state) => ({
+      ...state,
+      rotation: (state.rotation - 90 + 360) % 360,
+    }));
+  }
+
+  rotate180(): void {
+    this.transformState.update((state) => ({
+      ...state,
+      rotation: (state.rotation + 180) % 360,
+    }));
+  }
+
+  addPuppetWarpPin(x: number, y: number): string {
+    const id = `pin-${Date.now()}-${Math.random()}`;
+    const pin: PuppetWarpPin = { id, x, y, selected: false };
+    this.puppetWarpPins.update((pins) => [...pins, pin]);
+    return id;
+  }
+
+  removePuppetWarpPin(id: string): void {
+    this.puppetWarpPins.update((pins) => pins.filter((p) => p.id !== id));
+  }
+
+  movePuppetWarpPin(id: string, x: number, y: number): void {
+    this.puppetWarpPins.update((pins) =>
+      pins.map((p) => (p.id === id ? { ...p, x, y } : p)),
+    );
+  }
+
+  selectPuppetWarpPin(id: string, exclusive = true): void {
+    this.puppetWarpPins.update((pins) =>
+      pins.map((p) =>
+        p.id === id
+          ? { ...p, selected: true }
+          : exclusive
+            ? { ...p, selected: false }
+            : p,
+      ),
+    );
+  }
+
+  clearPuppetWarpPins(): void {
+    this.puppetWarpPins.set([]);
+  }
+
+  getTransformMatrix(): TransformMatrix {
+    const state = this.transformState();
+    const cos = Math.cos((state.rotation * Math.PI) / 180);
+    const sin = Math.sin((state.rotation * Math.PI) / 180);
+
+    const anchorOffsetX = state.width * state.anchorX;
+    const anchorOffsetY = state.height * state.anchorY;
+
+    const a = cos * state.scaleX;
+    const b = sin * state.scaleX;
+    const c = -sin * state.scaleY + state.skewX;
+    const d = cos * state.scaleY + state.skewY;
+
+    const e = state.x + anchorOffsetX - (a * anchorOffsetX + c * anchorOffsetY);
+    const f = state.y + anchorOffsetY - (b * anchorOffsetX + d * anchorOffsetY);
+
+    return { a, b, c, d, e, f };
+  }
+
+  applyTransformToPoint(
+    x: number,
+    y: number,
+    matrix: TransformMatrix,
+  ): { x: number; y: number } {
+    return {
+      x: matrix.a * x + matrix.c * y + matrix.e,
+      y: matrix.b * x + matrix.d * y + matrix.f,
+    };
+  }
+
+  calculateBoundingBox(
+    width: number,
+    height: number,
+  ): { x: number; y: number }[] {
+    const matrix = this.getTransformMatrix();
+    const corners = [
+      { x: 0, y: 0 },
+      { x: width, y: 0 },
+      { x: width, y: height },
+      { x: 0, y: height },
+    ];
+    return corners.map((corner) =>
+      this.applyTransformToPoint(corner.x, corner.y, matrix),
+    );
+  }
+
+  applyTransformToBuffer(
+    sourceBuffer: string[],
+    sourceWidth: number,
+    sourceHeight: number,
+    transform: TransformState,
+  ): { buffer: string[]; width: number; height: number } {
+    const matrix = this.getTransformMatrix();
+
+    const corners = this.calculateBoundingBox(sourceWidth, sourceHeight);
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const corner of corners) {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    }
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const newBuffer = new Array<string>(newWidth * newHeight).fill('');
+
+    const inverseMatrix = this.invertMatrix(matrix);
+    if (!inverseMatrix)
+      return { buffer: sourceBuffer, width: sourceWidth, height: sourceHeight };
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcPoint = this.applyTransformToPoint(
+          x + minX,
+          y + minY,
+          inverseMatrix,
+        );
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < sourceWidth && sy >= 0 && sy < sourceHeight) {
+          const srcIdx = sy * sourceWidth + sx;
+          const destIdx = y * newWidth + x;
+          newBuffer[destIdx] = sourceBuffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: newBuffer, width: newWidth, height: newHeight };
+  }
+
+  private invertMatrix(m: TransformMatrix): TransformMatrix | null {
+    const det = m.a * m.d - m.b * m.c;
+    if (Math.abs(det) < 0.0001) return null;
+
+    const invDet = 1 / det;
+    return {
+      a: m.d * invDet,
+      b: -m.b * invDet,
+      c: -m.c * invDet,
+      d: m.a * invDet,
+      e: (m.c * m.f - m.d * m.e) * invDet,
+      f: (m.b * m.e - m.a * m.f) * invDet,
+    };
+  }
+
+  applySimpleFlipHorizontal(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = y * width + (width - 1 - x);
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
+
+  applySimpleFlipVertical(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = (height - 1 - y) * width + x;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
+
+  applyRotate90CW(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = height;
+    const newHeight = width;
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const newX = height - 1 - y;
+        const newY = x;
+        const destIdx = newY * newWidth + newX;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applyRotate90CCW(
+    buffer: string[],
+    width: number,
+    height: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = height;
+    const newHeight = width;
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const newX = y;
+        const newY = width - 1 - x;
+        const destIdx = newY * newWidth + newX;
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applyRotate180(buffer: string[], width: number, height: number): string[] {
+    const result = new Array<string>(buffer.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcIdx = y * width + x;
+        const destIdx = (height - 1 - y) * width + (width - 1 - x);
+        result[destIdx] = buffer[srcIdx] || '';
+      }
+    }
+    return result;
+  }
+
+  applyRotateByAngle(
+    buffer: string[],
+    width: number,
+    height: number,
+    angleDegrees: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const radians = (angleDegrees * Math.PI) / 180;
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+
+    const newWidth = Math.ceil(Math.abs(width * cos) + Math.abs(height * sin));
+    const newHeight = Math.ceil(Math.abs(width * sin) + Math.abs(height * cos));
+
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const newCenterX = newWidth / 2;
+    const newCenterY = newHeight / 2;
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const offsetX = x - newCenterX;
+        const offsetY = y - newCenterY;
+
+        const srcX = offsetX * cos + offsetY * sin + centerX;
+        const srcY = -offsetX * sin + offsetY * cos + centerY;
+
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const srcIdx = y0 * width + x0;
+          const destIdx = y * newWidth + x;
+          result[destIdx] = buffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applySkew(
+    buffer: string[],
+    width: number,
+    height: number,
+    skewXDegrees: number,
+    skewYDegrees: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const tanX = Math.tan((skewXDegrees * Math.PI) / 180);
+    const tanY = Math.tan((skewYDegrees * Math.PI) / 180);
+
+    const newWidth = Math.ceil(width + Math.abs(tanX * height));
+    const newHeight = Math.ceil(height + Math.abs(tanY * width));
+
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const offsetX = tanX < 0 ? -tanX * height : 0;
+    const offsetY = tanY < 0 ? -tanY * width : 0;
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcX = x - offsetX - tanX * y;
+        const srcY = y - offsetY - tanY * x;
+
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const srcIdx = y0 * width + x0;
+          const destIdx = y * newWidth + x;
+          result[destIdx] = buffer[srcIdx] || '';
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  applyScale(
+    buffer: string[],
+    width: number,
+    height: number,
+    scaleX: number,
+    scaleY: number,
+  ): { buffer: string[]; width: number; height: number } {
+    const newWidth = Math.max(1, Math.round(width * scaleX));
+    const newHeight = Math.max(1, Math.round(height * scaleY));
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const srcX = x / scaleX;
+        const srcY = y / scaleY;
+
+        const x0 = Math.floor(srcX);
+        const y0 = Math.floor(srcY);
+        const x1 = Math.min(x0 + 1, width - 1);
+        const y1 = Math.min(y0 + 1, height - 1);
+
+        if (x0 >= 0 && x0 < width && y0 >= 0 && y0 < height) {
+          const fx = srcX - x0;
+          const fy = srcY - y0;
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight };
+  }
+
+  private bilinearInterpolateColor(
+    c00: string,
+    c10: string,
+    c01: string,
+    c11: string,
+    fx: number,
+    fy: number,
+  ): string {
+    const rgba00 = this.hexToRgba(c00);
+    const rgba10 = this.hexToRgba(c10);
+    const rgba01 = this.hexToRgba(c01);
+    const rgba11 = this.hexToRgba(c11);
+
+    const r =
+      (1 - fx) * (1 - fy) * rgba00.r +
+      fx * (1 - fy) * rgba10.r +
+      (1 - fx) * fy * rgba01.r +
+      fx * fy * rgba11.r;
+    const g =
+      (1 - fx) * (1 - fy) * rgba00.g +
+      fx * (1 - fy) * rgba10.g +
+      (1 - fx) * fy * rgba01.g +
+      fx * fy * rgba11.g;
+    const b =
+      (1 - fx) * (1 - fy) * rgba00.b +
+      fx * (1 - fy) * rgba10.b +
+      (1 - fx) * fy * rgba01.b +
+      fx * fy * rgba11.b;
+    const a =
+      (1 - fx) * (1 - fy) * rgba00.a +
+      fx * (1 - fy) * rgba10.a +
+      (1 - fx) * fy * rgba01.a +
+      fx * fy * rgba11.a;
+
+    return this.rgbaToHex(
+      Math.round(r),
+      Math.round(g),
+      Math.round(b),
+      Math.round(a),
+    );
+  }
+
+  private hexToRgba(hex: string): {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  } {
+    if (!hex || hex.length < 7) {
+      return { r: 0, g: 0, b: 0, a: 0 };
+    }
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
+    const a = hex.length >= 9 ? Number.parseInt(hex.slice(7, 9), 16) : 255;
+    return { r, g, b, a };
+  }
+
+  private rgbaToHex(r: number, g: number, b: number, a: number): string {
+    const rr = Math.max(0, Math.min(255, r)).toString(16).padStart(2, '0');
+    const gg = Math.max(0, Math.min(255, g)).toString(16).padStart(2, '0');
+    const bb = Math.max(0, Math.min(255, b)).toString(16).padStart(2, '0');
+    const aa = Math.max(0, Math.min(255, a)).toString(16).padStart(2, '0');
+    return `#${rr}${gg}${bb}${aa}`;
+  }
+
+  applyDistort(
+    buffer: string[],
+    width: number,
+    height: number,
+    srcCorners: { x: number; y: number }[],
+    dstCorners: { x: number; y: number }[],
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
+    const matrix = this.computeHomographyMatrix(srcCorners, dstCorners);
+    if (!matrix) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const corner of dstCorners) {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    }
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    const inverseMatrix = this.invertHomographyMatrix(matrix);
+    if (!inverseMatrix) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.applyHomographyTransform(
+          worldX,
+          worldY,
+          inverseMatrix,
+        );
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
+  }
+
+  private computeHomographyMatrix(
+    src: { x: number; y: number }[],
+    dst: { x: number; y: number }[],
+  ): number[] | null {
+    if (src.length !== 4 || dst.length !== 4) return null;
+
+    const A: number[][] = [];
+    for (let i = 0; i < 4; i++) {
+      const sx = src[i].x;
+      const sy = src[i].y;
+      const dx = dst[i].x;
+      const dy = dst[i].y;
+
+      A.push([sx, sy, 1, 0, 0, 0, -dx * sx, -dx * sy]);
+      A.push([0, 0, 0, sx, sy, 1, -dy * sx, -dy * sy]);
+    }
+
+    const b = [
+      dst[0].x,
+      dst[0].y,
+      dst[1].x,
+      dst[1].y,
+      dst[2].x,
+      dst[2].y,
+      dst[3].x,
+      dst[3].y,
+    ];
+
+    const h = this.solveLinearSystem(A, b);
+    if (!h) return null;
+
+    return [...h, 1];
+  }
+
+  private solveLinearSystem(A: number[][], b: number[]): number[] | null {
+    const n = A.length;
+    const augmented: number[][] = A.map((row, i) => [...row, b[i]]);
+
+    for (let i = 0; i < n; i++) {
+      let maxRow = i;
+      for (let k = i + 1; k < n; k++) {
+        if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+          maxRow = k;
+        }
+      }
+
+      [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+
+      if (Math.abs(augmented[i][i]) < 1e-10) {
+        return null;
+      }
+
+      for (let k = i + 1; k < n; k++) {
+        const factor = augmented[k][i] / augmented[i][i];
+        for (let j = i; j < n + 1; j++) {
+          augmented[k][j] -= factor * augmented[i][j];
+        }
+      }
+    }
+
+    const x: number[] = new Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      x[i] = augmented[i][n];
+      for (let j = i + 1; j < n; j++) {
+        x[i] -= augmented[i][j] * x[j];
+      }
+      x[i] /= augmented[i][i];
+    }
+
+    return x;
+  }
+
+  private applyHomographyTransform(
+    x: number,
+    y: number,
+    matrix: number[],
+  ): { x: number; y: number } {
+    const w = matrix[6] * x + matrix[7] * y + matrix[8];
+    if (Math.abs(w) < 1e-10) {
+      return { x, y };
+    }
+
+    const newX = (matrix[0] * x + matrix[1] * y + matrix[2]) / w;
+    const newY = (matrix[3] * x + matrix[4] * y + matrix[5]) / w;
+
+    return { x: newX, y: newY };
+  }
+
+  private invertHomographyMatrix(matrix: number[]): number[] | null {
+    const [h11, h12, h13, h21, h22, h23, h31, h32, h33] = matrix;
+
+    const det =
+      h11 * (h22 * h33 - h23 * h32) -
+      h12 * (h21 * h33 - h23 * h31) +
+      h13 * (h21 * h32 - h22 * h31);
+
+    if (Math.abs(det) < 1e-10) return null;
+
+    const invDet = 1 / det;
+
+    return [
+      (h22 * h33 - h23 * h32) * invDet,
+      (h13 * h32 - h12 * h33) * invDet,
+      (h12 * h23 - h13 * h22) * invDet,
+      (h23 * h31 - h21 * h33) * invDet,
+      (h11 * h33 - h13 * h31) * invDet,
+      (h13 * h21 - h11 * h23) * invDet,
+      (h21 * h32 - h22 * h31) * invDet,
+      (h12 * h31 - h11 * h32) * invDet,
+      (h11 * h22 - h12 * h21) * invDet,
+    ];
+  }
+
+  applyWarp(
+    buffer: string[],
+    width: number,
+    height: number,
+    gridNodes: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      row: number;
+      col: number;
+    }[],
+    gridRows: number,
+    gridCols: number,
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
+    const minX = Math.min(...gridNodes.map((n) => n.x));
+    const maxX = Math.max(...gridNodes.map((n) => n.x));
+    const minY = Math.min(...gridNodes.map((n) => n.y));
+    const maxY = Math.max(...gridNodes.map((n) => n.y));
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.bilinearWarpInverse(
+          worldX,
+          worldY,
+          gridNodes,
+          gridRows,
+          gridCols,
+          width,
+          height,
+        );
+
+        if (!srcPoint) continue;
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
+  }
+
+  private bilinearWarpInverse(
+    worldX: number,
+    worldY: number,
+    gridNodes: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      row: number;
+      col: number;
+    }[],
+    gridRows: number,
+    gridCols: number,
+    srcWidth: number,
+    srcHeight: number,
+  ): { x: number; y: number } | null {
+    for (let row = 0; row < gridRows; row++) {
+      for (let col = 0; col < gridCols; col++) {
+        const n00 = gridNodes.find((n) => n.row === row && n.col === col);
+        const n10 = gridNodes.find((n) => n.row === row && n.col === col + 1);
+        const n01 = gridNodes.find((n) => n.row === row + 1 && n.col === col);
+        const n11 = gridNodes.find(
+          (n) => n.row === row + 1 && n.col === col + 1,
+        );
+
+        if (!n00 || !n10 || !n01 || !n11) continue;
+
+        const uv = this.inverseQuadBilinear(
+          worldX,
+          worldY,
+          n00.x,
+          n00.y,
+          n10.x,
+          n10.y,
+          n11.x,
+          n11.y,
+          n01.x,
+          n01.y,
+        );
+
+        if (
+          uv &&
+          uv.u >= -0.001 &&
+          uv.u <= 1.001 &&
+          uv.v >= -0.001 &&
+          uv.v <= 1.001
+        ) {
+          const u = Math.max(0, Math.min(1, uv.u));
+          const v = Math.max(0, Math.min(1, uv.v));
+
+          const srcX =
+            (1 - u) * (1 - v) * n00.originalX +
+            u * (1 - v) * n10.originalX +
+            (1 - u) * v * n01.originalX +
+            u * v * n11.originalX;
+
+          const srcY =
+            (1 - u) * (1 - v) * n00.originalY +
+            u * (1 - v) * n10.originalY +
+            (1 - u) * v * n01.originalY +
+            u * v * n11.originalY;
+
+          return { x: srcX, y: srcY };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private inverseQuadBilinear(
+    px: number,
+    py: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    x3: number,
+    y3: number,
+  ): { u: number; v: number } | null {
+    const a = x0;
+    const b = x1 - x0;
+    const c = x3 - x0;
+    const d = x0 - x1 - x3 + x2;
+
+    const e = y0;
+    const f = y1 - y0;
+    const g = y3 - y0;
+    const h = y0 - y1 - y3 + y2;
+
+    const A = d * f - b * h;
+    const B = d * (py - e) + c * f - b * g - a * h + (px - a) * h;
+    const C = c * (py - e) - a * g + (px - a) * g;
+
+    let u: number, v: number;
+
+    if (Math.abs(A) < 1e-10) {
+      if (Math.abs(B) < 1e-10) {
+        return null;
+      }
+      u = -C / B;
+    } else {
+      const discriminant = B * B - 4 * A * C;
+      if (discriminant < 0) {
+        return null;
+      }
+      const sqrtDisc = Math.sqrt(discriminant);
+      const u1 = (-B + sqrtDisc) / (2 * A);
+      const u2 = (-B - sqrtDisc) / (2 * A);
+
+      if (u1 >= 0 && u1 <= 1) {
+        u = u1;
+      } else if (u2 >= 0 && u2 <= 1) {
+        u = u2;
+      } else {
+        u = u1;
+      }
+    }
+
+    const denom = c + d * u;
+    if (Math.abs(denom) < 1e-10) {
+      const denomF = b + d * u;
+      if (Math.abs(denomF) < 1e-10) {
+        return null;
+      }
+      v = (px - a - b * u) / denomF;
+    } else {
+      v = (py - e - f * u) / denom;
+    }
+
+    return { u, v };
+  }
+
+  applyPuppetWarp(
+    buffer: string[],
+    width: number,
+    height: number,
+    pins: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      radius: number;
+      locked: boolean;
+    }[],
+  ): {
+    buffer: string[];
+    width: number;
+    height: number;
+    minX: number;
+    minY: number;
+  } {
+    if (pins.length === 0) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    const movingPins = pins.filter((p) => !p.locked);
+    if (movingPins.length === 0) {
+      return { buffer, width, height, minX: 0, minY: 0 };
+    }
+
+    const allX = pins.map((p) => p.x);
+    const allY = pins.map((p) => p.y);
+    const minX = Math.min(...allX, 0);
+    const maxX = Math.max(...allX, width);
+    const minY = Math.min(...allY, 0);
+    const maxY = Math.max(...allY, height);
+
+    const newWidth = Math.ceil(maxX - minX);
+    const newHeight = Math.ceil(maxY - minY);
+    const result = new Array<string>(newWidth * newHeight).fill('');
+
+    for (let y = 0; y < newHeight; y++) {
+      for (let x = 0; x < newWidth; x++) {
+        const worldX = x + minX;
+        const worldY = y + minY;
+
+        const srcPoint = this.tpsTransform(worldX, worldY, pins, width, height);
+
+        if (!srcPoint) continue;
+
+        const sx = Math.floor(srcPoint.x);
+        const sy = Math.floor(srcPoint.y);
+
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const fx = srcPoint.x - sx;
+          const fy = srcPoint.y - sy;
+
+          const x0 = sx;
+          const y0 = sy;
+          const x1 = Math.min(x0 + 1, width - 1);
+          const y1 = Math.min(y0 + 1, height - 1);
+
+          const idx00 = y0 * width + x0;
+          const idx10 = y0 * width + x1;
+          const idx01 = y1 * width + x0;
+          const idx11 = y1 * width + x1;
+
+          const c00 = buffer[idx00] || '';
+          const c10 = buffer[idx10] || '';
+          const c01 = buffer[idx01] || '';
+          const c11 = buffer[idx11] || '';
+
+          let finalColor = c00;
+
+          if (fx === 0 && fy === 0) {
+            finalColor = c00;
+          } else if (c00 && c10 && c01 && c11) {
+            finalColor = this.bilinearInterpolateColor(
+              c00,
+              c10,
+              c01,
+              c11,
+              fx,
+              fy,
+            );
+          } else if (c00) {
+            finalColor = c00;
+          } else if (c10 && fx > 0.5) {
+            finalColor = c10;
+          } else if (c01 && fy > 0.5) {
+            finalColor = c01;
+          } else if (c11 && fx > 0.5 && fy > 0.5) {
+            finalColor = c11;
+          }
+
+          const destIdx = y * newWidth + x;
+          result[destIdx] = finalColor;
+        }
+      }
+    }
+
+    return { buffer: result, width: newWidth, height: newHeight, minX, minY };
+  }
+
+  private tpsTransform(
+    x: number,
+    y: number,
+    pins: {
+      x: number;
+      y: number;
+      originalX: number;
+      originalY: number;
+      radius: number;
+      locked: boolean;
+    }[],
+    srcWidth: number,
+    srcHeight: number,
+  ): { x: number; y: number } | null {
+    let totalWeight = 0;
+    let srcX = 0;
+    let srcY = 0;
+
+    for (const pin of pins) {
+      const dx = x - pin.x;
+      const dy = y - pin.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const offsetX = pin.x - pin.originalX;
+      const offsetY = pin.y - pin.originalY;
+
+      if (dist < 0.01) {
+        return { x: x - offsetX, y: y - offsetY };
+      }
+
+      const weight = 1 / (1 + dist / pin.radius);
+      totalWeight += weight;
+      srcX += weight * (x - offsetX);
+      srcY += weight * (y - offsetY);
+    }
+
+    if (totalWeight > 0) {
+      return { x: srcX / totalWeight, y: srcY / totalWeight };
+    }
+
+    return { x, y };
+  }
+}
