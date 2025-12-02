@@ -145,6 +145,8 @@ export class EditorCanvas implements OnDestroy {
     'line' | 'circle' | 'square' | null
   >(null);
   private readonly shapeConstrainUniform = signal(false);
+  private readonly penPoints = signal<{ x: number; y: number }[]>([]);
+  private readonly penDrawing = signal(false);
 
   private panning = false;
   private painting = false;
@@ -547,7 +549,7 @@ export class EditorCanvas implements OnDestroy {
       return `crosshair`;
     if (tool === 'brush') return this.brushCursor;
     if (tool === 'eraser') return this.eraserCursor;
-    if (tool === 'line' || tool === 'circle' || tool === 'square')
+    if (tool === 'line' || tool === 'circle' || tool === 'square' || tool === 'pen')
       return `crosshair`;
     if (tool === 'bone') return `crosshair`;
     return this.defaultCursor;
@@ -608,6 +610,10 @@ export class EditorCanvas implements OnDestroy {
             return;
           }
           const tool = this.tools.currentTool();
+          if (tool === 'pen' && this.penDrawing()) {
+            this.cancelPenPath();
+            return;
+          }
           if (tool === 'bone') {
             this.currentBoneId = null;
             this.boneService.clearSelection();
@@ -633,6 +639,11 @@ export class EditorCanvas implements OnDestroy {
           }
           if (this.perspective.isActive()) {
             this.commitPerspective();
+            return;
+          }
+          const tool = this.tools.currentTool();
+          if (tool === 'pen' && this.penDrawing()) {
+            this.finishPenPath();
             return;
           }
         }
@@ -1343,6 +1354,15 @@ export class EditorCanvas implements OnDestroy {
           this.shapeConstrainUniform.set(false);
         }
         this.startShape(tool, logicalX, logicalY);
+        return;
+      }
+      if (tool === 'pen' && insideCanvas) {
+        const selectedLayer = this.document.selectedLayer();
+        if (selectedLayer?.locked) {
+          return;
+        }
+        this.capturePointer(ev);
+        this.addPenPoint(logicalX, logicalY);
         return;
       }
       if (tool === 'fill' && insideCanvas) {
@@ -3537,6 +3557,42 @@ export class EditorCanvas implements OnDestroy {
       ctx.restore();
     }
 
+    const penDrawing = this.penDrawing();
+    const penPoints = this.penPoints();
+    if (penDrawing && penPoints.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = this.tools.penColor();
+      ctx.lineWidth = Math.max(pxLineWidth, this.tools.penThickness());
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const lineMode = this.tools.penLineMode();
+      if (lineMode === 'spline' && penPoints.length >= 3) {
+        const splinePoints = this.catmullRomSpline(penPoints, 10);
+        if (splinePoints.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(splinePoints[0].x + 0.5, splinePoints[0].y + 0.5);
+          for (let i = 1; i < splinePoints.length; i++) {
+            ctx.lineTo(splinePoints[i].x + 0.5, splinePoints[i].y + 0.5);
+          }
+          ctx.stroke();
+        }
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(penPoints[0].x + 0.5, penPoints[0].y + 0.5);
+        for (let i = 1; i < penPoints.length; i++) {
+          ctx.lineTo(penPoints[i].x + 0.5, penPoints[i].y + 0.5);
+        }
+        ctx.stroke();
+      }
+      for (const point of penPoints) {
+        ctx.fillStyle = this.tools.penColor();
+        ctx.beginPath();
+        ctx.arc(point.x + 0.5, point.y + 0.5, Math.max(2, this.tools.penThickness() / 2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     const hx = this.hoverX();
     const hy = this.hoverY();
     // Only show brush/eraser highlight when using the brush or eraser tool.
@@ -4995,6 +5051,159 @@ export class EditorCanvas implements OnDestroy {
     this.shapeStart.set(null);
     this.shapeCurrent.set(null);
     this.shapeConstrainUniform.set(false);
+  }
+
+  onDoubleClick(ev: MouseEvent) {
+    const tool = this.tools.currentTool();
+    if (tool === 'pen' && this.penDrawing()) {
+      this.finishPenPath();
+    }
+  }
+
+  private addPenPoint(x: number, y: number) {
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const clampedX = Math.max(0, Math.min(w - 1, x));
+    const clampedY = Math.max(0, Math.min(h - 1, y));
+    const points = this.penPoints();
+    if (!this.penDrawing()) {
+      this.document.saveSnapshot('Pen path');
+      this.penDrawing.set(true);
+    }
+    this.penPoints.set([...points, { x: clampedX, y: clampedY }]);
+  }
+
+  private finishPenPath() {
+    const points = this.penPoints();
+    if (points.length < 2) {
+      this.cancelPenPath();
+      return;
+    }
+    const layerId = this.document.selectedLayerId();
+    if (!layerId) {
+      this.cancelPenPath();
+      return;
+    }
+    const thickness = this.tools.penThickness();
+    const color = this.tools.penColor();
+    const lineMode = this.tools.penLineMode();
+    if (lineMode === 'spline') {
+      this.applySplinePath(layerId, points, color, thickness);
+    } else {
+      this.applyPolylinePath(layerId, points, color, thickness);
+    }
+    this.clearPenState();
+  }
+
+  private cancelPenPath() {
+    if (this.penDrawing()) {
+      this.document.undo();
+    }
+    this.clearPenState();
+  }
+
+  private clearPenState() {
+    this.penDrawing.set(false);
+    this.penPoints.set([]);
+  }
+
+  private applyPolylinePath(
+    layerId: string,
+    points: { x: number; y: number }[],
+    color: string,
+    thickness: number,
+  ) {
+    for (let i = 0; i < points.length - 1; i++) {
+      const start = points[i];
+      const end = points[i + 1];
+      this.document.applyLineToLayer(
+        layerId,
+        start.x,
+        start.y,
+        end.x,
+        end.y,
+        color,
+        thickness,
+      );
+    }
+  }
+
+  private applySplinePath(
+    layerId: string,
+    points: { x: number; y: number }[],
+    color: string,
+    thickness: number,
+  ) {
+    if (points.length < 2) return;
+    if (points.length === 2) {
+      this.document.applyLineToLayer(
+        layerId,
+        points[0].x,
+        points[0].y,
+        points[1].x,
+        points[1].y,
+        color,
+        thickness,
+      );
+      return;
+    }
+    const splinePoints = this.catmullRomSpline(points, 10);
+    for (let i = 0; i < splinePoints.length - 1; i++) {
+      const start = splinePoints[i];
+      const end = splinePoints[i + 1];
+      this.document.applyLineToLayer(
+        layerId,
+        Math.round(start.x),
+        Math.round(start.y),
+        Math.round(end.x),
+        Math.round(end.y),
+        color,
+        thickness,
+      );
+    }
+  }
+
+  private catmullRomSpline(
+    points: { x: number; y: number }[],
+    segments: number,
+  ): { x: number; y: number }[] {
+    if (points.length < 2) return points;
+    const result: { x: number; y: number }[] = [];
+    const extended = [
+      points[0],
+      ...points,
+      points[points.length - 1],
+    ];
+    for (let i = 1; i < extended.length - 2; i++) {
+      const p0 = extended[i - 1];
+      const p1 = extended[i];
+      const p2 = extended[i + 1];
+      const p3 = extended[i + 2];
+      for (let t = 0; t <= segments; t++) {
+        const tt = t / segments;
+        const tt2 = tt * tt;
+        const tt3 = tt2 * tt;
+        const x = 0.5 * (
+          (2 * p1.x) +
+          (-p0.x + p2.x) * tt +
+          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * tt2 +
+          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * tt3
+        );
+        const y = 0.5 * (
+          (2 * p1.y) +
+          (-p0.y + p2.y) * tt +
+          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * tt2 +
+          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * tt3
+        );
+        const epsilon = 0.001;
+        if (result.length === 0 || 
+            Math.abs(result[result.length - 1].x - x) > epsilon || 
+            Math.abs(result[result.length - 1].y - y) > epsilon) {
+          result.push({ x, y });
+        }
+      }
+    }
+    return result;
   }
 
   private isPointInSelection(x: number, y: number): boolean {

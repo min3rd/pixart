@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
-import { GradientType, ToolId } from '../../../services/tools/tool.types';
+import { GradientType, PenLineMode, ToolId } from '../../../services/tools/tool.types';
 import { NgIcon } from '@ng-icons/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
@@ -38,6 +38,7 @@ export class ToolPalette {
       fill: 'tool.fill',
       eraser: 'tool.eraser',
       line: 'tool.line',
+      pen: 'tool.pen',
       circle: 'tool.circle',
       square: 'tool.square',
       brush: 'tool.brush',
@@ -56,6 +57,7 @@ export class ToolPalette {
       fill: 'tooltips.tools.fill',
       eraser: 'tooltips.tools.eraser',
       line: 'tooltips.tools.line',
+      pen: 'tooltips.tools.pen',
       circle: 'tooltips.tools.circle',
       square: 'tooltips.tools.square',
       brush: 'tooltips.tools.brush',
@@ -102,6 +104,22 @@ export class ToolPalette {
   onLineColorInput(event: Event) {
     const v = (event.target as HTMLInputElement).value;
     this.tools.setLineColor(v);
+  }
+
+  onPenThicknessInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    const n = Number(v);
+    if (!Number.isNaN(n))
+      this.tools.setPenThickness(Math.floor(n), this.maxCanvasDim);
+  }
+
+  onPenColorInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    this.tools.setPenColor(v);
+  }
+
+  setPenLineMode(mode: PenLineMode) {
+    this.tools.setPenLineMode(mode);
   }
 
   onCircleStrokeThicknessInput(event: Event) {
