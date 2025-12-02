@@ -105,7 +105,8 @@
       "contentAwareFill": "Content-aware fill for selection",
       "definePattern": "Create a repeatable pattern from selection",
       "stroke": "Add stroke border to selection",
-      "defineBrush": "Create a custom brush from selection"
+      "defineBrush": "Create a custom brush from selection",
+      "defineShape": "Create a custom vector shape from selection"
     },
     "panels": {
       "layers": "Manage layers and their properties",
@@ -115,7 +116,8 @@
       "contentAwareFill": "Configure content-aware fill settings",
       "definePattern": "Create and save pattern from selection",
       "stroke": "Add stroke border to selection",
-      "defineBrush": "Create and save custom brush from selection"
+      "defineBrush": "Create and save custom brush from selection",
+      "defineShape": "Create and save custom vector shape from selection"
     },
     "file": {
       "new": "Create a new project",
@@ -480,6 +482,7 @@
       "edit.definePattern": "Define Pattern",
       "edit.defineBrush": "Define Brush",
       "edit.stroke": "Stroke",
+      "edit.defineShape": "Define Shape",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -756,5 +759,26 @@
     "deleteBrush": "Delete Brush",
     "editBrush": "Edit Brush",
     "noBrushes": "No custom brushes yet"
+  },
+  "defineShape": {
+    "title": "Define Shape",
+    "name": "Shape Name",
+    "shapeType": "Shape Type",
+    "typeFilled": "Filled",
+    "typeOutlined": "Outlined",
+    "typeBoth": "Filled + Outlined",
+    "cornerRadius": "Corner Radius",
+    "pathSmoothing": "Path Smoothing",
+    "vectorPreview": "Vector Preview",
+    "thumbnail": "Thumbnail",
+    "livePreview": "Live Preview on Canvas",
+    "noSelection": "Select an area on canvas first",
+    "createFromSelection": "Create Shape from Selection",
+    "save": "Save Shape",
+    "cancel": "Cancel",
+    "library": "Shape Library",
+    "deleteShape": "Delete Shape",
+    "editShape": "Edit Shape",
+    "noShapes": "No custom shapes yet"
   }
 }

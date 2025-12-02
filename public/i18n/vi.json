@@ -105,7 +105,8 @@
       "contentAwareFill": "Tô thông minh cho vùng chọn",
       "definePattern": "Tạo pattern lặp từ vùng chọn",
       "stroke": "Thêm viền cho vùng chọn",
-      "defineBrush": "Tạo brush tùy chỉnh từ vùng chọn"
+      "defineBrush": "Tạo brush tùy chỉnh từ vùng chọn",
+      "defineShape": "Tạo shape vector từ vùng chọn"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
@@ -115,7 +116,8 @@
       "contentAwareFill": "Cấu hình tô thông minh",
       "definePattern": "Tạo và lưu pattern từ vùng chọn",
       "stroke": "Thêm viền cho vùng chọn",
-      "defineBrush": "Tạo và lưu brush từ vùng chọn"
+      "defineBrush": "Tạo và lưu brush từ vùng chọn",
+      "defineShape": "Tạo và lưu shape vector từ vùng chọn"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -483,6 +485,7 @@
       "edit.definePattern": "Tạo Pattern",
       "edit.defineBrush": "Tạo Brush",
       "edit.stroke": "Viền",
+      "edit.defineShape": "Tạo Shape",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -756,5 +759,26 @@
     "deleteBrush": "Xóa Brush",
     "editBrush": "Chỉnh sửa Brush",
     "noBrushes": "Chưa có brush tùy chỉnh"
+  },
+  "defineShape": {
+    "title": "Định nghĩa Shape",
+    "name": "Tên Shape",
+    "shapeType": "Loại Shape",
+    "typeFilled": "Tô đặc",
+    "typeOutlined": "Viền",
+    "typeBoth": "Tô đặc + Viền",
+    "cornerRadius": "Bán kính góc",
+    "pathSmoothing": "Độ mượt đường",
+    "vectorPreview": "Xem trước Vector",
+    "thumbnail": "Hình thu nhỏ",
+    "livePreview": "Xem trước trực tiếp",
+    "noSelection": "Chọn vùng trên canvas trước",
+    "createFromSelection": "Tạo Shape từ vùng chọn",
+    "save": "Lưu Shape",
+    "cancel": "Hủy",
+    "library": "Thư viện Shape",
+    "deleteShape": "Xóa Shape",
+    "editShape": "Chỉnh sửa Shape",
+    "noShapes": "Chưa có shape tùy chỉnh"
   }
 }
