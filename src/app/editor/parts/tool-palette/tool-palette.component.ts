@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@a
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
-import { GradientType, PenLineMode, ToolId } from '../../../services/tools/tool.types';
+import { FillToolMode, GradientType, PenLineMode, ToolId } from '../../../services/tools/tool.types';
 import { NgIcon } from '@ng-icons/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
@@ -114,8 +114,31 @@ export class ToolPalette {
     return mapping[toolId] || '';
   }
 
-  setFillMode(mode: 'color' | 'erase') {
+  setFillMode(mode: FillToolMode) {
     this.tools.setFillMode(mode);
+  }
+
+  onFillGradientStartInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    this.tools.setFillGradientStartColor(v);
+  }
+
+  onFillGradientEndInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    this.tools.setFillGradientEndColor(v);
+  }
+
+  setFillGradientType(type: GradientType) {
+    this.tools.setFillGradientType(type);
+  }
+
+  onFillGradientAngleInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    const n = Number(v);
+    if (!Number.isNaN(n)) {
+      const clampedAngle = Math.max(0, Math.min(359, Math.round(n)));
+      this.tools.setFillGradientAngle(clampedAngle);
+    }
   }
 
   onFillColorInput(event: Event) {

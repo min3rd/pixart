@@ -674,6 +674,26 @@ export class EditorDocumentService {
     return this.drawingService.applyFillToLayer(layerId, x, y, color);
   }
 
+  applyGradientFillToLayer(
+    layerId: string,
+    x: number,
+    y: number,
+    gradientStartColor: string,
+    gradientEndColor: string,
+    gradientType: GradientType,
+    gradientAngle: number,
+  ) {
+    return this.drawingService.applyGradientFillToLayer(
+      layerId,
+      x,
+      y,
+      gradientStartColor,
+      gradientEndColor,
+      gradientType,
+      gradientAngle,
+    );
+  }
+
   applyLineToLayer(
     layerId: string,
     x0: number,
