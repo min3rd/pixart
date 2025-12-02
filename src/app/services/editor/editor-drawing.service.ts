@@ -249,9 +249,13 @@ export class EditorDrawingService {
         if (proj > maxVal) maxVal = proj;
       }
       if (Number.isFinite(minVal) && Number.isFinite(maxVal)) {
-        if (minVal === maxVal) maxVal = minVal + 1;
-        minProj = minVal;
-        maxProj = maxVal;
+        if (minVal === maxVal) {
+          minProj = 0;
+          maxProj = 1;
+        } else {
+          minProj = minVal;
+          maxProj = maxVal;
+        }
       }
     }
     const radius = Math.max(widthRect, heightRect) / 2;
@@ -264,7 +268,7 @@ export class EditorDrawingService {
         const dx = px + 0.5 - centerX;
         const dy = py + 0.5 - centerY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        ratio = radius > 0 ? dist / radius : 0;
+        ratio = radius > 0 ? Math.min(1, dist / radius) : 0;
       } else {
         const proj = (px + 0.5) * dirX + (py + 0.5) * dirY;
         const span = maxProj - minProj;
