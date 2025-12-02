@@ -26,9 +26,7 @@ export class ShapeLibraryService {
     this.loadCustomShapes();
   }
 
-  addCustomShape(
-    shape: Omit<CustomShape, 'id' | 'createdAt'>,
-  ): CustomShape {
+  addCustomShape(shape: Omit<CustomShape, 'id' | 'createdAt'>): CustomShape {
     const uniqueId =
       typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
