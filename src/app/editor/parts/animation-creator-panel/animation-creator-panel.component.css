@@ -8,8 +8,8 @@
     to right,
     transparent,
     transparent 99px,
-    rgba(0, 0, 0, 0.05) 99px,
-    rgba(0, 0, 0, 0.05) 100px
+    rgba(0, 0, 0, 0.08) 99px,
+    rgba(0, 0, 0, 0.08) 100px
   );
 }
 
@@ -19,8 +19,8 @@
       to right,
       transparent,
       transparent 99px,
-      rgba(255, 255, 255, 0.05) 99px,
-      rgba(255, 255, 255, 0.05) 100px
+      rgba(255, 255, 255, 0.08) 99px,
+      rgba(255, 255, 255, 0.08) 100px
     );
   }
 }

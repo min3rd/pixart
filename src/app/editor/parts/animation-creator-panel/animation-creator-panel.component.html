@@ -1,7 +1,7 @@
 <div id="animation-creator-container" class="h-full flex flex-col">
   <div
     id="animation-creator-toolbar"
-    class="shrink-0 border-b border-neutral-200 dark:border-neutral-800 p-1 flex items-center gap-1 bg-white dark:bg-neutral-800"
+    class="shrink-0 border-b border-neutral-200 dark:border-neutral-700 p-1 flex items-center gap-1 bg-white dark:bg-neutral-800"
   >
     <button
       id="creator-play-btn"
@@ -206,9 +206,9 @@
   >
     <div
       id="creator-timeline-info"
-      class="shrink-0 px-3 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900"
+      class="shrink-0 px-3 py-2 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-750"
     >
-      <div class="text-xs font-medium">
+      <div class="text-xs font-medium text-neutral-800 dark:text-neutral-200">
         {{ "animationCreator.timeline" | transloco }}
       </div>
       <div class="text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
@@ -262,10 +262,10 @@
 
     <div
       id="creator-timeline-keyframes-list"
-      class="shrink-0 border-t border-neutral-200 dark:border-neutral-800 p-2 bg-white dark:bg-neutral-800"
+      class="shrink-0 border-t border-neutral-200 dark:border-neutral-700 p-2 bg-white dark:bg-neutral-800"
     >
       <div
-        class="text-[10px] font-medium mb-1 text-neutral-600 dark:text-neutral-400"
+        class="text-[10px] font-medium mb-1 text-neutral-700 dark:text-neutral-300"
       >
         {{ "animationCreator.keyframes" | transloco }}
       </div>
@@ -350,6 +350,7 @@
       [currentTime]="currentTime()"
       (configCopied)="onBoneConfigCopied($event)"
       (configPasted)="onBoneConfigPasted($event)"
+      (transformUpdated)="onTransformUpdated()"
     ></pa-bone-keyframe-info-panel>
   </div>
 </div>

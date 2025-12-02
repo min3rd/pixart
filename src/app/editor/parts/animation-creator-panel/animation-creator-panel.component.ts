@@ -53,7 +53,7 @@ import type { BoneTransform } from '../../../services/editor/editor-keyframe.ser
     }),
   ],
   host: {
-    class: 'block h-full bg-neutral-50 dark:bg-neutral-900',
+    class: 'block h-full bg-white dark:bg-neutral-800',
   },
 })
 export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
@@ -562,6 +562,10 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
   }
 
   onBoneConfigPasted(transforms: BoneTransform[]): void {
+    this.renderTimeline();
+  }
+
+  onTransformUpdated(): void {
     this.renderTimeline();
   }
 }
