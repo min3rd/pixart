@@ -8,6 +8,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -36,7 +37,7 @@ export interface BoneConfigClipboard {
   templateUrl: './bone-keyframe-info-panel.component.html',
   styleUrls: ['./bone-keyframe-info-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIconComponent],
+  imports: [CommonModule, TranslocoPipe, NgIconComponent, FormsModule],
   providers: [
     provideIcons({
       heroClipboard,
@@ -60,6 +61,7 @@ export class BoneKeyframeInfoPanel {
 
   readonly configCopied = output<BoneConfigClipboard>();
   readonly configPasted = output<BoneTransform[]>();
+  readonly transformUpdated = output<void>();
 
   readonly isExpanded = signal<boolean>(true);
   readonly clipboard = signal<BoneConfigClipboard | null>(null);
@@ -186,5 +188,45 @@ export class BoneKeyframeInfoPanel {
 
   getTransformsForBone(boneId: string): BoneTransform[] {
     return this.groupedTransforms().get(boneId) ?? [];
+  }
+
+  updateTransformValue(
+    boneId: string,
+    bonePointId: string,
+    field: 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY',
+    value: number,
+  ): void {
+    const animation = this.animationService.getCurrentAnimation();
+    const keyframeId = this.selectedKeyframeId();
+    if (!animation || !keyframeId) return;
+
+    const keyframe = this.selectedKeyframe();
+    if (!keyframe) return;
+
+    const updatedTransforms = keyframe.boneTransforms.map((t) => {
+      if (t.boneId === boneId && t.bonePointId === bonePointId) {
+        return { ...t, [field]: value };
+      }
+      return t;
+    });
+
+    this.keyframeService.updateKeyframe(animation.id, keyframeId, {
+      boneTransforms: updatedTransforms,
+    });
+
+    this.transformUpdated.emit();
+  }
+
+  onInputChange(
+    event: Event,
+    boneId: string,
+    bonePointId: string,
+    field: 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY',
+  ): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseFloat(input.value);
+    if (!isNaN(value)) {
+      this.updateTransformValue(boneId, bonePointId, field, value);
+    }
   }
 }
