@@ -423,7 +423,19 @@
     "keyframeCount": "{{count}} keyframes",
     "editAnimation": "Edit Animation",
     "animationColor": "Animation Color",
-    "changeColor": "Change Color"
+    "changeColor": "Change Color",
+    "boneConfig": {
+      "title": "Bone Configuration",
+      "noKeyframeSelected": "Select a keyframe to view bone configuration",
+      "keyframeAt": "Keyframe at",
+      "copyConfig": "Copy bone configuration",
+      "pasteConfig": "Paste bone configuration",
+      "clipboardFrom": "Clipboard from keyframe at",
+      "noTransforms": "No bone transforms in this keyframe",
+      "points": "points",
+      "rot": "Rot",
+      "scale": "Scale"
+    }
   },
   "hotkeys": {
     "title": "Keyboard Shortcuts",

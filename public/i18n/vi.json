@@ -426,7 +426,19 @@
     "keyframeCount": "{{count}} keyframes",
     "editAnimation": "Chỉnh sửa Animation",
     "animationColor": "Màu Animation",
-    "changeColor": "Đổi màu"
+    "changeColor": "Đổi màu",
+    "boneConfig": {
+      "title": "Cấu hình Bone",
+      "noKeyframeSelected": "Chọn một keyframe để xem cấu hình bone",
+      "keyframeAt": "Keyframe tại",
+      "copyConfig": "Sao chép cấu hình bone",
+      "pasteConfig": "Dán cấu hình bone",
+      "clipboardFrom": "Đã sao chép từ keyframe tại",
+      "noTransforms": "Không có biến đổi bone trong keyframe này",
+      "points": "điểm",
+      "rot": "Xoay",
+      "scale": "Tỉ lệ"
+    }
   },
   "hotkeys": {
     "title": "Phím tắt",

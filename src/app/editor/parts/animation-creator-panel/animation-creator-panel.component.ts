@@ -26,13 +26,23 @@ import {
   EditorDocumentService,
   isLayer,
 } from '../../../services/editor-document.service';
+import {
+  BoneKeyframeInfoPanel,
+  type BoneConfigClipboard,
+} from '../bone-keyframe-info-panel/bone-keyframe-info-panel.component';
+import type { BoneTransform } from '../../../services/editor/editor-keyframe.service';
 
 @Component({
   selector: 'pa-animation-creator-panel',
   templateUrl: './animation-creator-panel.component.html',
   styleUrls: ['./animation-creator-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIconComponent],
+  imports: [
+    CommonModule,
+    TranslocoPipe,
+    NgIconComponent,
+    BoneKeyframeInfoPanel,
+  ],
   providers: [
     provideIcons({
       heroPlay,
@@ -545,5 +555,13 @@ export class AnimationCreatorPanel implements AfterViewInit, OnDestroy {
 
   getKeyframeCount(animationId: string): number {
     return this.keyframeService.getKeyframes(animationId).length;
+  }
+
+  onBoneConfigCopied(clipboard: BoneConfigClipboard): void {
+    this.renderTimeline();
+  }
+
+  onBoneConfigPasted(transforms: BoneTransform[]): void {
+    this.renderTimeline();
   }
 }
