@@ -49,6 +49,7 @@ import { FillSelectionService } from '../../../services/editor/fill-selection.se
 import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { ContentAwareFillStateService } from '../../../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../../../services/editor/define-pattern.service';
+import { DefineBrushService } from '../../../services/editor/define-brush.service';
 import { EditorStrokeService } from '../../../services/editor/editor-stroke.service';
 
 @Component({
@@ -91,6 +92,7 @@ export class EditorHeader {
   readonly contentAwareScaleService = inject(EditorContentAwareScaleService);
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternService = inject(DefinePatternService);
+  readonly defineBrushService = inject(DefineBrushService);
   readonly strokeService = inject(EditorStrokeService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
@@ -111,6 +113,7 @@ export class EditorHeader {
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
   readonly onDefinePatternToggle = output<void>();
+  readonly onDefineBrushToggle = output<void>();
   readonly onStrokeToggle = output<void>();
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
@@ -683,6 +686,13 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'edit.defineBrush',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+b',
+      handler: () => this.onDefineBrush(),
+    });
+
+    this.hotkeys.register({
       id: 'edit.stroke',
       category: 'edit',
       defaultKey: 'ctrl+alt+s',
@@ -711,6 +721,18 @@ export class EditorHeader {
 
     this.definePatternService.activate();
     this.onDefinePatternToggle.emit();
+    this.showEditMenu.set(false);
+  }
+
+  onDefineBrush(): void {
+    const sel = this.document.selectionRect();
+    if (!sel || sel.width <= 0 || sel.height <= 0) {
+      this.showEditMenu.set(false);
+      return;
+    }
+
+    this.defineBrushService.activate();
+    this.onDefineBrushToggle.emit();
     this.showEditMenu.set(false);
   }
 

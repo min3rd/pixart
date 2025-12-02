@@ -1,0 +1,287 @@
+<div
+  id="define-brush-panel-container"
+  class="p-3 space-y-3 bg-neutral-50/60 dark:bg-neutral-900/60 rounded-md"
+>
+  @if (!isActive()) {
+    <button
+      id="define-brush-create-button"
+      type="button"
+      (click)="onCreateBrush()"
+      [disabled]="!hasSelection()"
+      class="w-full flex items-center gap-2 px-3 py-2 text-xs rounded border border-neutral-200/70 bg-neutral-50/60 text-neutral-700 hover:bg-neutral-200/70 dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-300 dark:hover:bg-neutral-700/70 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <ng-icon
+        id="define-brush-create-icon"
+        name="heroPaintBrush"
+        class="h-4 w-4"
+      ></ng-icon>
+      <span id="define-brush-create-label">{{
+        "defineBrush.createFromSelection" | transloco
+      }}</span>
+    </button>
+
+    @if (!hasSelection()) {
+      <div
+        id="define-brush-no-selection-hint"
+        class="text-xs text-neutral-500 dark:text-neutral-400 text-center py-2"
+      >
+        {{ "defineBrush.noSelection" | transloco }}
+      </div>
+    }
+
+    @if (customBrushes().length > 0) {
+      <div
+        id="define-brush-library-section"
+        class="space-y-2 pt-2 border-t border-neutral-200 dark:border-neutral-700"
+      >
+        <label
+          id="define-brush-library-label"
+          class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+        >
+          {{ "defineBrush.library" | transloco }}
+        </label>
+        <div id="define-brush-library-list" class="space-y-1">
+          @for (brush of customBrushes(); track brush.id) {
+            <div
+              [id]="'define-brush-library-item-' + brush.id"
+              class="flex items-center gap-2 p-2 rounded border border-neutral-200/70 bg-white dark:border-neutral-700/70 dark:bg-neutral-800"
+            >
+              <div
+                [id]="'define-brush-library-thumb-' + brush.id"
+                class="w-8 h-8 rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 overflow-hidden flex-shrink-0"
+              >
+                @if (brush.imageDataBase64) {
+                  <img
+                    [id]="'define-brush-library-thumb-img-' + brush.id"
+                    [src]="brush.imageDataBase64"
+                    [alt]="brush.name"
+                    class="w-full h-full object-contain"
+                  />
+                }
+              </div>
+              <div
+                [id]="'define-brush-library-info-' + brush.id"
+                class="flex-1 min-w-0"
+              >
+                <div
+                  [id]="'define-brush-library-name-' + brush.id"
+                  class="text-xs font-medium text-neutral-700 dark:text-neutral-300 truncate"
+                >
+                  {{ brush.name }}
+                </div>
+                <div
+                  [id]="'define-brush-library-meta-' + brush.id"
+                  class="text-xs text-neutral-500 dark:text-neutral-400"
+                >
+                  {{ brush.type }} • {{ brush.width }}×{{ brush.height }}
+                </div>
+              </div>
+              <button
+                [id]="'define-brush-library-delete-' + brush.id"
+                type="button"
+                (click)="onDeleteBrush(brush.id)"
+                class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-neutral-500 hover:text-red-600 dark:hover:text-red-400"
+                [attr.aria-label]="'defineBrush.deleteBrush' | transloco"
+              >
+                <ng-icon name="heroTrash" class="h-3.5 w-3.5"></ng-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div
+        id="define-brush-no-brushes-hint"
+        class="text-xs text-neutral-500 dark:text-neutral-400 text-center py-2"
+      >
+        {{ "defineBrush.noBrushes" | transloco }}
+      </div>
+    }
+  } @else {
+    <div id="define-brush-preview-section" class="space-y-2">
+      <div id="define-brush-thumbnail-row" class="flex items-start gap-3">
+        <div id="define-brush-thumbnail-wrapper" class="space-y-1">
+          <label
+            id="define-brush-thumbnail-label"
+            class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+          >
+            {{ "defineBrush.thumbnail" | transloco }}
+          </label>
+          <div
+            id="define-brush-thumbnail-container"
+            class="w-16 h-16 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 overflow-hidden"
+          >
+            @if (thumbnailSrc()) {
+              <img
+                id="define-brush-thumbnail-img"
+                [src]="thumbnailSrc()"
+                alt="Brush thumbnail"
+                class="w-full h-full object-contain"
+              />
+            }
+          </div>
+        </div>
+
+        <div id="define-brush-preview-wrapper" class="space-y-1 flex-1">
+          <label
+            id="define-brush-preview-label"
+            class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+          >
+            {{ "defineBrush.preview" | transloco }}
+          </label>
+          <div
+            id="define-brush-preview-container"
+            class="w-full h-16 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 overflow-hidden"
+          >
+            @if (previewSrc()) {
+              <img
+                id="define-brush-preview-img"
+                [src]="previewSrc()"
+                alt="Brush preview"
+                class="w-full h-full object-cover"
+              />
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="define-brush-name-row" class="space-y-1">
+      <label
+        id="define-brush-name-label"
+        for="define-brush-name-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "defineBrush.name" | transloco }}
+      </label>
+      <input
+        id="define-brush-name-input"
+        type="text"
+        [value]="brushName()"
+        (input)="onNameChange($event)"
+        class="w-full px-2 py-1.5 text-xs border border-neutral-300/70 rounded bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+      />
+    </div>
+
+    <div id="define-brush-type-row" class="space-y-1">
+      <label
+        id="define-brush-type-label"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "defineBrush.type" | transloco }}
+      </label>
+      <div id="define-brush-type-buttons" class="flex gap-1">
+        <button
+          id="define-brush-type-soft"
+          type="button"
+          (click)="onTypeChange('soft')"
+          class="flex-1 px-2 py-1.5 text-xs rounded border"
+          [class.bg-blue-500]="brushType() === 'soft'"
+          [class.text-white]="brushType() === 'soft'"
+          [class.border-blue-500]="brushType() === 'soft'"
+          [class.bg-white]="brushType() !== 'soft'"
+          [class.dark\:bg-neutral-800]="brushType() !== 'soft'"
+          [class.border-neutral-300]="brushType() !== 'soft'"
+          [class.dark\:border-neutral-600]="brushType() !== 'soft'"
+          [class.text-neutral-700]="brushType() !== 'soft'"
+          [class.dark\:text-neutral-300]="brushType() !== 'soft'"
+        >
+          {{ "defineBrush.typeSoft" | transloco }}
+        </button>
+        <button
+          id="define-brush-type-hard"
+          type="button"
+          (click)="onTypeChange('hard')"
+          class="flex-1 px-2 py-1.5 text-xs rounded border"
+          [class.bg-blue-500]="brushType() === 'hard'"
+          [class.text-white]="brushType() === 'hard'"
+          [class.border-blue-500]="brushType() === 'hard'"
+          [class.bg-white]="brushType() !== 'hard'"
+          [class.dark\:bg-neutral-800]="brushType() !== 'hard'"
+          [class.border-neutral-300]="brushType() !== 'hard'"
+          [class.dark\:border-neutral-600]="brushType() !== 'hard'"
+          [class.text-neutral-700]="brushType() !== 'hard'"
+          [class.dark\:text-neutral-300]="brushType() !== 'hard'"
+        >
+          {{ "defineBrush.typeHard" | transloco }}
+        </button>
+        <button
+          id="define-brush-type-normal"
+          type="button"
+          (click)="onTypeChange('normal')"
+          class="flex-1 px-2 py-1.5 text-xs rounded border"
+          [class.bg-blue-500]="brushType() === 'normal'"
+          [class.text-white]="brushType() === 'normal'"
+          [class.border-blue-500]="brushType() === 'normal'"
+          [class.bg-white]="brushType() !== 'normal'"
+          [class.dark\:bg-neutral-800]="brushType() !== 'normal'"
+          [class.border-neutral-300]="brushType() !== 'normal'"
+          [class.dark\:border-neutral-600]="brushType() !== 'normal'"
+          [class.text-neutral-700]="brushType() !== 'normal'"
+          [class.dark\:text-neutral-300]="brushType() !== 'normal'"
+        >
+          {{ "defineBrush.typeNormal" | transloco }}
+        </button>
+      </div>
+    </div>
+
+    <div id="define-brush-opacity-row" class="space-y-1">
+      <label
+        id="define-brush-opacity-label"
+        for="define-brush-opacity-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "defineBrush.opacity" | transloco }}: {{ opacityPercent }}%
+      </label>
+      <input
+        id="define-brush-opacity-input"
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        [value]="opacityPercent"
+        (input)="onOpacityChange($event)"
+        class="w-full accent-blue-500"
+      />
+    </div>
+
+    <div id="define-brush-spacing-row" class="space-y-1">
+      <label
+        id="define-brush-spacing-label"
+        for="define-brush-spacing-input"
+        class="text-xs font-medium text-neutral-600 dark:text-neutral-400"
+      >
+        {{ "defineBrush.spacing" | transloco }}: {{ spacingPercent }}%
+      </label>
+      <input
+        id="define-brush-spacing-input"
+        type="range"
+        min="5"
+        max="200"
+        step="5"
+        [value]="spacingPercent"
+        (input)="onSpacingChange($event)"
+        class="w-full accent-blue-500"
+      />
+    </div>
+
+    <div id="define-brush-actions-row" class="flex gap-2 pt-2">
+      <button
+        id="define-brush-save-button"
+        type="button"
+        (click)="onSave()"
+        class="flex-1 px-3 py-1.5 text-xs rounded bg-blue-500 text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+      >
+        {{ "defineBrush.save" | transloco }}
+      </button>
+      <button
+        id="define-brush-cancel-button"
+        type="button"
+        (click)="onCancel()"
+        class="flex-1 px-3 py-1.5 text-xs rounded border border-neutral-300/70 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700/70 dark:text-neutral-300 dark:hover:bg-neutral-700/70"
+      >
+        {{ "defineBrush.cancel" | transloco }}
+      </button>
+    </div>
+  }
+</div>
