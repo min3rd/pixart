@@ -419,13 +419,7 @@ export class DefineShapeService {
         const nx = x + directions[checkDir].dx;
         const ny = y + directions[checkDir].dy;
 
-        if (
-          nx >= 0 &&
-          nx < width &&
-          ny >= 0 &&
-          ny < height &&
-          grid[ny][nx]
-        ) {
+        if (nx >= 0 && nx < width && ny >= 0 && ny < height && grid[ny][nx]) {
           x = nx;
           y = ny;
           dir = checkDir;
@@ -542,7 +536,10 @@ export class DefineShapeService {
     }
 
     if (maxDist > tolerance) {
-      const left = this.simplifyContour(contour.slice(0, maxIdx + 1), tolerance);
+      const left = this.simplifyContour(
+        contour.slice(0, maxIdx + 1),
+        tolerance,
+      );
       const right = this.simplifyContour(contour.slice(maxIdx), tolerance);
       return [...left.slice(0, -1), ...right];
     }
@@ -566,7 +563,10 @@ export class DefineShapeService {
     }
 
     const num = Math.abs(
-      dy * point.x - dx * point.y + lineEnd.x * lineStart.y - lineEnd.y * lineStart.x,
+      dy * point.x -
+        dx * point.y +
+        lineEnd.x * lineStart.y -
+        lineEnd.y * lineStart.x,
     );
     return num / Math.sqrt(lineLenSq);
   }
