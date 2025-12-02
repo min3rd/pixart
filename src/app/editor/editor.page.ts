@@ -15,11 +15,13 @@ import { EditorCanvas } from './parts/editor-canvas/editor-canvas.component';
 import { ContentAwareFillPanelComponent } from './parts/content-aware-fill-panel/content-aware-fill-panel.component';
 import { DefinePatternPanelComponent } from './parts/define-pattern-panel/define-pattern-panel.component';
 import { DefineBrushPanelComponent } from './parts/define-brush-panel/define-brush-panel.component';
+import { DefineShapePanelComponent } from './parts/define-shape-panel/define-shape-panel.component';
 import { StrokePanelComponent } from './parts/stroke-panel/stroke-panel.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { ContentAwareFillStateService } from '../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../services/editor/define-pattern.service';
 import { DefineBrushService } from '../services/editor/define-brush.service';
+import { DefineShapeService } from '../services/editor/define-shape.service';
 import { EditorStrokeService } from '../services/editor/editor-stroke.service';
 import { EditorDocumentService } from '../services/editor-document.service';
 import { ContentAwareFillService } from '../services/content-aware-fill.service';
@@ -45,6 +47,7 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
     ContentAwareFillPanelComponent,
     DefinePatternPanelComponent,
     DefineBrushPanelComponent,
+    DefineShapePanelComponent,
     StrokePanelComponent,
     TooltipDirective,
   ],
@@ -59,6 +62,7 @@ export class EditorPage {
   readonly contentAwareFillState = inject(ContentAwareFillStateService);
   readonly definePatternState = inject(DefinePatternService);
   readonly defineBrushState = inject(DefineBrushService);
+  readonly defineShapeState = inject(DefineShapeService);
   readonly strokeState = inject(EditorStrokeService);
   private readonly document = inject(EditorDocumentService);
   private readonly contentAwareFillService = inject(ContentAwareFillService);
@@ -69,6 +73,7 @@ export class EditorPage {
     | 'contentAwareFill'
     | 'definePattern'
     | 'defineBrush'
+    | 'defineShape'
     | 'stroke'
   >('layers');
   readonly bottomPanelTab = signal<'timeline' | 'animationCreator'>('timeline');
@@ -419,6 +424,15 @@ export class EditorPage {
 
   onDefineBrushCancel(): void {
     this.defineBrushState.deactivate();
+    this.rightPanelTab.set('layers');
+  }
+
+  onDefineShapeToggle(): void {
+    this.rightPanelTab.set('defineShape');
+  }
+
+  onDefineShapeCancel(): void {
+    this.defineShapeState.deactivate();
     this.rightPanelTab.set('layers');
   }
 

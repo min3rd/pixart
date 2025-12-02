@@ -348,6 +348,38 @@
             }
           </button>
           <button
+            id="menu-edit-define-shape-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="
+              !document.selectionRect() ||
+              document.selectionRect()?.width === 0 ||
+              document.selectionRect()?.height === 0
+            "
+            (click)="onDefineShape()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.defineShape')"
+          >
+            <ng-icon
+              id="menu-edit-define-shape-icon"
+              name="heroSquares2x2"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-define-shape-label" class="flex-1">{{
+              "defineShape.title" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.defineShape")) {
+              <span
+                id="menu-edit-define-shape-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.defineShape")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+          <button
             id="menu-edit-stroke-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
             [disabled]="
