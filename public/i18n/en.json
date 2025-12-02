@@ -326,6 +326,7 @@
         "color": "Color",
         "useColor": "Paint",
         "erase": "Erase",
+        "gradient": "Gradient",
         "pattern": "Pattern",
         "contentAware": "Content-Aware",
         "patternLibrary": "Pattern Library",
@@ -333,7 +334,17 @@
         "fillSelection": "Fill Selection",
         "colorTooltip": "Select fill color",
         "paintTooltip": "Fill with color",
-        "eraseTooltip": "Erase filled area"
+        "eraseTooltip": "Erase filled area",
+        "gradientTooltip": "Fill with gradient",
+        "gradientStart": "Start",
+        "gradientEnd": "End",
+        "gradientType": "Type",
+        "gradientTypeLinear": "Linear",
+        "gradientTypeRadial": "Radial",
+        "gradientAngle": "Angle",
+        "gradientStartTooltip": "Gradient start color",
+        "gradientEndTooltip": "Gradient end color",
+        "gradientAngleTooltip": "Gradient direction angle"
       },
       "eraser": {
         "title": "Eraser",
