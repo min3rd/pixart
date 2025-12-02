@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 
+type LineToolVariant = 'line' | 'pen';
+
+const LINE_TOOL_VARIANTS: readonly ToolId[] = ['line', 'pen'] as const;
+
 @Component({
   selector: 'pa-tool-palette',
   templateUrl: './tool-palette.component.html',
@@ -17,6 +21,7 @@ import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
   imports: [CommonModule, NgIcon, TranslocoPipe, FormsModule, TooltipDirective],
   host: {
     class: 'block h-full',
+    '(document:click)': 'onDocumentClick($event)',
   },
 })
 export class ToolPalette {
@@ -24,8 +29,51 @@ export class ToolPalette {
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
 
+  readonly lineToolVariant = signal<LineToolVariant>('line');
+  readonly lineToolPopupVisible = signal(false);
+
+  readonly filteredTools = computed(() =>
+    this.tools.tools().filter((t) => !LINE_TOOL_VARIANTS.includes(t.id))
+  );
+
+  readonly lineToolIcon = computed(() =>
+    this.lineToolVariant() === 'line' ? 'bootstrapSlashLg' : 'bootstrapPen'
+  );
+
+  readonly lineToolLabelKey = computed(() =>
+    this.lineToolVariant() === 'line' ? 'tools.line' : 'tools.pen'
+  );
+
+  readonly lineToolTooltipKey = computed(() =>
+    this.lineToolVariant() === 'line'
+      ? 'tooltips.tools.line'
+      : 'tooltips.tools.pen'
+  );
+
+  readonly isLineToolActive = computed(() =>
+    LINE_TOOL_VARIANTS.includes(this.tools.currentTool())
+  );
+
   select(id: ToolId) {
     this.tools.selectTool(id);
+  }
+
+  toggleLineToolPopup(event: Event) {
+    event.stopPropagation();
+    this.lineToolPopupVisible.update((v) => !v);
+  }
+
+  selectLineToolVariant(variant: LineToolVariant) {
+    this.lineToolVariant.set(variant);
+    this.lineToolPopupVisible.set(false);
+    this.tools.selectTool(variant);
+  }
+
+  onDocumentClick(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLElement && !target.closest('#tool-palette-line-group')) {
+      this.lineToolPopupVisible.set(false);
+    }
   }
 
   getToolHotkeyId(toolId: ToolId): string {

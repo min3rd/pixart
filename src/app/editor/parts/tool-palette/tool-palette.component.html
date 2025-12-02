@@ -3,7 +3,7 @@
   class="flex h-full flex-col bg-neutral-100/10 dark:bg-neutral-900/40"
 >
   <div id="tool-palette-grid" class="flex flex-wrap p-2 gap-2 justify-baseline">
-    @for (t of tools.tools(); track t.id) {
+    @for (t of filteredTools(); track t.id) {
       @let active = tools.currentTool() === t.id;
       <button
         id="tool-palette-button-{{ t.id }}"
@@ -31,6 +31,91 @@
         </span>
       </button>
     }
+    <div id="tool-palette-line-group" class="relative">
+      <button
+        id="tool-palette-button-line-group"
+        type="button"
+        (click)="select(lineToolVariant())"
+        class="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-neutral-200/70 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 dark:hover:bg-neutral-700/70"
+        [ngClass]="{
+          'border border-blue-500 bg-neutral-200/80 text-neutral-900 shadow-sm dark:bg-neutral-700/70 dark:text-neutral-50':
+            isLineToolActive(),
+          'border border-neutral-200/70 bg-neutral-50/60 text-neutral-600 transition-colors dark:border-neutral-700/70 dark:bg-neutral-900/60 dark:text-neutral-200':
+            !isLineToolActive(),
+        }"
+        [attr.aria-pressed]="isLineToolActive()"
+        [attr.aria-keyshortcuts]="hotkeys.getBinding(getToolHotkeyId(lineToolVariant()))"
+        [paTooltip]="lineToolTooltipKey() | transloco"
+        [paTooltipHotkeyId]="getToolHotkeyId(lineToolVariant())"
+      >
+        <ng-icon
+          id="tool-palette-button-line-group-icon"
+          [name]="lineToolIcon()"
+          class="h-5 w-5"
+        ></ng-icon>
+        <span id="tool-palette-button-line-group-label" class="sr-only">
+          {{ lineToolLabelKey() | transloco }}
+        </span>
+      </button>
+      <button
+        id="tool-palette-line-group-arrow"
+        type="button"
+        (click)="toggleLineToolPopup($event)"
+        [attr.aria-expanded]="lineToolPopupVisible()"
+        aria-haspopup="menu"
+        class="absolute bottom-0 right-0 w-3 h-3 flex items-center justify-center bg-neutral-300 dark:bg-neutral-600 rounded-br focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+      >
+        <ng-icon
+          id="tool-palette-line-group-arrow-icon"
+          name="heroiconsChevronDownMini"
+          class="h-2 w-2"
+        ></ng-icon>
+        <span id="tool-palette-line-group-arrow-label" class="sr-only">
+          {{ "tools.lineToolOptions" | transloco }}
+        </span>
+      </button>
+      @if (lineToolPopupVisible()) {
+        <div
+          id="tool-palette-line-popup"
+          role="menu"
+          aria-labelledby="tool-palette-line-group-arrow"
+          class="absolute top-full left-0 mt-1 bg-white dark:bg-neutral-800 rounded shadow-lg border border-neutral-200 dark:border-neutral-700 z-50 p-1 flex flex-col gap-1"
+        >
+          <button
+            id="tool-palette-popup-line"
+            type="button"
+            role="menuitem"
+            (click)="selectLineToolVariant('line')"
+            class="flex items-center gap-2 px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+          >
+            <ng-icon
+              id="tool-palette-popup-line-icon"
+              name="bootstrapSlashLg"
+              class="h-4 w-4"
+            ></ng-icon>
+            <span id="tool-palette-popup-line-label">
+              {{ "tools.line" | transloco }}
+            </span>
+          </button>
+          <button
+            id="tool-palette-popup-pen"
+            type="button"
+            role="menuitem"
+            (click)="selectLineToolVariant('pen')"
+            class="flex items-center gap-2 px-2 py-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0"
+          >
+            <ng-icon
+              id="tool-palette-popup-pen-icon"
+              name="bootstrapPen"
+              class="h-4 w-4"
+            ></ng-icon>
+            <span id="tool-palette-popup-pen-label">
+              {{ "tools.pen" | transloco }}
+            </span>
+          </button>
+        </div>
+      }
+    </div>
   </div>
 
   <div
