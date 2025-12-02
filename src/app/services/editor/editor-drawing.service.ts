@@ -143,6 +143,150 @@ export class EditorDrawingService {
     return changed;
   }
 
+  applyGradientFillToLayer(
+    layerId: string,
+    x: number,
+    y: number,
+    gradientStartColor: string,
+    gradientEndColor: string,
+    gradientType: GradientType,
+    gradientAngle: number,
+  ): number {
+    const buf = this.canvasState.getLayerBuffer(layerId);
+    if (!buf || buf.length === 0) return 0;
+    const w = Math.max(1, this.canvasState.canvasWidth());
+    const h = Math.max(1, this.canvasState.canvasHeight());
+    if (x < 0 || x >= w || y < 0 || y >= h) return 0;
+    const idx0 = y * w + x;
+    const target = buf[idx0] || '';
+    const sel = this.selectionService.selectionRect();
+    const shape = this.selectionService.selectionShape();
+    const selPoly = this.selectionService.selectionPolygon();
+    if (
+      sel &&
+      !this.selectionService.isPixelWithinSelection(x, y, sel, shape, selPoly)
+    ) {
+      return 0;
+    }
+    const filledIndices: number[] = [];
+    const visited = new Set<number>();
+    const stack: number[] = [idx0];
+    while (stack.length > 0) {
+      const idx = stack.pop() as number;
+      if (visited.has(idx)) continue;
+      if (buf[idx] !== target) continue;
+      visited.add(idx);
+      filledIndices.push(idx);
+      const y0 = Math.floor(idx / w);
+      const x0 = idx - y0 * w;
+      const pushIfValid = (nx: number, ny: number) => {
+        if (nx < 0 || nx >= w || ny < 0 || ny >= h) return;
+        const nidx = ny * w + nx;
+        if (visited.has(nidx)) return;
+        if (buf[nidx] !== target) return;
+        if (
+          sel &&
+          !this.selectionService.isPixelWithinSelection(
+            nx,
+            ny,
+            sel,
+            shape,
+            selPoly,
+          )
+        )
+          return;
+        stack.push(nidx);
+      };
+      pushIfValid(x0 - 1, y0);
+      pushIfValid(x0 + 1, y0);
+      pushIfValid(x0, y0 - 1);
+      pushIfValid(x0, y0 + 1);
+    }
+    if (filledIndices.length === 0) return 0;
+    let minX = w;
+    let minY = h;
+    let maxX = -1;
+    let maxY = -1;
+    for (const idx of filledIndices) {
+      const py = Math.floor(idx / w);
+      const px = idx - py * w;
+      if (px < minX) minX = px;
+      if (px > maxX) maxX = px;
+      if (py < minY) minY = py;
+      if (py > maxY) maxY = py;
+    }
+    const widthRect = Math.max(1, maxX - minX + 1);
+    const heightRect = Math.max(1, maxY - minY + 1);
+    const centerX = minX + widthRect / 2;
+    const centerY = minY + heightRect / 2;
+    const startColorParsed = this.colorService.parseHexColor(gradientStartColor);
+    const endColorParsed = this.colorService.parseHexColor(gradientEndColor);
+    const fallbackStart =
+      (gradientStartColor && gradientStartColor.length > 0
+        ? gradientStartColor
+        : gradientEndColor) || '#000000';
+    const fallbackEnd =
+      (gradientEndColor && gradientEndColor.length > 0
+        ? gradientEndColor
+        : gradientStartColor) || '#000000';
+    const angleRad = (gradientAngle * Math.PI) / 180;
+    const dirX = Math.cos(angleRad);
+    const dirY = Math.sin(angleRad);
+    let minProj = 0;
+    let maxProj = 1;
+    if (gradientType === 'linear') {
+      let minVal = Number.POSITIVE_INFINITY;
+      let maxVal = Number.NEGATIVE_INFINITY;
+      const corners = [
+        { x: minX, y: minY },
+        { x: maxX, y: minY },
+        { x: minX, y: maxY },
+        { x: maxX, y: maxY },
+      ];
+      for (const corner of corners) {
+        const proj = (corner.x + 0.5) * dirX + (corner.y + 0.5) * dirY;
+        if (proj < minVal) minVal = proj;
+        if (proj > maxVal) maxVal = proj;
+      }
+      if (Number.isFinite(minVal) && Number.isFinite(maxVal)) {
+        if (minVal === maxVal) maxVal = minVal + 1;
+        minProj = minVal;
+        maxProj = maxVal;
+      }
+    }
+    const radius = Math.max(widthRect, heightRect) / 2;
+    let changed = 0;
+    for (const idx of filledIndices) {
+      const py = Math.floor(idx / w);
+      const px = idx - py * w;
+      let ratio = 0;
+      if (gradientType === 'radial') {
+        const dx = px + 0.5 - centerX;
+        const dy = py + 0.5 - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        ratio = radius > 0 ? dist / radius : 0;
+      } else {
+        const proj = (px + 0.5) * dirX + (py + 0.5) * dirY;
+        const span = maxProj - minProj;
+        ratio = span !== 0 ? (proj - minProj) / span : 0;
+      }
+      const ditherRatio = this.colorService.computeDitheredRatio(ratio, px, py);
+      const pixelColor = this.colorService.mixParsedColors(
+        startColorParsed,
+        endColorParsed,
+        ditherRatio,
+        fallbackStart,
+        fallbackEnd,
+      );
+      if (this.writePixelValue(layerId, buf, idx, pixelColor)) changed++;
+    }
+    if (changed > 0) {
+      this.canvasState.incrementPixelsVersion();
+      this.canvasState.setCanvasSaved(false);
+    }
+    return changed;
+  }
+
   applyLineToLayer(
     layerId: string,
     x0: number,

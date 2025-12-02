@@ -1377,8 +1377,24 @@ export class EditorCanvas implements OnDestroy {
         this.document.saveSnapshot('Fill');
         const layerId = this.document.selectedLayerId();
         const fillMode = this.tools.fillMode();
-        const fillColor = fillMode === 'erase' ? null : this.tools.fillColor();
-        this.document.applyFillToLayer(layerId, logicalX, logicalY, fillColor);
+        if (fillMode === 'gradient') {
+          const gradientStartColor = this.tools.fillGradientStartColor();
+          const gradientEndColor = this.tools.fillGradientEndColor();
+          const gradientType = this.tools.fillGradientType();
+          const gradientAngle = this.tools.fillGradientAngle();
+          this.document.applyGradientFillToLayer(
+            layerId,
+            logicalX,
+            logicalY,
+            gradientStartColor,
+            gradientEndColor,
+            gradientType,
+            gradientAngle,
+          );
+        } else {
+          const fillColor = fillMode === 'erase' ? null : this.tools.fillColor();
+          this.document.applyFillToLayer(layerId, logicalX, logicalY, fillColor);
+        }
       } else if (tool === 'bone' && insideCanvas) {
         this.capturePointer(ev);
         const frameId = this.getCurrentFrameId();

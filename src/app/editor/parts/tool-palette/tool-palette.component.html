@@ -182,9 +182,44 @@
                     {{ "editor.tools.fill.erase" | transloco }}
                   </span>
                 </button>
+                <button
+                  id="palette-fill-mode-button-gradient"
+                  type="button"
+                  (click)="setFillMode('gradient')"
+                  [attr.aria-pressed]="tools.fillMode() === 'gradient'"
+                  [paTooltip]="'editor.tools.fill.gradientTooltip' | transloco"
+                  [className]="
+                    'flex h-7 w-7 items-center justify-center rounded-sm text-neutral-600 transition-colors hover:bg-white/70 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 dark:text-neutral-200 dark:hover:bg-neutral-700/70' +
+                    (tools.fillMode() === 'gradient'
+                      ? ' bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-50'
+                      : '')
+                  "
+                >
+                  <ng-icon
+                    id="palette-fill-mode-button-gradient-icon"
+                    name="bootstrapSunrise"
+                    class="h-4 w-4"
+                  ></ng-icon>
+                  <span id="palette-fill-mode-button-gradient-label" class="sr-only">
+                    {{ "editor.tools.fill.gradient" | transloco }}
+                  </span>
+                </button>
               </div>
               <span id="palette-fill-mode-label" class="text-xs text-neutral-500 dark:text-neutral-400">
-                {{ tools.fillMode() === 'color' ? ("editor.tools.fill.useColor" | transloco) : ("editor.tools.fill.erase" | transloco) }}
+                @switch (tools.fillMode()) {
+                  @case ("color") {
+                    {{ "editor.tools.fill.useColor" | transloco }}
+                  }
+                  @case ("erase") {
+                    {{ "editor.tools.fill.erase" | transloco }}
+                  }
+                  @case ("gradient") {
+                    {{ "editor.tools.fill.gradient" | transloco }}
+                  }
+                  @default {
+                    {{ "editor.tools.fill.useColor" | transloco }}
+                  }
+                }
               </span>
             </div>
           </div>
@@ -208,6 +243,141 @@
                   />
                   <span id="palette-fill-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.fillColor() }}</span>
                 </div>
+              </div>
+            </div>
+          }
+          @if (tools.fillMode() === "gradient") {
+            <div id="palette-fill-gradient-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+              <div id="palette-fill-gradient-header" class="flex items-center gap-1">
+                <ng-icon id="palette-fill-gradient-header-icon" name="heroiconsSparklesMini" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
+                <span id="palette-fill-gradient-header-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.sections.gradient" | transloco }}</span>
+              </div>
+              <div id="palette-fill-gradient-type-row" class="flex items-center gap-2">
+                <span id="palette-fill-gradient-type-label" class="text-xs text-neutral-600 dark:text-neutral-400">{{ "editor.tools.fill.gradientType" | transloco }}</span>
+                <div
+                  id="palette-fill-gradient-type-toggle"
+                  class="flex gap-1 rounded-sm bg-neutral-200/50 p-0.5 dark:bg-neutral-800/50"
+                >
+                  <button
+                    id="palette-fill-gradient-type-linear"
+                    type="button"
+                    (click)="setFillGradientType('linear')"
+                    [attr.aria-pressed]="tools.fillGradientType() === 'linear'"
+                    [className]="
+                      'flex h-7 w-7 items-center justify-center rounded-sm text-neutral-600 transition-colors hover:bg-white/70 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 dark:text-neutral-200 dark:hover:bg-neutral-700/70' +
+                      (tools.fillGradientType() === 'linear'
+                        ? ' bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-50'
+                        : '')
+                    "
+                  >
+                    <ng-icon
+                      id="palette-fill-gradient-type-linear-icon"
+                      name="bootstrapSlash"
+                      class="h-4 w-4"
+                    ></ng-icon>
+                    <span
+                      id="palette-fill-gradient-type-linear-label"
+                      class="sr-only"
+                    >
+                      {{ "editor.tools.fill.gradientTypeLinear" | transloco }}
+                    </span>
+                  </button>
+                  <button
+                    id="palette-fill-gradient-type-radial"
+                    type="button"
+                    (click)="setFillGradientType('radial')"
+                    [attr.aria-pressed]="tools.fillGradientType() === 'radial'"
+                    [className]="
+                      'flex h-7 w-7 items-center justify-center rounded-sm text-neutral-600 transition-colors hover:bg-white/70 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-0 dark:text-neutral-200 dark:hover:bg-neutral-700/70' +
+                      (tools.fillGradientType() === 'radial'
+                        ? ' bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-50'
+                        : '')
+                    "
+                  >
+                    <ng-icon
+                      id="palette-fill-gradient-type-radial-icon"
+                      name="bootstrapRecordCircle"
+                      class="h-4 w-4"
+                    ></ng-icon>
+                    <span
+                      id="palette-fill-gradient-type-radial-label"
+                      class="sr-only"
+                    >
+                      {{ "editor.tools.fill.gradientTypeRadial" | transloco }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+              <div id="palette-fill-gradient-start-row" class="flex items-center gap-2" [paTooltip]="'editor.tools.fill.gradientStartTooltip' | transloco">
+                <label
+                  id="palette-fill-gradient-start-label"
+                  class="text-xs text-neutral-600 dark:text-neutral-400"
+                  for="palette-fill-gradient-start-input"
+                >
+                  {{ "editor.tools.fill.gradientStart" | transloco }}
+                </label>
+                <div id="palette-fill-gradient-start-picker" class="flex items-center gap-1">
+                  <input
+                    id="palette-fill-gradient-start-input"
+                    type="color"
+                    [value]="tools.fillGradientStartColor()"
+                    (input)="onFillGradientStartInput($event)"
+                    class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
+                  />
+                  <span id="palette-fill-gradient-start-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.fillGradientStartColor() }}</span>
+                </div>
+              </div>
+              <div id="palette-fill-gradient-end-row" class="flex items-center gap-2" [paTooltip]="'editor.tools.fill.gradientEndTooltip' | transloco">
+                <label
+                  id="palette-fill-gradient-end-label"
+                  class="text-xs text-neutral-600 dark:text-neutral-400"
+                  for="palette-fill-gradient-end-input"
+                >
+                  {{ "editor.tools.fill.gradientEnd" | transloco }}
+                </label>
+                <div id="palette-fill-gradient-end-picker" class="flex items-center gap-1">
+                  <input
+                    id="palette-fill-gradient-end-input"
+                    type="color"
+                    [value]="tools.fillGradientEndColor()"
+                    (input)="onFillGradientEndInput($event)"
+                    class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
+                  />
+                  <span id="palette-fill-gradient-end-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.fillGradientEndColor() }}</span>
+                </div>
+              </div>
+              <div id="palette-fill-gradient-angle-header" class="flex items-center justify-between">
+                <label id="palette-fill-gradient-angle-label" class="text-xs text-neutral-600 dark:text-neutral-400" for="palette-fill-gradient-angle-range">
+                  {{ "editor.tools.fill.gradientAngle" | transloco }}
+                </label>
+                <span id="palette-fill-gradient-angle-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">
+                  {{ tools.fillGradientAngle() }}{{ "editor.tools.units.degrees" | transloco }}
+                </span>
+              </div>
+              <div
+                id="palette-fill-gradient-angle-row"
+                class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+                [paTooltip]="'editor.tools.fill.gradientAngleTooltip' | transloco"
+              >
+                <input
+                  id="palette-fill-gradient-angle-range"
+                  type="range"
+                  min="0"
+                  max="359"
+                  [value]="tools.fillGradientAngle()"
+                  (input)="onFillGradientAngleInput($event)"
+                  class="w-full accent-blue-500"
+                />
+                <input
+                  id="palette-fill-gradient-angle-number"
+                  type="number"
+                  min="0"
+                  max="359"
+                  [value]="tools.fillGradientAngle()"
+                  (input)="onFillGradientAngleInput($event)"
+                  [attr.aria-labelledby]="'palette-fill-gradient-angle-label'"
+                  class="w-14 rounded-sm border border-neutral-300/70 bg-white px-1.5 py-0.5 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+                />
               </div>
             </div>
           }

@@ -326,6 +326,7 @@
         "color": "Màu sắc",
         "useColor": "Tô màu",
         "erase": "Xóa",
+        "gradient": "Dải màu",
         "pattern": "Họa tiết",
         "contentAware": "Tự động lấp",
         "patternLibrary": "Thư viện họa tiết",
@@ -333,7 +334,17 @@
         "fillSelection": "Tô vùng chọn",
         "colorTooltip": "Chọn màu tô",
         "paintTooltip": "Tô bằng màu",
-        "eraseTooltip": "Xóa vùng tô"
+        "eraseTooltip": "Xóa vùng tô",
+        "gradientTooltip": "Tô bằng dải màu",
+        "gradientStart": "Bắt đầu",
+        "gradientEnd": "Kết thúc",
+        "gradientType": "Loại",
+        "gradientTypeLinear": "Theo góc",
+        "gradientTypeRadial": "Tâm tròn",
+        "gradientAngle": "Góc",
+        "gradientStartTooltip": "Màu bắt đầu dải màu",
+        "gradientEndTooltip": "Màu kết thúc dải màu",
+        "gradientAngleTooltip": "Góc hướng dải màu"
       },
       "eraser": {
         "title": "Tẩy",
