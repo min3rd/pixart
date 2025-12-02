@@ -241,15 +241,31 @@
   "editor": {
     "tools": {
       "noConfiguration": "Không có thiết lập cho công cụ này",
+      "sections": {
+        "mode": "Chế độ",
+        "stroke": "Viền",
+        "fill": "Tô",
+        "gradient": "Dải màu",
+        "settings": "Cài đặt"
+      },
+      "units": {
+        "px": "px",
+        "percent": "%",
+        "degrees": "°"
+      },
       "brush": {
         "title": "Cọ vẽ",
         "size": "Kích cỡ",
-        "color": "Màu sắc"
+        "color": "Màu sắc",
+        "sizeTooltip": "Đường kính cọ tính bằng pixel",
+        "colorTooltip": "Chọn màu cọ"
       },
       "line": {
         "title": "Kẻ đường",
         "thickness": "Độ dày",
-        "color": "Màu sắc"
+        "color": "Màu sắc",
+        "thicknessTooltip": "Độ dày đường tính bằng pixel",
+        "colorTooltip": "Chọn màu đường"
       },
       "pen": {
         "title": "Bút vẽ đường",
@@ -257,37 +273,53 @@
         "color": "Màu sắc",
         "lineMode": "Kiểu đường",
         "polyline": "Gấp khúc",
-        "spline": "Cong mượt"
+        "spline": "Cong mượt",
+        "thicknessTooltip": "Độ dày nét bút tính bằng pixel",
+        "colorTooltip": "Chọn màu bút",
+        "polylineTooltip": "Vẽ đường thẳng",
+        "splineTooltip": "Vẽ đường cong mượt"
       },
       "circle": {
         "title": "Hình tròn",
-        "strokeThickness": "Độ dày viền",
-        "strokeColor": "Màu viền",
+        "strokeThickness": "Độ dày",
+        "strokeColor": "Màu",
         "fillMode": "Chế độ tô",
         "fillSolid": "Đặc",
         "fillGradient": "Dải màu",
-        "fillColor": "Màu tô",
-        "gradientStart": "Màu bắt đầu",
-        "gradientEnd": "Màu kết thúc",
-        "gradientType": "Loại dải màu",
+        "fillColor": "Màu",
+        "gradientStart": "Bắt đầu",
+        "gradientEnd": "Kết thúc",
+        "gradientType": "Loại",
         "gradientTypeRadial": "Tâm tròn",
         "gradientTypeLinear": "Theo góc",
-        "gradientAngle": "Góc đổ"
+        "gradientAngle": "Góc",
+        "strokeTooltip": "Độ dày viền hình tròn",
+        "strokeColorTooltip": "Chọn màu viền",
+        "fillColorTooltip": "Chọn màu tô",
+        "gradientStartTooltip": "Màu bắt đầu dải màu",
+        "gradientEndTooltip": "Màu kết thúc dải màu",
+        "gradientAngleTooltip": "Góc hướng dải màu"
       },
       "square": {
         "title": "Hình vuông",
-        "strokeThickness": "Độ dày viền",
-        "strokeColor": "Màu viền",
+        "strokeThickness": "Độ dày",
+        "strokeColor": "Màu",
         "fillMode": "Chế độ tô",
         "fillSolid": "Đặc",
         "fillGradient": "Dải màu",
-        "fillColor": "Màu tô",
-        "gradientStart": "Màu bắt đầu",
-        "gradientEnd": "Màu kết thúc",
-        "gradientType": "Loại dải màu",
+        "fillColor": "Màu",
+        "gradientStart": "Bắt đầu",
+        "gradientEnd": "Kết thúc",
+        "gradientType": "Loại",
         "gradientTypeLinear": "Theo góc",
         "gradientTypeRadial": "Tâm tròn",
-        "gradientAngle": "Góc đổ"
+        "gradientAngle": "Góc",
+        "strokeTooltip": "Độ dày viền hình chữ nhật",
+        "strokeColorTooltip": "Chọn màu viền",
+        "fillColorTooltip": "Chọn màu tô",
+        "gradientStartTooltip": "Màu bắt đầu dải màu",
+        "gradientEndTooltip": "Màu kết thúc dải màu",
+        "gradientAngleTooltip": "Góc hướng dải màu"
       },
       "fill": {
         "title": "Đổ màu",
@@ -298,17 +330,24 @@
         "contentAware": "Tự động lấp",
         "patternLibrary": "Thư viện họa tiết",
         "threshold": "Ngưỡng",
-        "fillSelection": "Tô vùng chọn"
+        "fillSelection": "Tô vùng chọn",
+        "colorTooltip": "Chọn màu tô",
+        "paintTooltip": "Tô bằng màu",
+        "eraseTooltip": "Xóa vùng tô"
       },
       "eraser": {
         "title": "Tẩy",
         "size": "Kích cỡ",
-        "strength": "Độ đậm"
+        "strength": "Độ mờ",
+        "sizeTooltip": "Đường kính tẩy tính bằng pixel",
+        "strengthTooltip": "Phần trăm độ mờ của tẩy"
       },
       "bone": {
         "title": "Xương",
         "thickness": "Độ dày",
-        "color": "Màu sắc"
+        "color": "Màu sắc",
+        "thicknessTooltip": "Độ dày xương tính bằng pixel",
+        "colorTooltip": "Chọn màu xương"
       }
     },
     "layers": {
