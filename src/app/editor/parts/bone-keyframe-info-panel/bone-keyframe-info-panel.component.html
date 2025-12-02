@@ -66,13 +66,13 @@
           </div>
         </div>
 
-        @if (clipboard()) {
+        @if (clipboard(); as clipboardData) {
           <div
             id="bone-keyframe-clipboard-info"
             class="text-[9px] text-blue-600 dark:text-blue-400 mb-1"
           >
             {{ "animationCreator.boneConfig.clipboardFrom" | transloco }}
-            {{ formatTime(clipboard()!.sourceTime) }}
+            {{ formatTime(clipboardData.sourceTime) }}
           </div>
         }
 

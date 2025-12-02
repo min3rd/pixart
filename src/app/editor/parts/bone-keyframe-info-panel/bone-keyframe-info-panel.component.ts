@@ -156,10 +156,11 @@ export class BoneKeyframeInfoPanel {
   }
 
   canPaste(): boolean {
+    const clip = this.clipboard();
     return (
-      this.clipboard() !== null &&
+      clip !== null &&
       this.selectedKeyframeId() !== null &&
-      this.clipboard()?.sourceKeyframeId !== this.selectedKeyframeId()
+      clip.sourceKeyframeId !== this.selectedKeyframeId()
     );
   }
 
