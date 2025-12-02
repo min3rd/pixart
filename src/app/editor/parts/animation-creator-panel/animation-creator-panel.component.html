@@ -343,5 +343,13 @@
         </div>
       }
     </div>
+
+    <pa-bone-keyframe-info-panel
+      id="bone-keyframe-info-panel"
+      [selectedKeyframeId]="selectedKeyframeId()"
+      [currentTime]="currentTime()"
+      (configCopied)="onBoneConfigCopied($event)"
+      (configPasted)="onBoneConfigPasted($event)"
+    ></pa-bone-keyframe-info-panel>
   </div>
 </div>
