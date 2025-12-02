@@ -241,15 +241,31 @@
   "editor": {
     "tools": {
       "noConfiguration": "No adjustable settings for this tool",
+      "sections": {
+        "mode": "Mode",
+        "stroke": "Stroke",
+        "fill": "Fill",
+        "gradient": "Gradient",
+        "settings": "Settings"
+      },
+      "units": {
+        "px": "px",
+        "percent": "%",
+        "degrees": "°"
+      },
       "brush": {
         "title": "Brush",
         "size": "Size",
-        "color": "Color"
+        "color": "Color",
+        "sizeTooltip": "Brush diameter in pixels",
+        "colorTooltip": "Select brush color"
       },
       "line": {
         "title": "Line",
         "thickness": "Thickness",
-        "color": "Color"
+        "color": "Color",
+        "thicknessTooltip": "Line thickness in pixels",
+        "colorTooltip": "Select line color"
       },
       "pen": {
         "title": "Pen",
@@ -257,37 +273,53 @@
         "color": "Color",
         "lineMode": "Line Mode",
         "polyline": "Polyline",
-        "spline": "Curve"
+        "spline": "Curve",
+        "thicknessTooltip": "Pen stroke thickness in pixels",
+        "colorTooltip": "Select pen color",
+        "polylineTooltip": "Draw straight segments",
+        "splineTooltip": "Draw smooth curves"
       },
       "circle": {
         "title": "Circle",
-        "strokeThickness": "Stroke width",
-        "strokeColor": "Stroke color",
+        "strokeThickness": "Thickness",
+        "strokeColor": "Color",
         "fillMode": "Fill mode",
         "fillSolid": "Solid",
         "fillGradient": "Gradient",
-        "fillColor": "Fill color",
-        "gradientStart": "Gradient start",
-        "gradientEnd": "Gradient end",
-        "gradientType": "Gradient type",
-        "gradientTypeRadial": "Radial (center)",
+        "fillColor": "Color",
+        "gradientStart": "Start",
+        "gradientEnd": "End",
+        "gradientType": "Type",
+        "gradientTypeRadial": "Radial",
         "gradientTypeLinear": "Linear",
-        "gradientAngle": "Angle"
+        "gradientAngle": "Angle",
+        "strokeTooltip": "Circle border thickness",
+        "strokeColorTooltip": "Select stroke color",
+        "fillColorTooltip": "Select fill color",
+        "gradientStartTooltip": "Gradient start color",
+        "gradientEndTooltip": "Gradient end color",
+        "gradientAngleTooltip": "Gradient direction angle"
       },
       "square": {
         "title": "Square",
-        "strokeThickness": "Stroke width",
-        "strokeColor": "Stroke color",
+        "strokeThickness": "Thickness",
+        "strokeColor": "Color",
         "fillMode": "Fill mode",
         "fillSolid": "Solid",
         "fillGradient": "Gradient",
-        "fillColor": "Fill color",
-        "gradientStart": "Gradient start",
-        "gradientEnd": "Gradient end",
-        "gradientType": "Gradient type",
+        "fillColor": "Color",
+        "gradientStart": "Start",
+        "gradientEnd": "End",
+        "gradientType": "Type",
         "gradientTypeLinear": "Linear",
-        "gradientTypeRadial": "Radial (center)",
-        "gradientAngle": "Angle"
+        "gradientTypeRadial": "Radial",
+        "gradientAngle": "Angle",
+        "strokeTooltip": "Rectangle border thickness",
+        "strokeColorTooltip": "Select stroke color",
+        "fillColorTooltip": "Select fill color",
+        "gradientStartTooltip": "Gradient start color",
+        "gradientEndTooltip": "Gradient end color",
+        "gradientAngleTooltip": "Gradient direction angle"
       },
       "fill": {
         "title": "Fill",
@@ -298,17 +330,24 @@
         "contentAware": "Content-Aware",
         "patternLibrary": "Pattern Library",
         "threshold": "Threshold",
-        "fillSelection": "Fill Selection"
+        "fillSelection": "Fill Selection",
+        "colorTooltip": "Select fill color",
+        "paintTooltip": "Fill with color",
+        "eraseTooltip": "Erase filled area"
       },
       "eraser": {
         "title": "Eraser",
         "size": "Size",
-        "strength": "Strength"
+        "strength": "Opacity",
+        "sizeTooltip": "Eraser diameter in pixels",
+        "strengthTooltip": "Eraser opacity percentage"
       },
       "bone": {
         "title": "Bone",
         "thickness": "Thickness",
-        "color": "Color"
+        "color": "Color",
+        "thicknessTooltip": "Bone thickness in pixels",
+        "colorTooltip": "Select bone color"
       }
     },
     "layers": {
