@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import {
   FillToolMode,
   GradientType,
+  PenLineMode,
   ToolDefinition,
   ToolHistoryAdapter,
   ToolId,
@@ -18,6 +19,7 @@ import { EyedropperToolService } from './tools/eyedropper-tool.service';
 import { FillToolService } from './tools/fill-tool.service';
 import { LassoSelectToolService } from './tools/lasso-select-tool.service';
 import { LineToolService } from './tools/line-tool.service';
+import { PenToolService } from './tools/pen-tool.service';
 import { RectSelectToolService } from './tools/rect-select-tool.service';
 import { SelectLayerToolService } from './tools/select-layer-tool.service';
 import { SquareToolService } from './tools/square-tool.service';
@@ -37,6 +39,7 @@ export class EditorToolsService {
   private readonly brushTool = inject(BrushToolService);
   private readonly eraserTool = inject(EraserToolService);
   private readonly lineTool = inject(LineToolService);
+  private readonly penTool = inject(PenToolService);
   private readonly circleTool = inject(CircleToolService);
   private readonly squareTool = inject(SquareToolService);
   private readonly boneTool = inject(BoneToolService);
@@ -51,6 +54,7 @@ export class EditorToolsService {
     ['brush', this.brushTool],
     ['eraser', this.eraserTool],
     ['line', this.lineTool],
+    ['pen', this.penTool],
     ['circle', this.circleTool],
     ['square', this.squareTool],
     ['bone', this.boneTool],
@@ -75,6 +79,9 @@ export class EditorToolsService {
   readonly eraserStrength = this.eraserTool.strength.asReadonly();
   readonly lineThickness = this.lineTool.thickness.asReadonly();
   readonly lineColor = this.lineTool.color.asReadonly();
+  readonly penThickness = this.penTool.thickness.asReadonly();
+  readonly penColor = this.penTool.color.asReadonly();
+  readonly penLineMode = this.penTool.lineMode.asReadonly();
   readonly circleStrokeThickness = this.circleTool.strokeThickness.asReadonly();
   readonly circleStrokeColor = this.circleTool.strokeColor.asReadonly();
   readonly circleFillMode = this.circleTool.fillMode.asReadonly();
@@ -189,6 +196,21 @@ export class EditorToolsService {
     this.saveToStorage();
   }
 
+  setPenThickness(value: number, max?: number) {
+    this.penTool.setThickness(value, max);
+    this.saveToStorage();
+  }
+
+  setPenColor(color: string) {
+    this.penTool.setColor(color);
+    this.saveToStorage();
+  }
+
+  setPenLineMode(mode: PenLineMode) {
+    this.penTool.setLineMode(mode);
+    this.saveToStorage();
+  }
+
   setCircleStrokeThickness(value: number, max?: number) {
     this.circleTool.setStrokeThickness(value, max);
     this.saveToStorage();
@@ -298,6 +320,7 @@ export class EditorToolsService {
     this.brushTool.restore(snapshot.brush, context);
     this.eraserTool.restore(snapshot.eraser, context);
     this.lineTool.restore(snapshot.line, context);
+    this.penTool.restore(snapshot.pen, context);
     this.circleTool.restore(snapshot.circle);
     this.squareTool.restore(snapshot.square);
     this.boneTool.restore(snapshot.bone, context);
@@ -318,6 +341,7 @@ export class EditorToolsService {
       (this.brushTool.applyMeta?.(key, value) ?? false) ||
       (this.eraserTool.applyMeta?.(key, value) ?? false) ||
       (this.lineTool.applyMeta?.(key, value) ?? false) ||
+      (this.penTool.applyMeta?.(key, value) ?? false) ||
       (this.circleTool.applyMeta?.(key, value) ?? false) ||
       (this.squareTool.applyMeta?.(key, value) ?? false) ||
       (this.boneTool.applyMeta?.(key, value) ?? false);
@@ -334,6 +358,7 @@ export class EditorToolsService {
       brush: this.brushTool.snapshot(),
       eraser: this.eraserTool.snapshot(),
       line: this.lineTool.snapshot(),
+      pen: this.penTool.snapshot(),
       circle: this.circleTool.snapshot(),
       square: this.squareTool.snapshot(),
       bone: this.boneTool.snapshot(),
@@ -358,6 +383,9 @@ export class EditorToolsService {
         eraserSize: this.eraserTool.size(),
         lineThickness: this.lineTool.thickness(),
         lineColor: this.lineTool.color(),
+        penThickness: this.penTool.thickness(),
+        penColor: this.penTool.color(),
+        penLineMode: this.penTool.lineMode(),
         circleStrokeThickness: this.circleTool.strokeThickness(),
         circleStrokeColor: this.circleTool.strokeColor(),
         circleFillMode: this.circleTool.fillMode(),
@@ -403,6 +431,9 @@ export class EditorToolsService {
         eraserSize: number;
         lineThickness: number;
         lineColor: string;
+        penThickness: number;
+        penColor: string;
+        penLineMode: PenLineMode;
         circleStrokeThickness: number;
         circleStrokeColor: string;
         circleFillMode: 'solid' | 'gradient';
@@ -489,6 +520,16 @@ export class EditorToolsService {
       }
       if (typeof parsed.lineColor === 'string' && parsed.lineColor.length) {
         lineSnapshot.color = parsed.lineColor;
+      }
+      const penSnapshot: Partial<ToolSnapshot['pen']> = {};
+      if (typeof parsed.penThickness === 'number') {
+        penSnapshot.thickness = parsed.penThickness;
+      }
+      if (typeof parsed.penColor === 'string' && parsed.penColor.length) {
+        penSnapshot.color = parsed.penColor;
+      }
+      if (parsed.penLineMode === 'polyline' || parsed.penLineMode === 'spline') {
+        penSnapshot.lineMode = parsed.penLineMode;
       }
       const circleSnapshot: Partial<ToolSnapshot['circle']> = {};
       if (typeof parsed.circleStrokeThickness === 'number') {
@@ -613,6 +654,7 @@ export class EditorToolsService {
       this.brushTool.restore(brushSnapshot);
       this.eraserTool.restore(eraserSnapshot);
       this.lineTool.restore(lineSnapshot);
+      this.penTool.restore(penSnapshot);
       this.circleTool.restore(circleSnapshot);
       this.squareTool.restore(squareSnapshot);
       this.boneTool.restore(boneSnapshot);

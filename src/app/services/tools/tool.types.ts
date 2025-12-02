@@ -8,9 +8,12 @@ export type ToolId =
   | 'brush'
   | 'eraser'
   | 'line'
+  | 'pen'
   | 'circle'
   | 'square'
   | 'bone';
+
+export type PenLineMode = 'polyline' | 'spline';
 
 export interface ToolDefinition {
   id: ToolId;
@@ -29,6 +32,9 @@ export type ToolMetaKey =
   | 'eraserSize'
   | 'lineThickness'
   | 'lineColor'
+  | 'penThickness'
+  | 'penColor'
+  | 'penLineMode'
   | 'circleStrokeThickness'
   | 'circleStrokeColor'
   | 'circleFillMode'
@@ -88,6 +94,12 @@ export interface LineToolSnapshot {
   color: string;
 }
 
+export interface PenToolSnapshot {
+  thickness: number;
+  color: string;
+  lineMode: PenLineMode;
+}
+
 export interface CircleToolSnapshot {
   strokeThickness: number;
   strokeColor: string;
@@ -133,6 +145,7 @@ export interface ToolSnapshot {
   brush: BrushToolSnapshot;
   eraser: EraserToolSnapshot;
   line: LineToolSnapshot;
+  pen: PenToolSnapshot;
   circle: CircleToolSnapshot;
   square: SquareToolSnapshot;
   bone: BoneToolSnapshot;

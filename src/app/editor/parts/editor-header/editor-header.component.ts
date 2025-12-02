@@ -570,6 +570,13 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'tool.pen',
+      category: 'tool',
+      defaultKey: 'p',
+      handler: () => this.tools.selectTool('pen'),
+    });
+
+    this.hotkeys.register({
       id: 'insert.image',
       category: 'insert',
       defaultKey: 'ctrl+i',

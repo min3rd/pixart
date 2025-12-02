@@ -49,6 +49,7 @@
     "fill": "Đổ màu",
     "eraser": "Tẩy",
     "line": "Vẽ đường",
+    "pen": "Bút vẽ đường",
     "circle": "Hình tròn",
     "square": "Hình vuông",
     "brush": "Cọ vẽ",
@@ -98,6 +99,7 @@
       "fill": "Đổ màu vào vùng",
       "eraser": "Xóa pixel",
       "line": "Vẽ đường thẳng",
+      "pen": "Vẽ đường nhiều điểm (gấp khúc hoặc cong)",
       "circle": "Vẽ hình tròn",
       "square": "Vẽ hình vuông và chữ nhật",
       "brush": "Vẽ bằng cọ",
@@ -247,6 +249,14 @@
         "title": "Kẻ đường",
         "thickness": "Độ dày",
         "color": "Màu sắc"
+      },
+      "pen": {
+        "title": "Bút vẽ đường",
+        "thickness": "Độ dày",
+        "color": "Màu sắc",
+        "lineMode": "Kiểu đường",
+        "polyline": "Gấp khúc",
+        "spline": "Cong mượt"
       },
       "circle": {
         "title": "Hình tròn",
@@ -510,6 +520,7 @@
       "tool.square": "Công cụ hình vuông",
       "tool.brush": "Công cụ cọ vẽ",
       "tool.bone": "Công cụ xương",
+      "tool.pen": "Công cụ bút vẽ đường",
       "tool.freeTransform": "Biến đổi tự do",
       "insert.image": "Chèn ảnh",
       "insert.pixelArt": "Tạo Pixel Art từ phác họa",

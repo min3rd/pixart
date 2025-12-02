@@ -49,6 +49,7 @@
     "fill": "Fill",
     "eraser": "Eraser",
     "line": "Line",
+    "pen": "Pen",
     "circle": "Circle",
     "square": "Square",
     "brush": "Brush",
@@ -98,6 +99,7 @@
       "fill": "Fill an area with color",
       "eraser": "Erase pixels",
       "line": "Draw straight lines",
+      "pen": "Draw multi-point paths (polyline or curve)",
       "circle": "Draw circles",
       "square": "Draw squares and rectangles",
       "brush": "Paint with a brush",
@@ -247,6 +249,14 @@
         "title": "Line",
         "thickness": "Thickness",
         "color": "Color"
+      },
+      "pen": {
+        "title": "Pen",
+        "thickness": "Thickness",
+        "color": "Color",
+        "lineMode": "Line Mode",
+        "polyline": "Polyline",
+        "spline": "Curve"
       },
       "circle": {
         "title": "Circle",
@@ -507,6 +517,7 @@
       "tool.square": "Square Tool",
       "tool.brush": "Brush Tool",
       "tool.bone": "Bone Tool",
+      "tool.pen": "Pen Tool",
       "tool.freeTransform": "Free Transform",
       "insert.image": "Insert Image",
       "insert.pixelArt": "Generate Pixel Art from Sketch",
