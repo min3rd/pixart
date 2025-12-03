@@ -120,7 +120,8 @@
       "definePattern": "Create and save pattern from selection",
       "stroke": "Add stroke border to selection",
       "defineBrush": "Create and save custom brush from selection",
-      "defineShape": "Create and save custom vector shape from selection"
+      "defineShape": "Create and save custom vector shape from selection",
+      "palette": "Manage color palettes"
     },
     "file": {
       "new": "Create a new project",
@@ -516,7 +517,8 @@
       "tool": "Tools",
       "insert": "Insert",
       "view": "View",
-      "help": "Help"
+      "help": "Help",
+      "palette": "Palette"
     },
     "action": {
       "file.new": "New Project",
@@ -587,7 +589,11 @@
       "transform.flipVertical": "Flip Vertical",
       "transform.rotate90CW": "Rotate 90° CW",
       "transform.rotate90CCW": "Rotate 90° CCW",
-      "transform.rotate180": "Rotate 180°"
+      "transform.rotate180": "Rotate 180°",
+      "palette.createNew": "Create New Palette",
+      "palette.createFromSelection": "Create Palette from Selection",
+      "palette.createFromLayer": "Create Palette from Layer",
+      "palette.manage": "Manage Palettes"
     }
   },
   "pixelGeneration": {
@@ -854,5 +860,23 @@
     "deleteShape": "Delete Shape",
     "editShape": "Edit Shape",
     "noShapes": "No custom shapes yet"
+  },
+  "palette": {
+    "title": "Palette",
+    "createNew": "New",
+    "createNewTooltip": "Create a new color palette",
+    "fromSelection": "Selection",
+    "fromSelectionTooltip": "Create palette from selected area colors",
+    "fromLayer": "Layer",
+    "fromLayerTooltip": "Create palette from current layer colors",
+    "emptyState": "No palettes yet. Create one to save your favorite colors.",
+    "rename": "Rename palette",
+    "delete": "Delete palette",
+    "addColor": "Add Color",
+    "noColors": "No colors in this palette",
+    "cancel": "Cancel",
+    "add": "Add",
+    "manage": "Manage Palettes",
+    "pickFromPalette": "Pick from palette"
   }
 }

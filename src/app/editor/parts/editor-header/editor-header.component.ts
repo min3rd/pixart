@@ -52,6 +52,7 @@ import { DefinePatternService } from '../../../services/editor/define-pattern.se
 import { DefineBrushService } from '../../../services/editor/define-brush.service';
 import { DefineShapeService } from '../../../services/editor/define-shape.service';
 import { EditorStrokeService } from '../../../services/editor/editor-stroke.service';
+import { PaletteService } from '../../../services/palette.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -96,6 +97,7 @@ export class EditorHeader {
   readonly defineBrushService = inject(DefineBrushService);
   readonly defineShapeService = inject(DefineShapeService);
   readonly strokeService = inject(EditorStrokeService);
+  readonly paletteService = inject(PaletteService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -103,6 +105,7 @@ export class EditorHeader {
   readonly showHelpMenu = signal(false);
   readonly showTransformMenu = signal(false);
   readonly showFillMenu = signal(false);
+  readonly showPaletteMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
@@ -118,6 +121,7 @@ export class EditorHeader {
   readonly onDefineBrushToggle = output<void>();
   readonly onDefineShapeToggle = output<void>();
   readonly onStrokeToggle = output<void>();
+  readonly onPaletteManage = output<void>();
   private hoverOpenTimer?: number;
   private hoverCloseTimer?: number;
   private editHoverOpenTimer?: number;
@@ -132,6 +136,8 @@ export class EditorHeader {
   private transformHoverCloseTimer?: number;
   private fillHoverOpenTimer?: number;
   private fillHoverCloseTimer?: number;
+  private paletteHoverOpenTimer?: number;
+  private paletteHoverCloseTimer?: number;
 
   async onNewProject() {
     this.document.resetToNewProject();
@@ -715,6 +721,106 @@ export class EditorHeader {
       defaultKey: 'ctrl+alt+s',
       handler: () => this.onStroke(),
     });
+
+    this.hotkeys.register({
+      id: 'palette.createNew',
+      category: 'palette',
+      defaultKey: 'ctrl+shift+n',
+      handler: () => this.onPaletteCreateNew(),
+    });
+
+    this.hotkeys.register({
+      id: 'palette.createFromSelection',
+      category: 'palette',
+      defaultKey: 'ctrl+shift+alt+s',
+      handler: () => this.onPaletteCreateFromSelection(),
+    });
+
+    this.hotkeys.register({
+      id: 'palette.createFromLayer',
+      category: 'palette',
+      defaultKey: 'ctrl+shift+alt+l',
+      handler: () => this.onPaletteCreateFromLayer(),
+    });
+
+    this.hotkeys.register({
+      id: 'palette.manage',
+      category: 'palette',
+      defaultKey: 'ctrl+shift+alt+p',
+      handler: () => this.onPaletteManageOpen(),
+    });
+  }
+
+  onPaletteCreateNew(): void {
+    this.paletteService.createPalette('New Palette');
+    this.onPaletteManage.emit();
+    this.showPaletteMenu.set(false);
+  }
+
+  onPaletteCreateFromSelection(): void {
+    const palette = this.paletteService.createPaletteFromSelection();
+    if (palette) {
+      this.onPaletteManage.emit();
+    }
+    this.showPaletteMenu.set(false);
+  }
+
+  onPaletteCreateFromLayer(): void {
+    const palette = this.paletteService.createPaletteFromLayer();
+    if (palette) {
+      this.onPaletteManage.emit();
+    }
+    this.showPaletteMenu.set(false);
+  }
+
+  onPaletteManageOpen(): void {
+    this.onPaletteManage.emit();
+    this.showPaletteMenu.set(false);
+  }
+
+  openPaletteMenuHover(): void {
+    if (this.paletteHoverCloseTimer) {
+      clearTimeout(this.paletteHoverCloseTimer);
+      this.paletteHoverCloseTimer = undefined;
+    }
+    if (!this.showPaletteMenu()) {
+      this.paletteHoverOpenTimer = window.setTimeout(() => {
+        this.showPaletteMenu.set(true);
+        this.paletteHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closePaletteMenuHover(): void {
+    if (this.paletteHoverOpenTimer) {
+      clearTimeout(this.paletteHoverOpenTimer);
+      this.paletteHoverOpenTimer = undefined;
+    }
+    if (this.showPaletteMenu()) {
+      this.paletteHoverCloseTimer = window.setTimeout(() => {
+        this.showPaletteMenu.set(false);
+        this.paletteHoverCloseTimer = undefined;
+      }, 150);
+    }
+  }
+
+  onPaletteMenuFocusIn(): void {
+    if (this.paletteHoverCloseTimer) {
+      clearTimeout(this.paletteHoverCloseTimer);
+      this.paletteHoverCloseTimer = undefined;
+    }
+    this.showPaletteMenu.set(true);
+  }
+
+  onPaletteMenuFocusOut(): void {
+    if (this.paletteHoverOpenTimer) {
+      clearTimeout(this.paletteHoverOpenTimer);
+      this.paletteHoverOpenTimer = undefined;
+    }
+    this.paletteHoverCloseTimer = window.setTimeout(() => {
+      this.showPaletteMenu.set(false);
+      this.paletteHoverCloseTimer = undefined;
+    }, 150);
   }
 
   onStroke(): void {
@@ -1049,6 +1155,14 @@ export class EditorHeader {
     if (this.transformHoverCloseTimer) {
       clearTimeout(this.transformHoverCloseTimer);
       this.transformHoverCloseTimer = undefined;
+    }
+    if (this.paletteHoverOpenTimer) {
+      clearTimeout(this.paletteHoverOpenTimer);
+      this.paletteHoverOpenTimer = undefined;
+    }
+    if (this.paletteHoverCloseTimer) {
+      clearTimeout(this.paletteHoverCloseTimer);
+      this.paletteHoverCloseTimer = undefined;
     }
   }
 

@@ -8,6 +8,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
+import { PaletteService } from '../../../services/palette.service';
 
 type LineToolVariant = 'line' | 'pen';
 
@@ -28,9 +29,12 @@ export class ToolPalette {
   readonly document = inject(EditorDocumentService);
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
+  readonly paletteService = inject(PaletteService);
 
   readonly lineToolVariant = signal<LineToolVariant>('line');
   readonly lineToolPopupVisible = signal(false);
+  readonly palettePickerVisible = signal(false);
+  readonly palettePickerTarget = signal<string | null>(null);
 
   readonly filteredTools = computed(() =>
     this.tools.tools().filter((t) => !LINE_TOOL_VARIANTS.includes(t.id))
@@ -53,6 +57,52 @@ export class ToolPalette {
   readonly isLineToolActive = computed(() =>
     LINE_TOOL_VARIANTS.includes(this.tools.currentTool())
   );
+
+  showPalettePicker(target: string): void {
+    this.palettePickerTarget.set(target);
+    this.palettePickerVisible.set(true);
+  }
+
+  hidePalettePicker(): void {
+    this.palettePickerVisible.set(false);
+    this.palettePickerTarget.set(null);
+  }
+
+  onPaletteColorPick(color: string): void {
+    const target = this.palettePickerTarget();
+    if (!target) return;
+
+    switch (target) {
+      case 'brush':
+        this.tools.setBrushColor(color);
+        break;
+      case 'fill':
+        this.tools.setFillColor(color);
+        break;
+      case 'line':
+        this.tools.setLineColor(color);
+        break;
+      case 'pen':
+        this.tools.setPenColor(color);
+        break;
+      case 'circle-stroke':
+        this.tools.setCircleStrokeColor(color);
+        break;
+      case 'circle-fill':
+        this.tools.setCircleFillColor(color);
+        break;
+      case 'square-stroke':
+        this.tools.setSquareStrokeColor(color);
+        break;
+      case 'square-fill':
+        this.tools.setSquareFillColor(color);
+        break;
+      case 'bone':
+        this.tools.setBoneColor(color);
+        break;
+    }
+    this.hidePalettePicker();
+  }
 
   select(id: ToolId) {
     this.tools.selectTool(id);
