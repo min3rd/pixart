@@ -29,12 +29,21 @@ export class EyedropperToolService implements ToolService<EyedropperSnapshot> {
   });
 
   setLastPickedColor(color: string): void {
+    if (!color || typeof color !== 'string') {
+      return;
+    }
     const normalized = this.normalizeHex(color);
-    this.lastPickedColor.set(normalized);
+    if (this.isValidHex(normalized)) {
+      this.lastPickedColor.set(normalized);
+    }
   }
 
   clearLastPickedColor(): void {
     this.lastPickedColor.set(null);
+  }
+
+  private isValidHex(hex: string): boolean {
+    return /^#[0-9a-f]{6}$/i.test(hex);
   }
 
   private normalizeHex(color: string): string {
@@ -42,7 +51,7 @@ export class EyedropperToolService implements ToolService<EyedropperSnapshot> {
     if (!hex.startsWith('#')) {
       hex = '#' + hex;
     }
-    if (hex.length === 4) {
+    if (hex.length === 4 && /^#[0-9a-f]{3}$/i.test(hex)) {
       hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
     }
     return hex.slice(0, 7);

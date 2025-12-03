@@ -367,7 +367,10 @@
         "saveToPalette": "Lưu vào bảng màu",
         "useAsBrush": "Dùng làm màu cọ vẽ",
         "noPalettes": "Chưa có bảng màu. Tạo mới để lưu màu.",
-        "createNewPalette": "Tạo bảng màu mới"
+        "createNewPalette": "Tạo bảng màu mới",
+        "copyHex": "Click để sao chép mã màu HEX",
+        "copyRgb": "Click để sao chép mã màu RGB",
+        "copyHsl": "Click để sao chép mã màu HSL"
       }
     },
     "layers": {
