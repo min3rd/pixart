@@ -20,28 +20,17 @@
             [attr.height]="documentSvc.canvasHeight()"
             [style.cursor]="cursor()"
             class="border border-neutral-300 dark:border-neutral-700 block"
+            (pointermove)="onPointerMove($event)"
             (pointerdown)="onPointerDown($event)"
             (pointerup)="onPointerUp($event)"
             (pointercancel)="onPointerUp($event)"
+            (pointerleave)="onPointerLeave()"
             (dblclick)="onDoubleClick($event)"
             (contextmenu)="onCanvasContextMenu($event)"
           ></canvas>
         </div>
       </div>
     </div>
-    <canvas
-      id="editor-canvas-overlay"
-      #overlayCanvasEl
-      class="overlay-canvas"
-      [style.cursor]="cursor()"
-      (pointermove)="onPointerMove($event)"
-      (pointerdown)="onPointerDown($event)"
-      (pointerup)="onPointerUp($event)"
-      (pointercancel)="onPointerUp($event)"
-      (pointerleave)="onPointerLeave()"
-      (dblclick)="onDoubleClick($event)"
-      (contextmenu)="onCanvasContextMenu($event)"
-    ></canvas>
   </div>
 
   <!-- Mouse coordinates -->
