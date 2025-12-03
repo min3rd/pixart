@@ -1522,23 +1522,35 @@ export class EditorCanvas implements OnDestroy {
             }
           }
         }
-      } else if ((tool === 'brush' || tool === 'eraser') && insideCanvas) {
+      } else if (tool === 'brush' || tool === 'eraser') {
         const selectedLayer = this.document.selectedLayer();
         if (selectedLayer?.locked) {
+          return;
+        }
+        const size =
+          tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
+        const half = Math.floor((size - 1) / 2);
+        const brushLeft = logicalX - half;
+        const brushTop = logicalY - half;
+        const brushRight = brushLeft + size;
+        const brushBottom = brushTop + size;
+        const brushOverlapsCanvas =
+          brushRight > 0 && brushLeft < w && brushBottom > 0 && brushTop < h;
+        if (!brushOverlapsCanvas && !insideCanvas) {
           return;
         }
         this.capturePointer(ev);
         this.document.saveSnapshot('Paint');
         this.painting = true;
-        this.lastPaintPos = { x: logicalX, y: logicalY };
+        const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+        const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+        this.lastPaintPos = { x: clampedX, y: clampedY };
         const layerId = this.document.selectedLayerId();
         const color = tool === 'eraser' ? null : this.tools.brushColor();
-        const size =
-          tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
         this.document.applyBrushToLayer(
           layerId,
-          logicalX,
-          logicalY,
+          clampedX,
+          clampedY,
           size,
           color,
           tool === 'eraser'
@@ -4595,19 +4607,6 @@ export class EditorCanvas implements OnDestroy {
       const brushTop = Math.floor(logicalY) - half;
       const brushRight = brushLeft + bSize;
       const brushBottom = brushTop + bSize;
-
-      const isNearBoundary =
-        brushLeft < 0 || brushTop < 0 || brushRight > w || brushBottom > h;
-
-      if (isNearBoundary) {
-        ctx.save();
-        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(panX, panY, displayWidth, displayHeight);
-        ctx.setLineDash([]);
-        ctx.restore();
-      }
 
       const screenX = panX + brushLeft * scale;
       const screenY = panY + brushTop * scale;
