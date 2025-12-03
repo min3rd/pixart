@@ -71,9 +71,6 @@ export class EyedropperToolService implements ToolService<EyedropperSnapshot> {
     if (hex.length === 4 && /^#[0-9a-f]{3}$/i.test(hex)) {
       hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
     }
-    if (hex.length === 9 && /^#[0-9a-f]{8}$/i.test(hex)) {
-      hex = hex.slice(0, 7);
-    }
     return hex.slice(0, 7);
   }
 
