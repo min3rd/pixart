@@ -23,10 +23,18 @@ export class PaletteService {
     this.loadFromStorage();
   }
 
+  private generateId(): string {
+    return crypto.randomUUID();
+  }
+
+  private isStorageAvailable(): boolean {
+    return typeof window !== 'undefined' && !!window.localStorage;
+  }
+
   createPalette(name: string, colors: string[] = []): ColorPalette {
     const now = Date.now();
     const palette: ColorPalette = {
-      id: `palette_${now}_${crypto.randomUUID()}`,
+      id: this.generateId(),
       name: name.trim() || 'Untitled Palette',
       colors: this.deduplicateColors(colors),
       createdAt: now,
@@ -280,13 +288,21 @@ export class PaletteService {
     return hex.slice(0, 7).toLowerCase();
   }
 
+  private circularHueDifference(h1: number, h2: number): number {
+    const diff = Math.abs(h1 - h2);
+    return Math.min(diff, 360 - diff);
+  }
+
   private sortColors(colors: string[]): string[] {
     return colors.sort((a, b) => {
       const hslA = this.hexToHsl(a);
       const hslB = this.hexToHsl(b);
 
-      if (Math.abs(hslA.h - hslB.h) > this.HUE_DIFF_THRESHOLD) {
-        return hslA.h - hslB.h;
+      const hueDiff = this.circularHueDifference(hslA.h, hslB.h);
+      if (hueDiff > this.HUE_DIFF_THRESHOLD) {
+        const hueA = hslA.h;
+        const hueB = hslB.h;
+        return hueA - hueB;
       }
 
       if (Math.abs(hslA.s - hslB.s) > this.SATURATION_DIFF_THRESHOLD) {
@@ -331,7 +347,7 @@ export class PaletteService {
 
   private loadFromStorage(): void {
     try {
-      if (typeof window === 'undefined' || !window.localStorage) return;
+      if (!this.isStorageAvailable()) return;
       const raw = window.localStorage.getItem(this.STORAGE_KEY);
       if (!raw) return;
 
@@ -346,7 +362,7 @@ export class PaletteService {
 
   private saveToStorage(): void {
     try {
-      if (typeof window === 'undefined' || !window.localStorage) return;
+      if (!this.isStorageAvailable()) return;
       window.localStorage.setItem(
         this.STORAGE_KEY,
         JSON.stringify(this._palettes()),
