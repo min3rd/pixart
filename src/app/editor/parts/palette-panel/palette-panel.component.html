@@ -11,7 +11,7 @@
       [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createNew')"
       [paTooltip]="'palette.createNewTooltip' | transloco"
     >
-      <ng-icon id="palette-panel-create-new-icon" name="heroiconsPlusMini" class="w-3 h-3"></ng-icon>
+      <ng-icon id="palette-panel-create-new-icon" name="heroPlusMini" class="w-3 h-3"></ng-icon>
       <span id="palette-panel-create-new-label">{{ "palette.createNew" | transloco }}</span>
     </button>
     <button
@@ -22,7 +22,7 @@
       [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromSelection')"
       [paTooltip]="'palette.fromSelectionTooltip' | transloco"
     >
-      <ng-icon id="palette-panel-from-selection-icon" name="heroiconsSquare2StackMini" class="w-3 h-3"></ng-icon>
+      <ng-icon id="palette-panel-from-selection-icon" name="heroSquare2StackMini" class="w-3 h-3"></ng-icon>
       <span id="palette-panel-from-selection-label">{{ "palette.fromSelection" | transloco }}</span>
     </button>
     <button
@@ -33,7 +33,7 @@
       [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromLayer')"
       [paTooltip]="'palette.fromLayerTooltip' | transloco"
     >
-      <ng-icon id="palette-panel-from-layer-icon" name="heroiconsRectangleStackMini" class="w-3 h-3"></ng-icon>
+      <ng-icon id="palette-panel-from-layer-icon" name="heroRectangleStackMini" class="w-3 h-3"></ng-icon>
       <span id="palette-panel-from-layer-label">{{ "palette.fromLayer" | transloco }}</span>
     </button>
   </div>
@@ -44,7 +44,7 @@
         id="palette-panel-empty"
         class="flex flex-col items-center justify-center h-full text-center text-neutral-500 dark:text-neutral-400 p-4"
       >
-        <ng-icon id="palette-panel-empty-icon" name="heroiconsSwatchMini" class="w-8 h-8 mb-2 opacity-50"></ng-icon>
+        <ng-icon id="palette-panel-empty-icon" name="heroSwatchMini" class="w-8 h-8 mb-2 opacity-50"></ng-icon>
         <p id="palette-panel-empty-text" class="text-sm">{{ "palette.emptyState" | transloco }}</p>
       </div>
     } @else {
@@ -97,7 +97,7 @@
                   (click)="startRename(palette, $event)"
                   [paTooltip]="'palette.rename' | transloco"
                 >
-                  <ng-icon name="heroiconsPencilMini" class="w-3 h-3"></ng-icon>
+                  <ng-icon name="heroPencilMini" class="w-3 h-3"></ng-icon>
                 </button>
                 <button
                   type="button"
@@ -106,7 +106,7 @@
                   (click)="onDeletePalette(palette.id, $event)"
                   [paTooltip]="'palette.delete' | transloco"
                 >
-                  <ng-icon name="heroiconsTrashMini" class="w-3 h-3"></ng-icon>
+                  <ng-icon name="heroTrashMini" class="w-3 h-3"></ng-icon>
                 </button>
               </div>
             </div>
@@ -154,20 +154,10 @@
         >
           {{ selectedPalette()?.name }}
         </span>
-        <button
-          type="button"
-          id="palette-detail-add-color"
-          class="flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-sm bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
-          (click)="showAddColorDialog()"
-          [paTooltip]="'palette.addColor' | transloco"
-        >
-          <ng-icon id="palette-detail-add-color-icon" name="heroiconsPlusMini" class="w-3 h-3"></ng-icon>
-          <span id="palette-detail-add-color-label">{{ "palette.addColor" | transloco }}</span>
-        </button>
       </div>
       <div
         id="palette-detail-colors"
-        class="flex flex-wrap gap-1 max-h-32 overflow-auto"
+        class="flex flex-wrap gap-1 max-h-32 overflow-auto mb-2"
         role="grid"
         tabindex="0"
         (keydown)="onColorGridKeydown($event)"
@@ -213,81 +203,55 @@
           </span>
         }
       </div>
-    </div>
-  }
-</div>
 
-@if (addColorDialogVisible()) {
-  <div
-    id="palette-add-color-overlay"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    (click)="hideAddColorDialog()"
-  >
-    <div
-      id="palette-add-color-dialog"
-      class="bg-white dark:bg-neutral-800 rounded-sm shadow-lg p-4 min-w-64"
-      (click)="$event.stopPropagation()"
-    >
-      <h3
-        id="palette-add-color-title"
-        class="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-3"
+      <div
+        id="palette-inline-add-color"
+        class="flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-sm"
       >
-        {{ "palette.addColor" | transloco }}
-      </h3>
-      @if (colorPickerState.isPickingColor()) {
-        <div
-          id="palette-picking-color-hint"
-          class="flex items-center gap-2 p-3 mb-4 bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-200 dark:border-blue-800"
-        >
-          <ng-icon id="palette-picking-icon" name="heroiconsEyeDropperMini" class="w-4 h-4 text-blue-500"></ng-icon>
-          <span id="palette-picking-text" class="text-xs text-blue-600 dark:text-blue-400">
-            {{ "palette.pickingColor" | transloco }}
-          </span>
-        </div>
-      }
-      <div id="palette-add-color-picker" class="flex items-center gap-2 mb-4">
         <input
           type="color"
-          id="palette-add-color-input"
+          id="palette-inline-color-input"
           [(ngModel)]="newColorValue"
-          class="w-10 h-10 rounded-sm border border-neutral-300 dark:border-neutral-600 cursor-pointer"
+          class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-600 cursor-pointer"
         />
         <input
           type="text"
-          id="palette-add-color-hex"
+          id="palette-inline-color-hex"
           [(ngModel)]="newColorValue"
-          class="flex-1 px-2 py-1 text-sm bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm font-mono"
+          class="flex-1 px-1 py-0.5 text-xs bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm font-mono min-w-0"
         />
         <button
           type="button"
-          id="palette-pick-color-btn"
-          class="p-2 rounded-sm bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+          id="palette-inline-pick-color"
+          class="p-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
           [class.bg-blue-100]="colorPickerState.isPickingColor()"
           [class.dark\:bg-blue-900\/30]="colorPickerState.isPickingColor()"
           (click)="startPickColor()"
           [paTooltip]="'palette.pickColorFromCanvas' | transloco"
         >
-          <ng-icon id="palette-pick-color-icon" name="heroiconsEyeDropperMini" class="w-4 h-4"></ng-icon>
-        </button>
-      </div>
-      <div id="palette-add-color-buttons" class="flex justify-end gap-2">
-        <button
-          type="button"
-          id="palette-add-color-cancel"
-          class="px-3 py-1 text-sm rounded-sm bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
-          (click)="hideAddColorDialog()"
-        >
-          {{ "palette.cancel" | transloco }}
+          <ng-icon id="palette-inline-pick-icon" name="heroEyeDropperMini" class="w-4 h-4"></ng-icon>
         </button>
         <button
           type="button"
-          id="palette-add-color-confirm"
-          class="px-3 py-1 text-sm rounded-sm bg-blue-500 hover:bg-blue-600 text-white"
-          (click)="onAddColor()"
+          id="palette-inline-add-btn"
+          class="p-1 rounded-sm bg-blue-500 hover:bg-blue-600 text-white"
+          (click)="onAddColorInline()"
+          [paTooltip]="'palette.addColor' | transloco"
         >
-          {{ "palette.add" | transloco }}
+          <ng-icon id="palette-inline-add-icon" name="heroPlusMini" class="w-4 h-4"></ng-icon>
         </button>
       </div>
+      @if (colorPickerState.isPickingColor()) {
+        <div
+          id="palette-picking-hint"
+          class="flex items-center gap-1 mt-1 p-1 bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-200 dark:border-blue-800"
+        >
+          <ng-icon id="palette-picking-icon" name="heroEyeDropperMini" class="w-3 h-3 text-blue-500"></ng-icon>
+          <span id="palette-picking-text" class="text-xs text-blue-600 dark:text-blue-400">
+            {{ "palette.pickingColor" | transloco }}
+          </span>
+        </div>
+      }
     </div>
-  </div>
-}
+  }
+</div>
