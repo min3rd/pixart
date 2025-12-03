@@ -365,4 +365,51 @@ export class ToolPalette {
   set autoBindRadius(value: number) {
     this.tools.setBoneAutoBindRadius(value);
   }
+
+  readonly saveToPaletteDialogVisible = signal(false);
+  readonly saveToPaletteSelectedId = signal<string | null>(null);
+
+  copyToClipboard(text: string): void {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+  }
+
+  showSaveToPaletteDialog(): void {
+    const palettes = this.paletteService.palettes();
+    if (palettes.length > 0) {
+      this.saveToPaletteSelectedId.set(palettes[0].id);
+    }
+    this.saveToPaletteDialogVisible.set(true);
+  }
+
+  hideSaveToPaletteDialog(): void {
+    this.saveToPaletteDialogVisible.set(false);
+    this.saveToPaletteSelectedId.set(null);
+  }
+
+  onSaveToPaletteConfirm(): void {
+    const color = this.tools.eyedropperLastPickedColor();
+    const paletteId = this.saveToPaletteSelectedId();
+    if (color && paletteId) {
+      this.paletteService.addColorToPalette(paletteId, color);
+    }
+    this.hideSaveToPaletteDialog();
+  }
+
+  onCreateNewPaletteWithColor(): void {
+    const color = this.tools.eyedropperLastPickedColor();
+    if (color) {
+      this.paletteService.createPalette('Picked Colors', [color]);
+    }
+    this.hideSaveToPaletteDialog();
+  }
+
+  usePickedColorAsBrush(): void {
+    const color = this.tools.eyedropperLastPickedColor();
+    if (color) {
+      this.tools.setBrushColor(color);
+      this.tools.selectTool('brush');
+    }
+  }
 }

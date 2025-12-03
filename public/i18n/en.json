@@ -360,6 +360,14 @@
         "color": "Color",
         "thicknessTooltip": "Bone thickness in pixels",
         "colorTooltip": "Select bone color"
+      },
+      "eyedropper": {
+        "title": "Eyedropper",
+        "clickToPickColor": "Click on canvas to pick a color",
+        "saveToPalette": "Save to Palette",
+        "useAsBrush": "Use as Brush Color",
+        "noPalettes": "No palettes yet. Create one to save colors.",
+        "createNewPalette": "Create New Palette"
       }
     },
     "layers": {
