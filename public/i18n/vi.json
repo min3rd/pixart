@@ -360,6 +360,14 @@
         "color": "Màu sắc",
         "thicknessTooltip": "Độ dày xương tính bằng pixel",
         "colorTooltip": "Chọn màu xương"
+      },
+      "eyedropper": {
+        "title": "Chấm màu",
+        "clickToPickColor": "Click vào canvas để chọn màu",
+        "saveToPalette": "Lưu vào bảng màu",
+        "useAsBrush": "Dùng làm màu cọ vẽ",
+        "noPalettes": "Chưa có bảng màu. Tạo mới để lưu màu.",
+        "createNewPalette": "Tạo bảng màu mới"
       }
     },
     "layers": {
