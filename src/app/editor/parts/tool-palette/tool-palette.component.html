@@ -1439,9 +1439,14 @@
                       id="palette-eyedropper-hex-input"
                       type="text"
                       readonly
+                      role="button"
+                      tabindex="0"
                       [value]="tools.eyedropperLastPickedColor()?.toUpperCase()"
-                      class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-text select-all"
+                      [attr.aria-label]="'editor.tools.eyedropper.copyHex' | transloco"
+                      class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-pointer select-all hover:bg-neutral-100 dark:hover:bg-neutral-800"
                       (click)="copyToClipboard(tools.eyedropperLastPickedColor() || '')"
+                      (keydown.enter)="copyToClipboard(tools.eyedropperLastPickedColor() || '')"
+                      (keydown.space)="copyToClipboard(tools.eyedropperLastPickedColor() || '')"
                     />
                   </div>
                   @if (tools.eyedropperLastPickedColorRGB(); as rgb) {
@@ -1451,9 +1456,14 @@
                         id="palette-eyedropper-rgb-input"
                         type="text"
                         readonly
+                        role="button"
+                        tabindex="0"
                         [value]="'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')'"
-                        class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-text select-all"
+                        [attr.aria-label]="'editor.tools.eyedropper.copyRgb' | transloco"
+                        class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-pointer select-all hover:bg-neutral-100 dark:hover:bg-neutral-800"
                         (click)="copyToClipboard('rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')')"
+                        (keydown.enter)="copyToClipboard('rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')')"
+                        (keydown.space)="copyToClipboard('rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')')"
                       />
                     </div>
                   }
@@ -1464,9 +1474,14 @@
                         id="palette-eyedropper-hsl-input"
                         type="text"
                         readonly
+                        role="button"
+                        tabindex="0"
                         [value]="'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)'"
-                        class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-text select-all"
+                        [attr.aria-label]="'editor.tools.eyedropper.copyHsl' | transloco"
+                        class="flex-1 px-1.5 py-0.5 text-xs border border-neutral-300/70 rounded-sm bg-neutral-50 dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100 cursor-pointer select-all hover:bg-neutral-100 dark:hover:bg-neutral-800"
                         (click)="copyToClipboard('hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)')"
+                        (keydown.enter)="copyToClipboard('hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)')"
+                        (keydown.space)="copyToClipboard('hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)')"
                       />
                     </div>
                   }

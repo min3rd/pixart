@@ -367,7 +367,10 @@
         "saveToPalette": "Save to Palette",
         "useAsBrush": "Use as Brush Color",
         "noPalettes": "No palettes yet. Create one to save colors.",
-        "createNewPalette": "Create New Palette"
+        "createNewPalette": "Create New Palette",
+        "copyHex": "Click to copy HEX color code",
+        "copyRgb": "Click to copy RGB color code",
+        "copyHsl": "Click to copy HSL color code"
       }
     },
     "layers": {
