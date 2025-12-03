@@ -4556,7 +4556,6 @@ export class EditorCanvas implements OnDestroy {
     if (!container) return;
 
     const overlayRect = overlayCanvas.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
     const dpr =
       typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
