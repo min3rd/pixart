@@ -866,9 +866,9 @@
     "createNew": "Tạo mới",
     "createNewTooltip": "Tạo bảng màu mới",
     "fromSelection": "Vùng chọn",
-    "fromSelectionTooltip": "Tạo bảng màu từ màu trong vùng chọn",
+    "fromSelectionTooltip": "Tạo bảng màu từ màu trong vùng chọn (tối đa 10 màu chủ đạo)",
     "fromLayer": "Layer",
-    "fromLayerTooltip": "Tạo bảng màu từ màu trong layer hiện tại",
+    "fromLayerTooltip": "Tạo bảng màu từ màu trong layer hiện tại (tối đa 10 màu chủ đạo)",
     "emptyState": "Chưa có bảng màu. Tạo mới để lưu các màu yêu thích.",
     "rename": "Đổi tên bảng màu",
     "delete": "Xóa bảng màu",
@@ -878,6 +878,8 @@
     "add": "Thêm",
     "manage": "Quản lý bảng màu",
     "pickFromPalette": "Chọn từ bảng màu",
-    "colorGrid": "Lưới màu. Dùng phím mũi tên để di chuyển, Enter để chọn."
+    "colorGrid": "Lưới màu. Dùng phím mũi tên để di chuyển, Enter để chọn.",
+    "pickColorFromCanvas": "Chọn màu từ canvas",
+    "pickingColor": "Click vào canvas để chọn màu..."
   }
 }

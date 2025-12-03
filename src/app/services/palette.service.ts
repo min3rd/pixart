@@ -131,6 +131,8 @@ export class PaletteService {
     return this.updatePalette(id, { colors: newColors });
   }
 
+  private readonly MAX_PALETTE_COLORS = 10;
+
   extractColorsFromSelection(): string[] {
     const sel = this.document.selectionRect();
     if (!sel) return [];
@@ -143,7 +145,7 @@ export class PaletteService {
     const canvasHeight = this.document.canvasHeight();
     const shape = this.document.selectionShape();
     const poly = this.document.selectionPolygon();
-    const colorSet = new Set<string>();
+    const colorCounts = new Map<string, number>();
 
     for (let y = 0; y < sel.height; y++) {
       for (let x = 0; x < sel.width; x++) {
@@ -156,13 +158,14 @@ export class PaletteService {
           const idx = py * canvasWidth + px;
           const color = buffer[idx];
           if (color && color.length > 0) {
-            colorSet.add(this.normalizeColor(color));
+            const normalized = this.normalizeColor(color);
+            colorCounts.set(normalized, (colorCounts.get(normalized) || 0) + 1);
           }
         }
       }
     }
 
-    return this.sortColors(Array.from(colorSet));
+    return this.extractDominantColors(colorCounts);
   }
 
   private isPixelInSelection(
@@ -220,14 +223,15 @@ export class PaletteService {
     const buffer = this.document.getLayerBuffer(id);
     if (!buffer || buffer.length === 0) return [];
 
-    const colorSet = new Set<string>();
+    const colorCounts = new Map<string, number>();
     for (const color of buffer) {
       if (color && color.length > 0) {
-        colorSet.add(this.normalizeColor(color));
+        const normalized = this.normalizeColor(color);
+        colorCounts.set(normalized, (colorCounts.get(normalized) || 0) + 1);
       }
     }
 
-    return this.sortColors(Array.from(colorSet));
+    return this.extractDominantColors(colorCounts);
   }
 
   createPaletteFromSelection(name?: string): ColorPalette | null {
@@ -240,6 +244,70 @@ export class PaletteService {
     const colors = this.extractColorsFromLayer(layerId);
     if (colors.length === 0) return null;
     return this.createPalette(name || 'Layer Palette', colors);
+  }
+
+  private extractDominantColors(colorCounts: Map<string, number>): string[] {
+    if (colorCounts.size === 0) return [];
+
+    if (colorCounts.size <= this.MAX_PALETTE_COLORS) {
+      const sorted = Array.from(colorCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([color]) => color);
+      return this.sortColors(sorted);
+    }
+
+    const colorsWithData = Array.from(colorCounts.entries()).map(([hex, count]) => ({
+      hex,
+      count,
+      hsl: this.hexToHsl(hex),
+    }));
+
+    colorsWithData.sort((a, b) => b.count - a.count);
+
+    const clusters: { representative: typeof colorsWithData[0]; members: typeof colorsWithData }[] = [];
+    const COLOR_DISTANCE_THRESHOLD = 25;
+
+    for (const color of colorsWithData) {
+      let addedToCluster = false;
+
+      for (const cluster of clusters) {
+        const distance = this.colorDistance(color.hsl, cluster.representative.hsl);
+        if (distance < COLOR_DISTANCE_THRESHOLD) {
+          cluster.members.push(color);
+          if (color.count > cluster.representative.count) {
+            cluster.representative = color;
+          }
+          addedToCluster = true;
+          break;
+        }
+      }
+
+      if (!addedToCluster) {
+        clusters.push({ representative: color, members: [color] });
+      }
+    }
+
+    clusters.sort((a, b) => {
+      const totalA = a.members.reduce((sum, m) => sum + m.count, 0);
+      const totalB = b.members.reduce((sum, m) => sum + m.count, 0);
+      return totalB - totalA;
+    });
+
+    const dominantColors = clusters
+      .slice(0, this.MAX_PALETTE_COLORS)
+      .map((c) => c.representative.hex);
+
+    return this.sortColors(dominantColors);
+  }
+
+  private colorDistance(
+    hsl1: { h: number; s: number; l: number },
+    hsl2: { h: number; s: number; l: number },
+  ): number {
+    const hueDiff = this.circularHueDifference(hsl1.h, hsl2.h);
+    const satDiff = Math.abs(hsl1.s - hsl2.s);
+    const lightDiff = Math.abs(hsl1.l - hsl2.l);
+    return hueDiff * 0.5 + satDiff * 0.3 + lightDiff * 0.2;
   }
 
   private deduplicateColors(colors: string[]): string[] {

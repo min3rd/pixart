@@ -12,6 +12,7 @@ import { NgIcon } from '@ng-icons/core';
 import { PaletteService, ColorPalette } from '../../../services/palette.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
+import { ColorPickerStateService } from '../../../services/color-picker-state.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 
 @Component({
@@ -28,6 +29,7 @@ export class PalettePanelComponent {
   readonly paletteService = inject(PaletteService);
   readonly tools = inject(EditorToolsService);
   readonly hotkeys = inject(HotkeysService);
+  readonly colorPickerState = inject(ColorPickerStateService);
 
   readonly selectedPaletteId = signal<string | null>(null);
   readonly editingPaletteId = signal<string | null>(null);
@@ -104,11 +106,13 @@ export class PalettePanelComponent {
 
   showAddColorDialog(): void {
     this.newColorValue.set('#000000');
+    this.colorPickerState.stopPicking();
     this.addColorDialogVisible.set(true);
   }
 
   hideAddColorDialog(): void {
     this.addColorDialogVisible.set(false);
+    this.colorPickerState.stopPicking();
   }
 
   onAddColor(): void {
@@ -117,6 +121,15 @@ export class PalettePanelComponent {
       this.paletteService.addColorToPalette(id, this.newColorValue());
     }
     this.hideAddColorDialog();
+  }
+
+  startPickColor(): void {
+    const previousTool = this.tools.currentTool();
+    this.tools.selectTool('eyedropper');
+    this.colorPickerState.startPicking((color: string) => {
+      this.newColorValue.set(color);
+      this.tools.selectTool(previousTool);
+    });
   }
 
   onRemoveColor(index: number): void {

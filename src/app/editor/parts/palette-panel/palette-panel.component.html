@@ -234,6 +234,17 @@
       >
         {{ "palette.addColor" | transloco }}
       </h3>
+      @if (colorPickerState.isPickingColor()) {
+        <div
+          id="palette-picking-color-hint"
+          class="flex items-center gap-2 p-3 mb-4 bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-200 dark:border-blue-800"
+        >
+          <ng-icon id="palette-picking-icon" name="heroiconsEyeDropperMini" class="w-4 h-4 text-blue-500"></ng-icon>
+          <span id="palette-picking-text" class="text-xs text-blue-600 dark:text-blue-400">
+            {{ "palette.pickingColor" | transloco }}
+          </span>
+        </div>
+      }
       <div id="palette-add-color-picker" class="flex items-center gap-2 mb-4">
         <input
           type="color"
@@ -247,6 +258,17 @@
           [(ngModel)]="newColorValue"
           class="flex-1 px-2 py-1 text-sm bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm font-mono"
         />
+        <button
+          type="button"
+          id="palette-pick-color-btn"
+          class="p-2 rounded-sm bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+          [class.bg-blue-100]="colorPickerState.isPickingColor()"
+          [class.dark\:bg-blue-900\/30]="colorPickerState.isPickingColor()"
+          (click)="startPickColor()"
+          [paTooltip]="'palette.pickColorFromCanvas' | transloco"
+        >
+          <ng-icon id="palette-pick-color-icon" name="heroiconsEyeDropperMini" class="w-4 h-4"></ng-icon>
+        </button>
       </div>
       <div id="palette-add-color-buttons" class="flex justify-end gap-2">
         <button
