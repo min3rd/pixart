@@ -34,6 +34,7 @@ export class PalettePanelComponent {
   readonly editingPaletteName = signal('');
   readonly newColorValue = signal('#000000');
   readonly addColorDialogVisible = signal(false);
+  readonly focusedColorIndex = signal(-1);
 
   readonly selectedPalette = computed(() => {
     const id = this.selectedPaletteId();
@@ -187,5 +188,56 @@ export class PalettePanelComponent {
   getShortcut(hotkeyId: string): string | null {
     const binding = this.hotkeys.getBinding(hotkeyId);
     return binding ? this.hotkeys.keyStringToDisplay(binding) : null;
+  }
+
+  onColorGridKeydown(event: KeyboardEvent): void {
+    const palette = this.selectedPalette();
+    if (!palette || palette.colors.length === 0) return;
+
+    const colorsPerRow = 8;
+    let idx = this.focusedColorIndex();
+    if (idx < 0) idx = 0;
+
+    switch (event.key) {
+      case 'ArrowRight':
+        event.preventDefault();
+        idx = Math.min(idx + 1, palette.colors.length - 1);
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        idx = Math.max(idx - 1, 0);
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        idx = Math.min(idx + colorsPerRow, palette.colors.length - 1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        idx = Math.max(idx - colorsPerRow, 0);
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (palette.colors[idx]) {
+          this.onColorClick(palette.colors[idx]);
+        }
+        break;
+      case 'Delete':
+      case 'Backspace':
+        event.preventDefault();
+        this.onRemoveColor(idx);
+        if (idx >= palette.colors.length) {
+          idx = palette.colors.length - 1;
+        }
+        break;
+      default:
+        return;
+    }
+
+    this.focusedColorIndex.set(idx);
+  }
+
+  onColorFocus(index: number): void {
+    this.focusedColorIndex.set(index);
   }
 }

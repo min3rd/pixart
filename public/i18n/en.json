@@ -877,6 +877,7 @@
     "cancel": "Cancel",
     "add": "Add",
     "manage": "Manage Palettes",
-    "pickFromPalette": "Pick from palette"
+    "pickFromPalette": "Pick from palette",
+    "colorGrid": "Color swatches grid. Use arrow keys to navigate, Enter to select."
   }
 }
