@@ -2,35 +2,21 @@
   <div
     #canvasContainer
     id="editor-canvas-container"
-    class="absolute inset-0 p-4 overflow-hidden"
+    class="absolute inset-0 overflow-hidden"
   >
-    <div id="editor-canvas-stage" class="relative h-full w-full">
-      <div id="editor-canvas-wrap" class="canvas-wrap">
-        <div
-          #canvasWrapper
-          id="editor-canvas-transform"
-          class="transform-origin-center"
-          [style.transform]="'translate(' + panX() + 'px,' + panY() + 'px)'"
-          [style.transform-origin]="'top left'"
-        >
-          <canvas
-            id="editor-canvas-surface"
-            #canvasEl
-            [attr.width]="documentSvc.canvasWidth()"
-            [attr.height]="documentSvc.canvasHeight()"
-            [style.cursor]="cursor()"
-            class="border border-neutral-300 dark:border-neutral-700 block"
-            (pointermove)="onPointerMove($event)"
-            (pointerdown)="onPointerDown($event)"
-            (pointerup)="onPointerUp($event)"
-            (pointercancel)="onPointerUp($event)"
-            (pointerleave)="onPointerLeave()"
-            (dblclick)="onDoubleClick($event)"
-            (contextmenu)="onCanvasContextMenu($event)"
-          ></canvas>
-        </div>
-      </div>
-    </div>
+    <canvas
+      id="editor-canvas-surface"
+      #canvasEl
+      class="absolute inset-0 w-full h-full block"
+      [style.cursor]="cursor()"
+      (pointermove)="onPointerMove($event)"
+      (pointerdown)="onPointerDown($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (pointerleave)="onPointerLeave()"
+      (dblclick)="onDoubleClick($event)"
+      (contextmenu)="onCanvasContextMenu($event)"
+    ></canvas>
   </div>
 
   <!-- Mouse coordinates -->
