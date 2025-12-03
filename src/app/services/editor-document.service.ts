@@ -337,6 +337,23 @@ export class EditorDocumentService {
     return this.canvasState.getLayerBuffer(layerId);
   }
 
+  getColorAt(x: number, y: number, layerId?: string): string | null {
+    const id = layerId || this.selectedLayerId();
+    if (!id) return null;
+
+    const buffer = this.canvasState.getLayerBuffer(id);
+    if (!buffer || buffer.length === 0) return null;
+
+    const width = this.canvasWidth();
+    const height = this.canvasHeight();
+
+    if (x < 0 || x >= width || y < 0 || y >= height) return null;
+
+    const idx = y * width + x;
+    const color = buffer[idx];
+    return color && color.length > 0 ? color : null;
+  }
+
   setLayerBuffer(layerId: string, buffer: string[]): void {
     this.canvasState.setLayerBuffer(layerId, buffer);
   }
