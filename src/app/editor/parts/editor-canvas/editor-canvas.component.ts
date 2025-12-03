@@ -53,16 +53,15 @@ import {
 } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 import { ColorPickerStateService } from '../../../services/color-picker-state.service';
-interface ShapeDrawOptions {
-  strokeThickness: number;
-  strokeColor: string;
-  fillMode: ShapeFillMode;
-  fillColor: string;
-  gradientStartColor: string;
-  gradientEndColor: string;
-  gradientType: GradientType;
-  gradientAngle: number;
-}
+import {
+  CanvasViewportService,
+  CanvasShapeService,
+  CanvasSelectionMoveService,
+  CanvasTransformStateService,
+  CanvasRenderService,
+  CanvasGenerationService,
+  ShapeDrawOptions,
+} from '../../../services/editor/canvas';
 
 type ContextMenuActionId =
   | 'deselect'
@@ -130,18 +129,24 @@ export class EditorCanvas implements OnDestroy {
   readonly puppetWarp = inject(EditorPuppetWarpService);
   readonly fillSelectionService = inject(FillSelectionService);
   readonly colorPickerState = inject(ColorPickerStateService);
+  readonly viewport = inject(CanvasViewportService);
+  readonly shapeService = inject(CanvasShapeService);
+  readonly selectionMoveService = inject(CanvasSelectionMoveService);
+  readonly transformState = inject(CanvasTransformStateService);
+  readonly renderService = inject(CanvasRenderService);
+  readonly generationService = inject(CanvasGenerationService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
   readonly hoverX = signal<number | null>(null);
   readonly hoverY = signal<number | null>(null);
 
-  readonly panX = signal(0);
-  readonly panY = signal(0);
-  readonly scale = signal(1);
-  // rotation feature disabled temporarily
-  readonly rotation = signal(0);
-  readonly minScale = 0.05;
+  get panX() { return this.viewport.panX; }
+  get panY() { return this.viewport.panY; }
+  get scale() { return this.viewport.scale; }
+  get rotation() { return this.viewport.rotation; }
+  get minScale() { return this.viewport.minScale; }
+  get maxScale() { return this.viewport.maxScale; }
   private readonly injector = inject(EnvironmentInjector);
   private readonly viewReady = signal(false);
   private readonly shapeStart = signal<{ x: number; y: number } | null>(null);
@@ -160,7 +165,6 @@ export class EditorCanvas implements OnDestroy {
   private selectionDragging = false;
   private selectionMoving = false;
   private selectionMoveStart: { x: number; y: number } | null = null;
-  private generationCheckInterval: number | null = null;
   private moveSelectionHotkeyActive = false;
   private moveSelectionHotkeyParts = new Set<string>();
   private selectionContentMoving = false;
@@ -531,8 +535,9 @@ export class EditorCanvas implements OnDestroy {
   private readonly layoutEffect = effect(
     () => {
       if (!this.viewReady()) return;
-      this.document.canvasWidth();
-      this.document.canvasHeight();
+      const w = this.document.canvasWidth();
+      const h = this.document.canvasHeight();
+      this.viewport.updateMaxScale(w, h);
       const scheduler =
         typeof queueMicrotask === 'function'
           ? queueMicrotask
@@ -725,16 +730,6 @@ export class EditorCanvas implements OnDestroy {
     }
 
     this.viewReady.set(true);
-  }
-
-  get maxScale(): number {
-    const maxDim = Math.max(
-      1,
-      Math.max(this.document.canvasWidth(), this.document.canvasHeight()),
-    );
-    const targetPx = 512;
-    const computed = Math.ceil(targetPx / maxDim);
-    return Math.min(Math.max(8, computed), 256);
   }
 
   updateTileSize(brushSize = 1, desiredScreenTilePx = 24) {
@@ -3233,10 +3228,7 @@ export class EditorCanvas implements OnDestroy {
       } catch {}
       this.keyListener = null;
     }
-    if (this.generationCheckInterval !== null) {
-      clearInterval(this.generationCheckInterval);
-      this.generationCheckInterval = null;
-    }
+    this.generationService.clearGenerationInterval();
   }
 
   private centerAndFitCanvas() {
@@ -3644,7 +3636,7 @@ export class EditorCanvas implements OnDestroy {
       ctx.lineJoin = 'round';
       const lineMode = this.tools.penLineMode();
       if (lineMode === 'spline' && penPoints.length >= 3) {
-        const splinePoints = this.catmullRomSpline(penPoints, 10);
+        const splinePoints = this.shapeService.catmullRomSpline(penPoints, 10);
         if (splinePoints.length > 1) {
           ctx.beginPath();
           ctx.moveTo(splinePoints[0].x + 0.5, splinePoints[0].y + 0.5);
@@ -4610,116 +4602,12 @@ export class EditorCanvas implements OnDestroy {
     mirrorYX: number;
     mirrorYY: number;
   } {
-    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    const totalButtonsWidth = 4 * btnSize + 3 * margin;
-    const spaceAbove = ftState.y;
-    const spaceBelow = canvasH - (ftState.y + ftState.height);
-    const spaceRight = canvasW - (ftState.x + ftState.width);
-    const spaceLeft = ftState.x;
-
-    let baseX: number;
-    let baseY: number;
-    let horizontal = true;
-
-    if (spaceAbove >= btnSize + 2 * margin && spaceRight >= totalButtonsWidth) {
-      baseX = ftState.x + ftState.width - totalButtonsWidth;
-      baseY = ftState.y - btnSize - margin;
-    } else if (
-      spaceBelow >= btnSize + 2 * margin &&
-      spaceRight >= totalButtonsWidth
-    ) {
-      baseX = ftState.x + ftState.width - totalButtonsWidth;
-      baseY = ftState.y + ftState.height + margin;
-    } else if (spaceRight >= totalButtonsWidth) {
-      baseX = ftState.x + ftState.width - totalButtonsWidth;
-      baseY = Math.max(
-        margin,
-        Math.min(ftState.y + margin, canvasH - btnSize - margin),
-      );
-    } else if (spaceLeft >= totalButtonsWidth) {
-      baseX = ftState.x + margin;
-      baseY = Math.max(
-        margin,
-        Math.min(ftState.y + margin, canvasH - btnSize - margin),
-      );
-    } else {
-      horizontal = false;
-      const totalButtonsHeight = 4 * btnSize + 3 * margin;
-      if (spaceRight >= btnSize + 2 * margin) {
-        baseX = ftState.x + ftState.width + margin;
-        baseY = Math.max(
-          margin,
-          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
-        );
-      } else if (spaceLeft >= btnSize + 2 * margin) {
-        baseX = ftState.x - btnSize - margin;
-        baseY = Math.max(
-          margin,
-          Math.min(ftState.y, canvasH - totalButtonsHeight - margin),
-        );
-      } else {
-        baseX = Math.max(
-          margin,
-          Math.min(ftState.x + margin, canvasW - btnSize - margin),
-        );
-        baseY = Math.max(
-          margin,
-          Math.min(ftState.y + margin, canvasH - btnSize - margin),
-        );
-      }
-    }
-
-    let commitX: number, commitY: number;
-    let cancelX: number, cancelY: number;
-    let mirrorXX: number, mirrorXY: number;
-    let mirrorYX: number, mirrorYY: number;
-
-    if (horizontal) {
-      mirrorYX = baseX;
-      mirrorYY = baseY;
-      mirrorXX = mirrorYX + btnSize + margin;
-      mirrorXY = baseY;
-      cancelX = mirrorXX + btnSize + margin;
-      cancelY = baseY;
-      commitX = cancelX + btnSize + margin;
-      commitY = baseY;
-    } else {
-      mirrorYX = baseX;
-      mirrorYY = baseY;
-      mirrorXX = baseX;
-      mirrorXY = mirrorYY + btnSize + margin;
-      cancelX = baseX;
-      cancelY = mirrorXY + btnSize + margin;
-      commitX = baseX;
-      commitY = cancelY + btnSize + margin;
-    }
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-    commitX = clamp(commitX, 0, canvasW - btnSize);
-    commitY = clamp(commitY, 0, canvasH - btnSize);
-    cancelX = clamp(cancelX, 0, canvasW - btnSize);
-    cancelY = clamp(cancelY, 0, canvasH - btnSize);
-    mirrorXX = clamp(mirrorXX, 0, canvasW - btnSize);
-    mirrorXY = clamp(mirrorXY, 0, canvasH - btnSize);
-    mirrorYX = clamp(mirrorYX, 0, canvasW - btnSize);
-    mirrorYY = clamp(mirrorYY, 0, canvasH - btnSize);
-
-    return {
-      btnSize,
-      commitX,
-      commitY,
-      cancelX,
-      cancelY,
-      mirrorXX,
-      mirrorXY,
-      mirrorYX,
-      mirrorYY,
-    };
+    return this.renderService.computeTransformButtonPositions(
+      ftState,
+      scale,
+      this.document.canvasWidth(),
+      this.document.canvasHeight(),
+    );
   }
 
   private computeDistortButtonPositions(
@@ -4738,75 +4626,12 @@ export class EditorCanvas implements OnDestroy {
     cancelX: number;
     cancelY: number;
   } {
-    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    const corners = distortState.corners;
-    const minX = Math.min(
-      corners.topLeft.x,
-      corners.topRight.x,
-      corners.bottomLeft.x,
-      corners.bottomRight.x,
+    return this.renderService.computeDistortButtonPositions(
+      distortState,
+      scale,
+      this.document.canvasWidth(),
+      this.document.canvasHeight(),
     );
-    const maxX = Math.max(
-      corners.topLeft.x,
-      corners.topRight.x,
-      corners.bottomLeft.x,
-      corners.bottomRight.x,
-    );
-    const minY = Math.min(
-      corners.topLeft.y,
-      corners.topRight.y,
-      corners.bottomLeft.y,
-      corners.bottomRight.y,
-    );
-    const maxY = Math.max(
-      corners.topLeft.y,
-      corners.topRight.y,
-      corners.bottomLeft.y,
-      corners.bottomRight.y,
-    );
-
-    const spaceAbove = minY;
-    const spaceBelow = canvasH - maxY;
-    const spaceRight = canvasW - maxX;
-
-    let commitX: number, commitY: number;
-    let cancelX: number, cancelY: number;
-
-    if (spaceAbove >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = minY - btnSize - margin;
-      cancelX = maxX - btnSize;
-      cancelY = minY - btnSize - margin;
-    } else if (spaceBelow >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = maxY + margin;
-      cancelX = maxX - btnSize;
-      cancelY = maxY + margin;
-    } else {
-      commitX = maxX + margin;
-      commitY = minY;
-      cancelX = maxX + margin;
-      cancelY = minY + btnSize + margin;
-    }
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-    commitX = clamp(commitX, 0, canvasW - btnSize);
-    commitY = clamp(commitY, 0, canvasH - btnSize);
-    cancelX = clamp(cancelX, 0, canvasW - btnSize);
-    cancelY = clamp(cancelY, 0, canvasH - btnSize);
-
-    return {
-      btnSize,
-      commitX,
-      commitY,
-      cancelX,
-      cancelY,
-    };
   }
 
   private computePerspectiveButtonPositions(
@@ -4825,75 +4650,12 @@ export class EditorCanvas implements OnDestroy {
     cancelX: number;
     cancelY: number;
   } {
-    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    const corners = perspectiveState.corners;
-    const minX = Math.min(
-      corners.topLeft.x,
-      corners.topRight.x,
-      corners.bottomLeft.x,
-      corners.bottomRight.x,
+    return this.renderService.computeDistortButtonPositions(
+      perspectiveState,
+      scale,
+      this.document.canvasWidth(),
+      this.document.canvasHeight(),
     );
-    const maxX = Math.max(
-      corners.topLeft.x,
-      corners.topRight.x,
-      corners.bottomLeft.x,
-      corners.bottomRight.x,
-    );
-    const minY = Math.min(
-      corners.topLeft.y,
-      corners.topRight.y,
-      corners.bottomLeft.y,
-      corners.bottomRight.y,
-    );
-    const maxY = Math.max(
-      corners.topLeft.y,
-      corners.topRight.y,
-      corners.bottomLeft.y,
-      corners.bottomRight.y,
-    );
-
-    const spaceAbove = minY;
-    const spaceBelow = canvasH - maxY;
-    const spaceRight = canvasW - maxX;
-
-    let commitX: number, commitY: number;
-    let cancelX: number, cancelY: number;
-
-    if (spaceAbove >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = minY - btnSize - margin;
-      cancelX = maxX - btnSize;
-      cancelY = minY - btnSize - margin;
-    } else if (spaceBelow >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = maxY + margin;
-      cancelX = maxX - btnSize;
-      cancelY = maxY + margin;
-    } else {
-      commitX = maxX + margin;
-      commitY = minY;
-      cancelX = maxX + margin;
-      cancelY = minY + btnSize + margin;
-    }
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-    commitX = clamp(commitX, 0, canvasW - btnSize);
-    commitY = clamp(commitY, 0, canvasH - btnSize);
-    cancelX = clamp(cancelX, 0, canvasW - btnSize);
-    cancelY = clamp(cancelY, 0, canvasH - btnSize);
-
-    return {
-      btnSize,
-      commitX,
-      commitY,
-      cancelX,
-      cancelY,
-    };
   }
 
   private computeWarpButtonPositions(
@@ -4912,53 +4674,12 @@ export class EditorCanvas implements OnDestroy {
     cancelX: number;
     cancelY: number;
   } {
-    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    const minX = Math.min(...warpState.nodes.map((n) => n.x));
-    const maxX = Math.max(...warpState.nodes.map((n) => n.x));
-    const minY = Math.min(...warpState.nodes.map((n) => n.y));
-    const maxY = Math.max(...warpState.nodes.map((n) => n.y));
-
-    const spaceAbove = minY;
-    const spaceBelow = canvasH - maxY;
-
-    let commitX: number, commitY: number;
-    let cancelX: number, cancelY: number;
-
-    if (spaceAbove >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = minY - btnSize - margin;
-      cancelX = maxX - btnSize;
-      cancelY = minY - btnSize - margin;
-    } else if (spaceBelow >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = maxY + margin;
-      cancelX = maxX - btnSize;
-      cancelY = maxY + margin;
-    } else {
-      commitX = maxX + margin;
-      commitY = minY;
-      cancelX = maxX + margin;
-      cancelY = minY + btnSize + margin;
-    }
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-    commitX = clamp(commitX, 0, canvasW - btnSize);
-    commitY = clamp(commitY, 0, canvasH - btnSize);
-    cancelX = clamp(cancelX, 0, canvasW - btnSize);
-    cancelY = clamp(cancelY, 0, canvasH - btnSize);
-
-    return {
-      btnSize,
-      commitX,
-      commitY,
-      cancelX,
-      cancelY,
-    };
+    return this.renderService.computeWarpButtonPositions(
+      warpState,
+      scale,
+      this.document.canvasWidth(),
+      this.document.canvasHeight(),
+    );
   }
 
   private computePuppetWarpButtonPositions(
@@ -4977,68 +4698,12 @@ export class EditorCanvas implements OnDestroy {
     cancelX: number;
     cancelY: number;
   } {
-    const btnSize = Math.max(3, Math.round(4 / Math.max(0.001, scale)));
-    const margin = Math.max(1, Math.round(2 / Math.max(0.001, scale)));
-    const canvasW = this.document.canvasWidth();
-    const canvasH = this.document.canvasHeight();
-
-    if (puppetWarpState.pins.length === 0) {
-      const minX = puppetWarpState.sourceX;
-      const maxX = puppetWarpState.sourceX + puppetWarpState.sourceWidth;
-      const minY = puppetWarpState.sourceY;
-      const maxY = puppetWarpState.sourceY + puppetWarpState.sourceHeight;
-
-      return {
-        btnSize,
-        commitX: maxX - 2 * btnSize - margin,
-        commitY: maxY + margin,
-        cancelX: maxX - btnSize,
-        cancelY: maxY + margin,
-      };
-    }
-
-    const minX = Math.min(...puppetWarpState.pins.map((p) => p.x));
-    const maxX = Math.max(...puppetWarpState.pins.map((p) => p.x));
-    const minY = Math.min(...puppetWarpState.pins.map((p) => p.y));
-    const maxY = Math.max(...puppetWarpState.pins.map((p) => p.y));
-
-    const spaceAbove = minY;
-    const spaceBelow = canvasH - maxY;
-
-    let commitX: number, commitY: number;
-    let cancelX: number, cancelY: number;
-
-    if (spaceAbove >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = minY - btnSize - margin;
-      cancelX = maxX - btnSize;
-      cancelY = minY - btnSize - margin;
-    } else if (spaceBelow >= btnSize + 2 * margin) {
-      commitX = maxX - 2 * btnSize - margin;
-      commitY = maxY + margin;
-      cancelX = maxX - btnSize;
-      cancelY = maxY + margin;
-    } else {
-      commitX = maxX + margin;
-      commitY = minY;
-      cancelX = maxX + margin;
-      cancelY = minY + btnSize + margin;
-    }
-
-    const clamp = (v: number, min: number, max: number) =>
-      Math.max(min, Math.min(v, max));
-    commitX = clamp(commitX, 0, canvasW - btnSize);
-    commitY = clamp(commitY, 0, canvasH - btnSize);
-    cancelX = clamp(cancelX, 0, canvasW - btnSize);
-    cancelY = clamp(cancelY, 0, canvasH - btnSize);
-
-    return {
-      btnSize,
-      commitX,
-      commitY,
-      cancelX,
-      cancelY,
-    };
+    return this.renderService.computePuppetWarpButtonPositions(
+      puppetWarpState,
+      scale,
+      this.document.canvasWidth(),
+      this.document.canvasHeight(),
+    );
   }
 
   private startShape(mode: 'line' | 'circle' | 'square', x: number, y: number) {
@@ -5218,7 +4883,7 @@ export class EditorCanvas implements OnDestroy {
       );
       return;
     }
-    const splinePoints = this.catmullRomSpline(points, 10);
+    const splinePoints = this.shapeService.catmullRomSpline(points, 10);
     for (let i = 0; i < splinePoints.length - 1; i++) {
       const start = splinePoints[i];
       const end = splinePoints[i + 1];
@@ -5232,49 +4897,6 @@ export class EditorCanvas implements OnDestroy {
         thickness,
       );
     }
-  }
-
-  private catmullRomSpline(
-    points: { x: number; y: number }[],
-    segments: number,
-  ): { x: number; y: number }[] {
-    if (points.length < 2) return points;
-    const result: { x: number; y: number }[] = [];
-    const extended = [
-      points[0],
-      ...points,
-      points[points.length - 1],
-    ];
-    for (let i = 1; i < extended.length - 2; i++) {
-      const p0 = extended[i - 1];
-      const p1 = extended[i];
-      const p2 = extended[i + 1];
-      const p3 = extended[i + 2];
-      for (let t = 0; t <= segments; t++) {
-        const tt = t / segments;
-        const tt2 = tt * tt;
-        const tt3 = tt2 * tt;
-        const x = 0.5 * (
-          (2 * p1.x) +
-          (-p0.x + p2.x) * tt +
-          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * tt2 +
-          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * tt3
-        );
-        const y = 0.5 * (
-          (2 * p1.y) +
-          (-p0.y + p2.y) * tt +
-          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * tt2 +
-          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * tt3
-        );
-        const epsilon = 0.001;
-        if (result.length === 0 || 
-            Math.abs(result[result.length - 1].x - x) > epsilon || 
-            Math.abs(result[result.length - 1].y - y) > epsilon) {
-          result.push({ x, y });
-        }
-      }
-    }
-    return result;
   }
 
   private isPointInSelection(x: number, y: number): boolean {
@@ -5395,21 +5017,7 @@ export class EditorCanvas implements OnDestroy {
     options: ShapeDrawOptions,
     pxLineWidth: number,
   ) {
-    const widthRect = Math.max(1, bounds.maxX - bounds.minX + 1);
-    const heightRect = Math.max(1, bounds.maxY - bounds.minY + 1);
-    if (options.fillMode === 'gradient') {
-      this.fillSquareGradientPreview(ctx, bounds, options);
-    } else if (options.fillColor) {
-      ctx.fillStyle = options.fillColor;
-      ctx.globalAlpha = 0.35;
-      ctx.fillRect(bounds.minX, bounds.minY, widthRect, heightRect);
-      ctx.globalAlpha = 1;
-    }
-    if (options.strokeThickness > 0 && options.strokeColor) {
-      ctx.lineWidth = Math.max(pxLineWidth, options.strokeThickness);
-      ctx.strokeStyle = options.strokeColor;
-      ctx.strokeRect(bounds.minX, bounds.minY, widthRect, heightRect);
-    }
+    this.renderService.renderSquarePreview(ctx, bounds, options, pxLineWidth);
   }
 
   private renderEllipsePreview(
@@ -5418,284 +5026,12 @@ export class EditorCanvas implements OnDestroy {
     options: ShapeDrawOptions,
     pxLineWidth: number,
   ) {
-    const widthRect = Math.max(1, bounds.maxX - bounds.minX + 1);
-    const heightRect = Math.max(1, bounds.maxY - bounds.minY + 1);
-    const cx = bounds.minX + widthRect / 2;
-    const cy = bounds.minY + heightRect / 2;
-    const rx = widthRect / 2;
-    const ry = heightRect / 2;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-    if (options.fillMode === 'gradient' && rx > 0 && ry > 0) {
-      this.fillEllipseGradientPreview(ctx, bounds, options, cx, cy, rx, ry);
-    } else if (options.fillColor) {
-      ctx.fillStyle = options.fillColor;
-      ctx.globalAlpha = 0.35;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-    }
-    if (options.strokeThickness > 0 && options.strokeColor) {
-      ctx.lineWidth = Math.max(pxLineWidth, options.strokeThickness);
-      ctx.strokeStyle = options.strokeColor;
-      ctx.stroke();
-    }
-  }
-
-  private fillSquareGradientPreview(
-    ctx: CanvasRenderingContext2D,
-    bounds: { minX: number; minY: number; maxX: number; maxY: number },
-    options: ShapeDrawOptions,
-  ) {
-    const minX = bounds.minX;
-    const minY = bounds.minY;
-    const maxX = bounds.maxX;
-    const maxY = bounds.maxY;
-    const widthRect = Math.max(1, maxX - minX + 1);
-    const heightRect = Math.max(1, maxY - minY + 1);
-    const fillColor = options.fillColor;
-    const startColor = options.gradientStartColor || fillColor;
-    const endColor = options.gradientEndColor || startColor;
-    const fallbackStart = startColor || endColor;
-    const fallbackEnd = endColor || startColor;
-    if (!fallbackStart && !fallbackEnd) return;
-    const parsedStart = this.parseHexColor(startColor);
-    const parsedEnd = this.parseHexColor(endColor);
-    const gradientType: GradientType =
-      options.gradientType === 'radial' ? 'radial' : 'linear';
-    const gradientAngle =
-      typeof options.gradientAngle === 'number' ? options.gradientAngle : 0;
-    const angleRad = (gradientAngle * Math.PI) / 180;
-    const dirX = Math.cos(angleRad);
-    const dirY = Math.sin(angleRad);
-    const centerX = minX + widthRect / 2;
-    const centerY = minY + heightRect / 2;
-    let minProj = 0;
-    let maxProj = 1;
-    if (gradientType === 'linear') {
-      let minVal = Number.POSITIVE_INFINITY;
-      let maxVal = Number.NEGATIVE_INFINITY;
-      const corners = [
-        { x: minX, y: minY },
-        { x: maxX, y: minY },
-        { x: minX, y: maxY },
-        { x: maxX, y: maxY },
-      ];
-      for (const corner of corners) {
-        const proj = (corner.x + 0.5) * dirX + (corner.y + 0.5) * dirY;
-        if (proj < minVal) minVal = proj;
-        if (proj > maxVal) maxVal = proj;
-      }
-      if (Number.isFinite(minVal) && Number.isFinite(maxVal)) {
-        if (minVal === maxVal) maxVal = minVal + 1;
-        minProj = minVal;
-        maxProj = maxVal;
-      }
-    }
-    const radius = Math.max(widthRect, heightRect) / 2;
-    const prevAlpha = ctx.globalAlpha;
-    ctx.globalAlpha = 0.35;
-    for (let yy = minY; yy <= maxY; yy++) {
-      for (let xx = minX; xx <= maxX; xx++) {
-        let ratio = 0;
-        if (gradientType === 'radial') {
-          const dx = xx + 0.5 - centerX;
-          const dy = yy + 0.5 - centerY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          ratio = radius > 0 ? dist / radius : 0;
-        } else {
-          const proj = (xx + 0.5) * dirX + (yy + 0.5) * dirY;
-          const span = maxProj - minProj;
-          ratio = span !== 0 ? (proj - minProj) / span : 0;
-        }
-        const dither = this.computeDitheredRatio(ratio, xx, yy);
-        const startFallback = fallbackStart || fallbackEnd;
-        const endFallback = fallbackEnd || fallbackStart;
-        if (!startFallback || !endFallback) continue;
-        const color = this.mixParsedColors(
-          parsedStart,
-          parsedEnd,
-          dither,
-          startFallback,
-          endFallback,
-        );
-        ctx.fillStyle = color;
-        ctx.fillRect(xx, yy, 1, 1);
-      }
-    }
-    ctx.globalAlpha = prevAlpha;
-  }
-
-  private fillEllipseGradientPreview(
-    ctx: CanvasRenderingContext2D,
-    bounds: { minX: number; minY: number; maxX: number; maxY: number },
-    options: ShapeDrawOptions,
-    cx: number,
-    cy: number,
-    rx: number,
-    ry: number,
-  ) {
-    const minX = bounds.minX;
-    const minY = bounds.minY;
-    const maxX = bounds.maxX;
-    const maxY = bounds.maxY;
-    const fillColor = options.fillColor;
-    const startColor = options.gradientStartColor || fillColor;
-    const endColor = options.gradientEndColor || startColor;
-    const fallbackStart = startColor || endColor;
-    const fallbackEnd = endColor || startColor;
-    if (!fallbackStart && !fallbackEnd) return;
-    const parsedStart = this.parseHexColor(startColor);
-    const parsedEnd = this.parseHexColor(endColor);
-    const gradientType: GradientType =
-      options.gradientType === 'linear' ? 'linear' : 'radial';
-    const gradientAngle =
-      typeof options.gradientAngle === 'number' ? options.gradientAngle : 0;
-    const angleRad = (gradientAngle * Math.PI) / 180;
-    const dirX = Math.cos(angleRad);
-    const dirY = Math.sin(angleRad);
-    let minProj = 0;
-    let maxProj = 1;
-    if (gradientType === 'linear') {
-      let minVal = Number.POSITIVE_INFINITY;
-      let maxVal = Number.NEGATIVE_INFINITY;
-      const corners = [
-        { x: minX, y: minY },
-        { x: maxX, y: minY },
-        { x: minX, y: maxY },
-        { x: maxX, y: maxY },
-      ];
-      for (const corner of corners) {
-        const proj = (corner.x + 0.5) * dirX + (corner.y + 0.5) * dirY;
-        if (proj < minVal) minVal = proj;
-        if (proj > maxVal) maxVal = proj;
-      }
-      if (Number.isFinite(minVal) && Number.isFinite(maxVal)) {
-        if (minVal === maxVal) maxVal = minVal + 1;
-        minProj = minVal;
-        maxProj = maxVal;
-      }
-    }
-    const prevAlpha = ctx.globalAlpha;
-    ctx.globalAlpha = 0.35;
-    const invRx = rx > 0 ? 1 / rx : 0;
-    const invRy = ry > 0 ? 1 / ry : 0;
-    for (let yy = minY; yy <= maxY; yy++) {
-      for (let xx = minX; xx <= maxX; xx++) {
-        const dx = xx + 0.5 - cx;
-        const dy = yy + 0.5 - cy;
-        const norm =
-          invRx > 0 && invRy > 0
-            ? dx * dx * invRx * invRx + dy * dy * invRy * invRy
-            : 0;
-        if (norm > 1) continue;
-        let ratio = 0;
-        if (gradientType === 'radial') {
-          ratio = Math.sqrt(norm);
-        } else {
-          const proj = (xx + 0.5) * dirX + (yy + 0.5) * dirY;
-          const span = maxProj - minProj;
-          ratio = span !== 0 ? (proj - minProj) / span : 0;
-        }
-        const dither = this.computeDitheredRatio(ratio, xx, yy);
-        const startFallback = fallbackStart || fallbackEnd;
-        const endFallback = fallbackEnd || fallbackStart;
-        if (!startFallback || !endFallback) continue;
-        const color = this.mixParsedColors(
-          parsedStart,
-          parsedEnd,
-          dither,
-          startFallback,
-          endFallback,
-        );
-        ctx.fillStyle = color;
-        ctx.fillRect(xx, yy, 1, 1);
-      }
-    }
-    ctx.globalAlpha = prevAlpha;
-  }
-
-  private computeDitheredRatio(ratio: number, x: number, y: number) {
-    const clamped = Math.min(1, Math.max(0, ratio));
-    const steps = this.gradientSteps;
-    if (steps <= 0) return clamped;
-    const scaled = clamped * steps;
-    const base = Math.floor(scaled);
-    const fraction = scaled - base;
-    const matrix = this.bayer4;
-    const size = matrix.length;
-    const xi = x % size;
-    const yi = y % size;
-    const threshold = (matrix[yi][xi] + 0.5) / (size * size);
-    const offset = fraction > threshold ? 1 : 0;
-    const index = Math.min(steps, Math.max(0, base + offset));
-    return index / steps;
-  }
-
-  private parseHexColor(value: string | undefined) {
-    if (!value || typeof value !== 'string') return null;
-    const match = /^#?([0-9a-fA-F]{6})$/.exec(value.trim());
-    if (!match) return null;
-    const raw = match[1];
-    const r = Number.parseInt(raw.slice(0, 2), 16);
-    const g = Number.parseInt(raw.slice(2, 4), 16);
-    const b = Number.parseInt(raw.slice(4, 6), 16);
-    if ([r, g, b].some((v) => Number.isNaN(v))) return null;
-    return { r, g, b };
-  }
-
-  private componentToHex(value: number) {
-    const clamped = Math.max(0, Math.min(255, Math.round(value)));
-    return clamped.toString(16).padStart(2, '0');
-  }
-
-  private composeHexColor(r: number, g: number, b: number) {
-    return `#${this.componentToHex(r)}${this.componentToHex(g)}${this.componentToHex(b)}`;
-  }
-
-  private mixParsedColors(
-    start: { r: number; g: number; b: number } | null,
-    end: { r: number; g: number; b: number } | null,
-    ratio: number,
-    fallbackStart: string,
-    fallbackEnd: string,
-  ) {
-    const t = Math.min(1, Math.max(0, ratio));
-    if (start && end) {
-      const r = start.r + (end.r - start.r) * t;
-      const g = start.g + (end.g - start.g) * t;
-      const b = start.b + (end.b - start.b) * t;
-      return this.composeHexColor(r, g, b);
-    }
-    const startValue = fallbackStart || fallbackEnd || '#000000';
-    const endValue = fallbackEnd || fallbackStart || '#000000';
-    return t <= 0.5 ? startValue : endValue;
+    this.renderService.renderEllipsePreview(ctx, bounds, options, pxLineWidth);
   }
 
   private measureContainer() {
     const container = this.canvasContainer?.nativeElement;
-    if (!container) {
-      return {
-        contentWidth: this.document.canvasWidth(),
-        contentHeight: this.document.canvasHeight(),
-        paddingLeft: 0,
-        paddingTop: 0,
-      };
-    }
-    const styles =
-      typeof window !== 'undefined' ? window.getComputedStyle(container) : null;
-    const paddingLeft = styles ? parseFloat(styles.paddingLeft) || 0 : 0;
-    const paddingRight = styles ? parseFloat(styles.paddingRight) || 0 : 0;
-    const paddingTop = styles ? parseFloat(styles.paddingTop) || 0 : 0;
-    const paddingBottom = styles ? parseFloat(styles.paddingBottom) || 0 : 0;
-    const contentWidth = Math.max(
-      1,
-      container.clientWidth - paddingLeft - paddingRight,
-    );
-    const contentHeight = Math.max(
-      1,
-      container.clientHeight - paddingTop - paddingBottom,
-    );
-    return { contentWidth, contentHeight, paddingLeft, paddingTop };
+    return this.viewport.measureContainer(container);
   }
 
   private getCurrentFrameId(): string {
@@ -5732,7 +5068,11 @@ export class EditorCanvas implements OnDestroy {
       return;
     }
 
-    const sketchDataUrl = this.extractSketchFromSelection(sourceType);
+    const sketchDataUrl = this.generationService.extractSketchFromSelection(
+      sourceType,
+      sel,
+      (px, py) => this.isPointInSelection(px, py),
+    );
     if (!sketchDataUrl) {
       return;
     }
@@ -5745,156 +5085,11 @@ export class EditorCanvas implements OnDestroy {
     );
   }
 
-  private extractSketchFromSelection(
-    sourceType: 'layer' | 'visible',
-  ): string | null {
-    const sel = this.document.selectionRect();
-    if (!sel) return null;
-
-    const w = this.document.canvasWidth();
-    const h = this.document.canvasHeight();
-    const canvas = document.createElement('canvas');
-    canvas.width = sel.width;
-    canvas.height = sel.height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    if (sourceType === 'layer') {
-      const layerId = this.document.selectedLayerId();
-      const buf = this.document.getLayerBuffer(layerId);
-      if (!buf) return null;
-
-      for (let y = 0; y < sel.height; y++) {
-        for (let x = 0; x < sel.width; x++) {
-          const srcX = sel.x + x;
-          const srcY = sel.y + y;
-          if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
-            if (this.isPointInSelection(srcX, srcY)) {
-              const col = buf[srcY * w + srcX];
-              if (col && col.length) {
-                ctx.fillStyle = col;
-                ctx.fillRect(x, y, 1, 1);
-              }
-            }
-          }
-        }
-      }
-    } else {
-      const layers = this.document.getFlattenedLayers();
-      for (let li = layers.length - 1; li >= 0; li--) {
-        const layer = layers[li];
-        if (!layer.visible) continue;
-        const buf = this.document.getLayerBuffer(layer.id);
-        if (!buf) continue;
-
-        for (let y = 0; y < sel.height; y++) {
-          for (let x = 0; x < sel.width; x++) {
-            const srcX = sel.x + x;
-            const srcY = sel.y + y;
-            if (srcX >= 0 && srcX < w && srcY >= 0 && srcY < h) {
-              if (this.isPointInSelection(srcX, srcY)) {
-                const col = buf[srcY * w + srcX];
-                if (col && col.length) {
-                  ctx.fillStyle = col;
-                  ctx.fillRect(x, y, 1, 1);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return canvas.toDataURL('image/png');
-  }
-
   handleGenerate(request: GeneratePixelArtRequest): void {
-    const canvas = document.createElement('canvas');
-    canvas.width = request.width;
-    canvas.height = request.height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      this.pixelGenerationDialog?.hide();
-      return;
-    }
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, request.width, request.height);
-      const imageData = ctx.getImageData(0, 0, request.width, request.height);
-
-      this.pixelGenEngine
-        .generatePixelArt(
-          imageData,
-          request.prompt,
-          request.width,
-          request.height,
-          'pixel-modern',
-        )
-        .subscribe({
-          next: (jobId) => {
-            if (this.generationCheckInterval !== null) {
-              clearInterval(this.generationCheckInterval);
-            }
-            this.generationCheckInterval = setInterval(() => {
-              const job = this.pixelGenEngine.getJob(jobId);
-              if (!job || job.response.status === 'processing') {
-                return;
-              }
-
-              if (this.generationCheckInterval !== null) {
-                clearInterval(this.generationCheckInterval);
-                this.generationCheckInterval = null;
-              }
-
-              if (
-                job.response.status === 'completed' &&
-                job.response.resultImageData
-              ) {
-                const newLayer = this.document.addLayer('Generated');
-                const buf = this.document.getLayerBuffer(newLayer.id);
-                if (!buf) {
-                  this.pixelGenerationDialog?.hide();
-                  return;
-                }
-
-                const resultData = job.response.resultImageData;
-                const w = this.document.canvasWidth();
-                const h = this.document.canvasHeight();
-
-                for (let y = 0; y < Math.min(request.height, h); y++) {
-                  for (let x = 0; x < Math.min(request.width, w); x++) {
-                    const srcIdx = (y * request.width + x) * 4;
-                    const r = resultData.data[srcIdx];
-                    const g = resultData.data[srcIdx + 1];
-                    const b = resultData.data[srcIdx + 2];
-                    const a = resultData.data[srcIdx + 3];
-
-                    if (a > 0) {
-                      const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-                      buf[y * w + x] = hex;
-                    }
-                  }
-                }
-
-                this.document.layerPixelsVersion.update((v) => v + 1);
-                this.pixelGenerationDialog?.hide();
-              } else {
-                console.error('Generation failed:', job.response.error);
-                this.pixelGenerationDialog?.hide();
-              }
-            }, 500) as unknown as number;
-          },
-          error: (error) => {
-            console.error('Generation failed:', error);
-            this.pixelGenerationDialog?.hide();
-          },
-        });
-    };
-    img.onerror = () => {
-      console.error('Failed to load sketch image');
-      this.pixelGenerationDialog?.hide();
-    };
-    img.src = request.sketchDataUrl;
+    this.generationService.handleGenerate(
+      request,
+      () => this.pixelGenerationDialog?.hide(),
+      () => this.pixelGenerationDialog?.hide(),
+    );
   }
 }
