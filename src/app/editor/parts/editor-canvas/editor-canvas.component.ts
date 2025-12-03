@@ -103,12 +103,15 @@ interface ContextMenuAction {
   },
 })
 export class EditorCanvas implements OnDestroy {
+  private static readonly DEFAULT_WORKSPACE_WIDTH = 800;
+  private static readonly DEFAULT_WORKSPACE_HEIGHT = 600;
   @ViewChild('canvasEl', { static: true })
   canvasEl!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasContainer', { static: true })
   canvasContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('canvasWrapper', { static: true })
-  canvasWrapper!: ElementRef<HTMLDivElement>;
+  private resizeObserver: ResizeObserver | null = null;
+  private workspaceWidth = signal(0);
+  private workspaceHeight = signal(0);
   @ViewChild(PixelGenerationDialog, { static: false })
   pixelGenerationDialog!: PixelGenerationDialog;
   @ViewChild(FillSelectionDialog, { static: false })
@@ -558,7 +561,23 @@ export class EditorCanvas implements OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Auto-scale to fit the viewport and center the canvas.
+    const container = this.canvasContainer?.nativeElement;
+    if (container && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (width > 0 && height > 0) {
+            this.workspaceWidth.set(Math.floor(width));
+            this.workspaceHeight.set(Math.floor(height));
+          }
+        }
+      });
+      this.resizeObserver.observe(container);
+      const rect = container.getBoundingClientRect();
+      this.workspaceWidth.set(Math.floor(rect.width) || EditorCanvas.DEFAULT_WORKSPACE_WIDTH);
+      this.workspaceHeight.set(Math.floor(rect.height) || EditorCanvas.DEFAULT_WORKSPACE_HEIGHT);
+    }
+
     this.centerAndFitCanvas();
     if (
       typeof window !== 'undefined' &&
@@ -577,7 +596,6 @@ export class EditorCanvas implements OnDestroy {
       );
     }
 
-    // Recenter on window resize
     this.resizeListener = () => this.centerAndFitCanvas();
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', this.resizeListener as EventListener);
@@ -738,13 +756,19 @@ export class EditorCanvas implements OnDestroy {
 
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
-    const ratioX = w / Math.max(1, rect.width);
-    const ratioY = h / Math.max(1, rect.height);
-    const logicalX = Math.floor(visX * ratioX);
-    const logicalY = Math.floor(visY * ratioY);
+    const currentScale = this.scale();
+    const currentPanX = this.panX();
+    const currentPanY = this.panY();
+    const logicalX = Math.floor((visX - currentPanX) / currentScale);
+    const logicalY = Math.floor((visY - currentPanY) / currentScale);
 
-    this.hoverX.set(logicalX);
-    this.hoverY.set(logicalY);
+    if (logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h) {
+      this.hoverX.set(logicalX);
+      this.hoverY.set(logicalY);
+    } else {
+      this.hoverX.set(null);
+      this.hoverY.set(null);
+    }
 
     if (this.panning) {
       const dx = ev.clientX - this.lastPointer.x;
@@ -975,10 +999,11 @@ export class EditorCanvas implements OnDestroy {
     const visY = ev.clientY - rect.top;
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
-    const ratioX = w / Math.max(1, rect.width);
-    const ratioY = h / Math.max(1, rect.height);
-    const logicalX = Math.floor(visX * ratioX);
-    const logicalY = Math.floor(visY * ratioY);
+    const currentScale = this.scale();
+    const currentPanX = this.panX();
+    const currentPanY = this.panY();
+    const logicalX = Math.floor((visX - currentPanX) / currentScale);
+    const logicalY = Math.floor((visY - currentPanY) / currentScale);
     const tool = this.tools.currentTool();
     const insideCanvas =
       logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h;
@@ -1489,40 +1514,38 @@ export class EditorCanvas implements OnDestroy {
           }
         }
       } else if (tool === 'brush' || tool === 'eraser') {
-        const selectedLayer = this.document.selectedLayer();
-        if (selectedLayer?.locked) {
-          return;
-        }
         const size =
           tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
-        const half = Math.floor((size - 1) / 2);
-        const brushLeft = logicalX - half;
-        const brushTop = logicalY - half;
-        const brushRight = brushLeft + size;
-        const brushBottom = brushTop + size;
-        const brushOverlapsCanvas =
-          brushRight > 0 && brushLeft < w && brushBottom > 0 && brushTop < h;
-        if (!brushOverlapsCanvas) {
-          return;
+        const bSize = Math.max(1, size);
+        const half = Math.floor((bSize - 1) / 2);
+        const brushMinX = logicalX - half;
+        const brushMaxX = logicalX - half + bSize - 1;
+        const brushMinY = logicalY - half;
+        const brushMaxY = logicalY - half + bSize - 1;
+        const brushOverlapsDocument =
+          brushMaxX >= 0 && brushMinX < w && brushMaxY >= 0 && brushMinY < h;
+        if (brushOverlapsDocument) {
+          const selectedLayer = this.document.selectedLayer();
+          if (selectedLayer?.locked) {
+            return;
+          }
+          this.capturePointer(ev);
+          this.document.saveSnapshot('Paint');
+          this.painting = true;
+          this.lastPaintPos = { x: logicalX, y: logicalY };
+          const layerId = this.document.selectedLayerId();
+          const color = tool === 'eraser' ? null : this.tools.brushColor();
+          this.document.applyBrushToLayer(
+            layerId,
+            logicalX,
+            logicalY,
+            size,
+            color,
+            tool === 'eraser'
+              ? { eraserStrength: this.tools.eraserStrength() }
+              : undefined,
+          );
         }
-        this.capturePointer(ev);
-        this.document.saveSnapshot('Paint');
-        this.painting = true;
-        const clampedX = Math.max(0, Math.min(w - 1, logicalX));
-        const clampedY = Math.max(0, Math.min(h - 1, logicalY));
-        this.lastPaintPos = { x: clampedX, y: clampedY };
-        const layerId = this.document.selectedLayerId();
-        const color = tool === 'eraser' ? null : this.tools.brushColor();
-        this.document.applyBrushToLayer(
-          layerId,
-          clampedX,
-          clampedY,
-          size,
-          color,
-          tool === 'eraser'
-            ? { eraserStrength: this.tools.eraserStrength() }
-            : undefined,
-        );
       }
     }
   }
@@ -1534,10 +1557,11 @@ export class EditorCanvas implements OnDestroy {
     const visY = ev.clientY - canvasRect.top;
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
-    const ratioX = w / Math.max(1, canvasRect.width);
-    const ratioY = h / Math.max(1, canvasRect.height);
-    const logicalX = Math.floor(visX * ratioX);
-    const logicalY = Math.floor(visY * ratioY);
+    const currentScale = this.scale();
+    const currentPanX = this.panX();
+    const currentPanY = this.panY();
+    const logicalX = Math.floor((visX - currentPanX) / currentScale);
+    const logicalY = Math.floor((visY - currentPanY) / currentScale);
     const insideCanvas =
       logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h;
     if (!insideCanvas) {
@@ -3174,6 +3198,12 @@ export class EditorCanvas implements OnDestroy {
   ngOnDestroy(): void {
     this.viewReady.set(false);
     this.closeContextMenu();
+    if (this.resizeObserver) {
+      try {
+        this.resizeObserver.disconnect();
+      } catch {}
+      this.resizeObserver = null;
+    }
     if (this.stopRenderEffect) {
       try {
         if ((this.stopRenderEffect as any).destroy) {
@@ -3288,16 +3318,21 @@ export class EditorCanvas implements OnDestroy {
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
     const scale = this.scale();
+    const currentPanX = this.panX();
+    const currentPanY = this.panY();
     const dpr =
       typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    const displayWidth = Math.max(1, w * scale);
-    const displayHeight = Math.max(1, h * scale);
-    const pixelWidth = Math.max(1, Math.floor(displayWidth * dpr));
-    const pixelHeight = Math.max(1, Math.floor(displayHeight * dpr));
+
+    this.workspaceWidth();
+    this.workspaceHeight();
+    const container = this.canvasContainer?.nativeElement;
+    const containerWidth = container ? container.clientWidth : w * scale;
+    const containerHeight = container ? container.clientHeight : h * scale;
+
+    const pixelWidth = Math.max(1, Math.floor(containerWidth * dpr));
+    const pixelHeight = Math.max(1, Math.floor(containerHeight * dpr));
     if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
     if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
-    canvas.style.width = displayWidth + 'px';
-    canvas.style.height = displayHeight + 'px';
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -3306,7 +3341,11 @@ export class EditorCanvas implements OnDestroy {
     const isDark = !!root && root.classList.contains('dark');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, pixelWidth, pixelHeight);
-    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+
+    ctx.fillStyle = isDark ? '#1f2937' : '#e5e7eb';
+    ctx.fillRect(0, 0, pixelWidth, pixelHeight);
+
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, currentPanX * dpr, currentPanY * dpr);
     ctx.imageSmoothingEnabled = false;
     const pxLineWidth = 1 / (scale * dpr);
 
@@ -3316,6 +3355,8 @@ export class EditorCanvas implements OnDestroy {
       ? 'rgba(255,255,255,0.03)'
       : 'rgba(255,255,255,0.02)';
     ctx.save();
+    ctx.fillStyle = isDark ? '#374151' : '#ffffff';
+    ctx.fillRect(0, 0, w, h);
     for (let y = 0; y < h; y += tile) {
       for (let x = 0; x < w; x += tile) {
         const even = ((x / tile + y / tile) & 1) === 0;
@@ -3325,7 +3366,6 @@ export class EditorCanvas implements OnDestroy {
     }
     ctx.restore();
 
-    // depend on layer pixel version so effect reruns when any layer buffer changes
     this.document.layerPixelsVersion();
 
     const frameId = this.getCurrentFrameId();
@@ -3630,50 +3670,47 @@ export class EditorCanvas implements OnDestroy {
       ctx.restore();
     }
 
-    const hx = this.hoverX();
-    const hy = this.hoverY();
-    // Only show brush/eraser highlight when using the brush or eraser tool.
-    if (hx !== null && hy !== null) {
-      const tool = this.tools.currentTool();
-      if (tool === 'brush' || tool === 'eraser') {
-        ctx.save();
+    const tool = this.tools.currentTool();
+    if (tool === 'brush' || tool === 'eraser') {
+      const mouseXVal = this.mouseX();
+      const mouseYVal = this.mouseY();
+      if (mouseXVal !== null && mouseYVal !== null) {
+        const logicalMouseX = (mouseXVal - currentPanX) / scale;
+        const logicalMouseY = (mouseYVal - currentPanY) / scale;
         const size =
           tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
         const bSize = Math.max(1, size);
-
-        // center the brush highlight on the hovered pixel
         const half = Math.floor((bSize - 1) / 2);
-        const x0 = hx - half;
-        const y0 = hy - half;
+        const brushX = Math.floor(logicalMouseX) - half;
+        const brushY = Math.floor(logicalMouseY) - half;
 
+        ctx.save();
         ctx.lineWidth = pxLineWidth;
         if (tool === 'eraser') {
-          // Eraser: light overlay + visible border depending on theme
           ctx.fillStyle = isDark
             ? 'rgba(255,255,255,0.12)'
             : 'rgba(0,0,0,0.10)';
-          ctx.fillRect(x0, y0, bSize, bSize);
+          ctx.fillRect(brushX, brushY, bSize, bSize);
           ctx.strokeStyle = isDark
             ? 'rgba(255,255,255,0.5)'
             : 'rgba(0,0,0,0.5)';
           ctx.strokeRect(
-            x0 + 0.5,
-            y0 + 0.5,
+            brushX + 0.5,
+            brushY + 0.5,
             Math.max(0, bSize - 1),
             Math.max(0, bSize - 1),
           );
         } else {
-          // Brush: use current brush color with translucency and border
           ctx.fillStyle = this.tools.brushColor();
           ctx.globalAlpha = 0.9;
-          ctx.fillRect(x0, y0, bSize, bSize);
+          ctx.fillRect(brushX, brushY, bSize, bSize);
           ctx.globalAlpha = 1;
           ctx.strokeStyle = isDark
             ? 'rgba(255,255,255,0.6)'
             : 'rgba(0,0,0,0.6)';
           ctx.strokeRect(
-            x0 + 0.5,
-            y0 + 0.5,
+            brushX + 0.5,
+            brushY + 0.5,
             Math.max(0, bSize - 1),
             Math.max(0, bSize - 1),
           );
@@ -3682,7 +3719,6 @@ export class EditorCanvas implements OnDestroy {
       }
     }
 
-    const tool = this.tools.currentTool();
     if (tool === 'bone') {
       const bones = this.boneService.getBones(frameId);
 
