@@ -10,6 +10,7 @@
     (onDefineBrushToggle)="onDefineBrushToggle()"
     (onDefineShapeToggle)="onDefineShapeToggle()"
     (onStrokeToggle)="onStrokeToggle()"
+    (onPaletteManage)="onPaletteManage()"
   />
 
   <pa-tool-palette
@@ -67,6 +68,21 @@
         [paTooltip]="'tooltips.panels.bones' | transloco"
       >
         {{ "bones.title" | transloco }}
+      </button>
+      <button
+        type="button"
+        (click)="rightPanelTab.set('palette')"
+        class="flex-1 px-4 py-2 text-sm font-medium"
+        [class.bg-white]="rightPanelTab() === 'palette'"
+        [class.dark\:bg-neutral-900]="rightPanelTab() === 'palette'"
+        [class.text-blue-600]="rightPanelTab() === 'palette'"
+        [class.dark\:text-blue-400]="rightPanelTab() === 'palette'"
+        [class.text-neutral-600]="rightPanelTab() !== 'palette'"
+        [class.dark\:text-neutral-400]="rightPanelTab() !== 'palette'"
+        id="palette-tab-button"
+        [paTooltip]="'tooltips.panels.palette' | transloco"
+      >
+        {{ "palette.title" | transloco }}
       </button>
       @if (contentAwareFillState.isActive()) {
       <button
@@ -155,6 +171,8 @@
       <pa-layers-panel />
       } @else if (rightPanelTab() === 'bones') {
       <pa-bones-panel />
+      } @else if (rightPanelTab() === 'palette') {
+      <pa-palette-panel />
       } @else if (rightPanelTab() === 'contentAwareFill') {
       <pa-content-aware-fill-panel
         (onApply)="onContentAwareFillApply()"

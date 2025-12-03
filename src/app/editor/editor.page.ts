@@ -17,6 +17,7 @@ import { DefinePatternPanelComponent } from './parts/define-pattern-panel/define
 import { DefineBrushPanelComponent } from './parts/define-brush-panel/define-brush-panel.component';
 import { DefineShapePanelComponent } from './parts/define-shape-panel/define-shape-panel.component';
 import { StrokePanelComponent } from './parts/stroke-panel/stroke-panel.component';
+import { PalettePanelComponent } from './parts/palette-panel/palette-panel.component';
 import { UserSettingsService } from '../services/user-settings.service';
 import { ContentAwareFillStateService } from '../services/editor/content-aware-fill-state.service';
 import { DefinePatternService } from '../services/editor/define-pattern.service';
@@ -49,6 +50,7 @@ import { TooltipDirective } from '../shared/directives/tooltip.directive';
     DefineBrushPanelComponent,
     DefineShapePanelComponent,
     StrokePanelComponent,
+    PalettePanelComponent,
     TooltipDirective,
   ],
   host: {
@@ -70,6 +72,7 @@ export class EditorPage {
   readonly rightPanelTab = signal<
     | 'layers'
     | 'bones'
+    | 'palette'
     | 'contentAwareFill'
     | 'definePattern'
     | 'defineBrush'
@@ -451,5 +454,9 @@ export class EditorPage {
   onStrokeCancel(): void {
     this.strokeState.deactivate();
     this.rightPanelTab.set('layers');
+  }
+
+  onPaletteManage(): void {
+    this.rightPanelTab.set('palette');
   }
 }
