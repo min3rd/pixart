@@ -213,12 +213,14 @@
           id="palette-inline-color-input"
           [(ngModel)]="newColorValue"
           class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-600 cursor-pointer"
+          [attr.aria-label]="'palette.colorPickerLabel' | transloco"
         />
         <input
           type="text"
           id="palette-inline-color-hex"
           [(ngModel)]="newColorValue"
           class="flex-1 px-1 py-0.5 text-xs bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 rounded-sm font-mono min-w-0"
+          [attr.aria-label]="'palette.hexInputLabel' | transloco"
         />
         <button
           type="button"
