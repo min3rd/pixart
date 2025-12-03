@@ -52,6 +52,7 @@ import {
   FillSelectionDialogResult,
 } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { FillSelectionService } from '../../../services/editor/fill-selection.service';
+import { ColorPickerStateService } from '../../../services/color-picker-state.service';
 interface ShapeDrawOptions {
   strokeThickness: number;
   strokeColor: string;
@@ -125,6 +126,7 @@ export class EditorCanvas implements OnDestroy {
   readonly warp = inject(EditorWarpService);
   readonly puppetWarp = inject(EditorPuppetWarpService);
   readonly fillSelectionService = inject(FillSelectionService);
+  readonly colorPickerState = inject(ColorPickerStateService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -1363,6 +1365,17 @@ export class EditorCanvas implements OnDestroy {
         }
         this.capturePointer(ev);
         this.addPenPoint(logicalX, logicalY);
+        return;
+      }
+      if (tool === 'eyedropper' && insideCanvas) {
+        const color = this.document.getColorAt(logicalX, logicalY);
+        if (color) {
+          if (this.colorPickerState.isPickingColor()) {
+            this.colorPickerState.deliverColor(color);
+          } else {
+            this.tools.setBrushColor(color);
+          }
+        }
         return;
       }
       if (tool === 'fill' && insideCanvas) {
