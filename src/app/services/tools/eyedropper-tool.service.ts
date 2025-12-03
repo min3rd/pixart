@@ -32,8 +32,8 @@ export class EyedropperToolService implements ToolService<EyedropperSnapshot> {
     if (!color || typeof color !== 'string') {
       return;
     }
-    const normalized = this.normalizeHex(color);
-    if (this.isValidHex(normalized)) {
+    const normalized = this.normalizeColor(color);
+    if (normalized && this.isValidHex(normalized)) {
       this.lastPickedColor.set(normalized);
     }
   }
@@ -46,13 +46,33 @@ export class EyedropperToolService implements ToolService<EyedropperSnapshot> {
     return /^#[0-9a-f]{6}$/i.test(hex);
   }
 
+  private normalizeColor(color: string): string | null {
+    const trimmed = color.trim().toLowerCase();
+    
+    if (trimmed.startsWith('rgba') || trimmed.startsWith('rgb')) {
+      const match = trimmed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (match) {
+        const r = Math.max(0, Math.min(255, parseInt(match[1], 10)));
+        const g = Math.max(0, Math.min(255, parseInt(match[2], 10)));
+        const b = Math.max(0, Math.min(255, parseInt(match[3], 10)));
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      }
+      return null;
+    }
+    
+    return this.normalizeHex(trimmed);
+  }
+
   private normalizeHex(color: string): string {
-    let hex = color.trim().toLowerCase();
+    let hex = color;
     if (!hex.startsWith('#')) {
       hex = '#' + hex;
     }
     if (hex.length === 4 && /^#[0-9a-f]{3}$/i.test(hex)) {
       hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+    }
+    if (hex.length === 9 && /^#[0-9a-f]{8}$/i.test(hex)) {
+      hex = hex.slice(0, 7);
     }
     return hex.slice(0, 7);
   }
