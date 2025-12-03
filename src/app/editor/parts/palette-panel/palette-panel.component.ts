@@ -35,7 +35,6 @@ export class PalettePanelComponent {
   readonly editingPaletteId = signal<string | null>(null);
   readonly editingPaletteName = signal('');
   readonly newColorValue = signal('#000000');
-  readonly addColorDialogVisible = signal(false);
   readonly focusedColorIndex = signal(-1);
 
   readonly selectedPalette = computed(() => {
@@ -104,23 +103,12 @@ export class PalettePanelComponent {
     }
   }
 
-  showAddColorDialog(): void {
-    this.newColorValue.set('#000000');
-    this.colorPickerState.stopPicking();
-    this.addColorDialogVisible.set(true);
-  }
-
-  hideAddColorDialog(): void {
-    this.addColorDialogVisible.set(false);
-    this.colorPickerState.stopPicking();
-  }
-
-  onAddColor(): void {
+  onAddColorInline(): void {
     const id = this.selectedPaletteId();
     if (id) {
       this.paletteService.addColorToPalette(id, this.newColorValue());
+      this.newColorValue.set('#000000');
     }
-    this.hideAddColorDialog();
   }
 
   startPickColor(): void {
