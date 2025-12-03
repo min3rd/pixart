@@ -1370,6 +1370,7 @@ export class EditorCanvas implements OnDestroy {
       if (tool === 'eyedropper' && insideCanvas) {
         const color = this.document.getColorAt(logicalX, logicalY);
         if (color) {
+          this.tools.setEyedropperLastPickedColor(color);
           if (this.colorPickerState.isPickingColor()) {
             this.colorPickerState.deliverColor(color);
           } else {

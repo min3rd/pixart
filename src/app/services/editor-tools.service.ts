@@ -106,6 +106,12 @@ export class EditorToolsService {
   readonly boneColor = this.boneTool.color.asReadonly();
   readonly boneAutoBindEnabled = this.boneTool.autoBindEnabled.asReadonly();
   readonly boneAutoBindRadius = this.boneTool.autoBindRadius.asReadonly();
+  readonly eyedropperLastPickedColor =
+    this.eyedropperTool.lastPickedColor.asReadonly();
+  readonly eyedropperLastPickedColorRGB =
+    this.eyedropperTool.lastPickedColorRGB;
+  readonly eyedropperLastPickedColorHSL =
+    this.eyedropperTool.lastPickedColorHSL;
 
   constructor() {
     this.loadFromStorage();
@@ -309,6 +315,10 @@ export class EditorToolsService {
   setBoneAutoBindRadius(radius: number) {
     this.boneTool.setAutoBindRadius(radius);
     this.saveToStorage();
+  }
+
+  setEyedropperLastPickedColor(color: string) {
+    this.eyedropperTool.setLastPickedColor(color);
   }
 
   applySnapshot(snapshot: Partial<ToolSnapshot>, context?: ToolRestoreContext) {
