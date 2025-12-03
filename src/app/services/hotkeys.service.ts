@@ -2,7 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 
 export interface HotkeyAction {
   id: string;
-  category: 'file' | 'edit' | 'tool' | 'insert' | 'view' | 'help';
+  category: 'file' | 'edit' | 'tool' | 'insert' | 'view' | 'help' | 'palette';
   defaultKey: string;
   handler: () => void;
 }

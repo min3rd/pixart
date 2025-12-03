@@ -241,6 +241,15 @@
                     (input)="onFillColorInput($event)"
                     class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
                   />
+                  <button
+                    type="button"
+                    id="palette-fill-color-palette-btn"
+                    class="flex h-7 w-7 items-center justify-center rounded-sm border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                    (click)="showPalettePicker('fill')"
+                    [paTooltip]="'palette.pickFromPalette' | transloco"
+                  >
+                    <ng-icon id="palette-fill-color-palette-icon" name="heroiconsSwatchMini" class="h-4 w-4"></ng-icon>
+                  </button>
                   <span id="palette-fill-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.fillColor() }}</span>
                 </div>
               </div>
@@ -440,6 +449,15 @@
                   (input)="onBrushColorInput($event)"
                   class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
                 />
+                <button
+                  type="button"
+                  id="palette-brush-color-palette-btn"
+                  class="flex h-7 w-7 items-center justify-center rounded-sm border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                  (click)="showPalettePicker('brush')"
+                  [paTooltip]="'palette.pickFromPalette' | transloco"
+                >
+                  <ng-icon id="palette-brush-color-palette-icon" name="heroiconsSwatchMini" class="h-4 w-4"></ng-icon>
+                </button>
                 <span id="palette-brush-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.brushColor() }}</span>
               </div>
             </div>
@@ -580,6 +598,15 @@
                   (input)="onLineColorInput($event)"
                   class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
                 />
+                <button
+                  type="button"
+                  id="palette-line-color-palette-btn"
+                  class="flex h-7 w-7 items-center justify-center rounded-sm border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                  (click)="showPalettePicker('line')"
+                  [paTooltip]="'palette.pickFromPalette' | transloco"
+                >
+                  <ng-icon id="palette-line-color-palette-icon" name="heroiconsSwatchMini" class="h-4 w-4"></ng-icon>
+                </button>
                 <span id="palette-line-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.lineColor() }}</span>
               </div>
             </div>
@@ -1398,3 +1425,70 @@
     }
   </div>
 </div>
+
+@if (palettePickerVisible()) {
+  <div
+    id="palette-picker-overlay"
+    class="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
+    (click)="hidePalettePicker()"
+  >
+    <div
+      id="palette-picker-dialog"
+      class="bg-white dark:bg-neutral-800 rounded-sm shadow-lg p-3 min-w-64 max-w-80 max-h-96 overflow-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <h3
+        id="palette-picker-title"
+        class="text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-2"
+      >
+        {{ "palette.pickFromPalette" | transloco }}
+      </h3>
+      @if (paletteService.palettes().length === 0) {
+        <p
+          id="palette-picker-empty"
+          class="text-xs text-neutral-500 dark:text-neutral-400 text-center py-4"
+        >
+          {{ "palette.emptyState" | transloco }}
+        </p>
+      } @else {
+        <div id="palette-picker-list" class="space-y-2">
+          @for (palette of paletteService.palettes(); track palette.id) {
+            <div id="palette-picker-item-{{ palette.id }}" class="space-y-1">
+              <span
+                id="palette-picker-item-name-{{ palette.id }}"
+                class="text-xs font-medium text-neutral-700 dark:text-neutral-300"
+              >
+                {{ palette.name }}
+              </span>
+              <div
+                id="palette-picker-item-colors-{{ palette.id }}"
+                class="flex flex-wrap gap-1"
+              >
+                @for (color of palette.colors; track $index; let idx = $index) {
+                  <button
+                    type="button"
+                    id="palette-picker-color-{{ palette.id }}-{{ idx }}"
+                    class="w-6 h-6 rounded-sm border border-neutral-300 dark:border-neutral-600 cursor-pointer hover:ring-2 hover:ring-blue-400"
+                    [style.background-color]="color"
+                    [title]="color"
+                    (click)="onPaletteColorPick(color)"
+                  ></button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <div id="palette-picker-actions" class="mt-3 flex justify-end">
+        <button
+          type="button"
+          id="palette-picker-cancel"
+          class="px-3 py-1 text-xs rounded-sm bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+          (click)="hidePalettePicker()"
+        >
+          {{ "palette.cancel" | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

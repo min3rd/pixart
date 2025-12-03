@@ -120,7 +120,8 @@
       "definePattern": "Tạo và lưu pattern từ vùng chọn",
       "stroke": "Thêm viền cho vùng chọn",
       "defineBrush": "Tạo và lưu brush từ vùng chọn",
-      "defineShape": "Tạo và lưu shape vector từ vùng chọn"
+      "defineShape": "Tạo và lưu shape vector từ vùng chọn",
+      "palette": "Quản lý bảng màu"
     },
     "file": {
       "new": "Tạo dự án mới",
@@ -519,7 +520,8 @@
       "tool": "Công cụ",
       "insert": "Chèn",
       "view": "Hiển thị",
-      "help": "Trợ giúp"
+      "help": "Trợ giúp",
+      "palette": "Bảng màu"
     },
     "action": {
       "file.new": "Tạo dự án mới",
@@ -590,7 +592,11 @@
       "transform.flipVertical": "Lật dọc",
       "transform.rotate90CW": "Xoay 90° phải",
       "transform.rotate90CCW": "Xoay 90° trái",
-      "transform.rotate180": "Xoay 180°"
+      "transform.rotate180": "Xoay 180°",
+      "palette.createNew": "Tạo bảng màu mới",
+      "palette.createFromSelection": "Tạo bảng màu từ vùng chọn",
+      "palette.createFromLayer": "Tạo bảng màu từ layer",
+      "palette.manage": "Quản lý bảng màu"
     }
   },
   "pixelGeneration": {
@@ -854,5 +860,23 @@
     "deleteShape": "Xóa Shape",
     "editShape": "Chỉnh sửa Shape",
     "noShapes": "Chưa có shape tùy chỉnh"
+  },
+  "palette": {
+    "title": "Bảng màu",
+    "createNew": "Tạo mới",
+    "createNewTooltip": "Tạo bảng màu mới",
+    "fromSelection": "Vùng chọn",
+    "fromSelectionTooltip": "Tạo bảng màu từ màu trong vùng chọn",
+    "fromLayer": "Layer",
+    "fromLayerTooltip": "Tạo bảng màu từ màu trong layer hiện tại",
+    "emptyState": "Chưa có bảng màu. Tạo mới để lưu các màu yêu thích.",
+    "rename": "Đổi tên bảng màu",
+    "delete": "Xóa bảng màu",
+    "addColor": "Thêm màu",
+    "noColors": "Bảng màu này chưa có màu",
+    "cancel": "Hủy",
+    "add": "Thêm",
+    "manage": "Quản lý bảng màu",
+    "pickFromPalette": "Chọn từ bảng màu"
   }
 }

@@ -487,6 +487,132 @@
       }
     </div>
     <div
+      id="menu-palette-wrapper"
+      class="relative"
+      (mouseenter)="openPaletteMenuHover()"
+      (mouseleave)="closePaletteMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-palette-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showPaletteMenu.set(!showPaletteMenu())"
+        [attr.aria-expanded]="showPaletteMenu()"
+        [paTooltip]="'tooltips.panels.palette' | transloco"
+      >
+        {{ "palette.title" | transloco }}
+      </button>
+      @if (showPaletteMenu()) {
+        <div
+          id="menu-palette-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          tabindex="0"
+          (focusin)="onPaletteMenuFocusIn()"
+          (focusout)="onPaletteMenuFocusOut()"
+        >
+          <button
+            id="menu-palette-create-new-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaletteCreateNew()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createNew')"
+          >
+            <ng-icon
+              id="menu-palette-create-new-icon"
+              name="heroiconsPlus"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-palette-create-new-label" class="flex-1">{{
+              "palette.createNew" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("palette.createNew")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >{{
+                hotkeys.keyStringToDisplay(
+                  hotkeys.getBinding("palette.createNew")!
+                )
+              }}</span>
+            }
+          </button>
+          <button
+            id="menu-palette-from-selection-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaletteCreateFromSelection()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromSelection')"
+          >
+            <ng-icon
+              id="menu-palette-from-selection-icon"
+              name="heroiconsSquare2Stack"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-palette-from-selection-label" class="flex-1">{{
+              "palette.fromSelection" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("palette.createFromSelection")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >{{
+                hotkeys.keyStringToDisplay(
+                  hotkeys.getBinding("palette.createFromSelection")!
+                )
+              }}</span>
+            }
+          </button>
+          <button
+            id="menu-palette-from-layer-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaletteCreateFromLayer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromLayer')"
+          >
+            <ng-icon
+              id="menu-palette-from-layer-icon"
+              name="heroiconsRectangleStack"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-palette-from-layer-label" class="flex-1">{{
+              "palette.fromLayer" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("palette.createFromLayer")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >{{
+                hotkeys.keyStringToDisplay(
+                  hotkeys.getBinding("palette.createFromLayer")!
+                )
+              }}</span>
+            }
+          </button>
+          <div
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-palette-manage-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onPaletteManageOpen()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.manage')"
+          >
+            <ng-icon
+              id="menu-palette-manage-icon"
+              name="heroiconsSwatch"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-palette-manage-label" class="flex-1">{{
+              "palette.manage" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("palette.manage")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >{{
+                hotkeys.keyStringToDisplay(
+                  hotkeys.getBinding("palette.manage")!
+                )
+              }}</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+    <div
       id="menu-insert-wrapper"
       class="relative"
       (mouseenter)="openInsertMenuHover()"
