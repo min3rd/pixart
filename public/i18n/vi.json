@@ -873,6 +873,7 @@
     "rename": "Đổi tên bảng màu",
     "delete": "Xóa bảng màu",
     "addColor": "Thêm màu",
+    "removeColor": "Xóa màu",
     "noColors": "Bảng màu này chưa có màu",
     "cancel": "Hủy",
     "add": "Thêm",

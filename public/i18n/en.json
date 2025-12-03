@@ -873,6 +873,7 @@
     "rename": "Rename palette",
     "delete": "Delete palette",
     "addColor": "Add Color",
+    "removeColor": "Remove color",
     "noColors": "No colors in this palette",
     "cancel": "Cancel",
     "add": "Add",
