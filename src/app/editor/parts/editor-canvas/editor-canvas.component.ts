@@ -4555,13 +4555,13 @@ export class EditorCanvas implements OnDestroy {
     const container = this.canvasContainer?.nativeElement;
     if (!container) return;
 
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    const overlayRect = overlayCanvas.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
     const dpr =
       typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
-    const pixelWidth = Math.max(1, Math.floor(containerWidth * dpr));
-    const pixelHeight = Math.max(1, Math.floor(containerHeight * dpr));
+    const pixelWidth = Math.max(1, Math.floor(overlayRect.width * dpr));
+    const pixelHeight = Math.max(1, Math.floor(overlayRect.height * dpr));
 
     if (overlayCanvas.width !== pixelWidth) overlayCanvas.width = pixelWidth;
     if (overlayCanvas.height !== pixelHeight)
@@ -4579,14 +4579,13 @@ export class EditorCanvas implements OnDestroy {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    const panX = this.panX();
-    const panY = this.panY();
+    const canvasEl = this.canvasEl?.nativeElement;
+    if (!canvasEl) return;
+    const canvasRect = canvasEl.getBoundingClientRect();
+
     const scale = this.scale();
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
-
-    const displayWidth = w * scale;
-    const displayHeight = h * scale;
 
     const tool = this.tools.currentTool();
     const isBrushOrEraser = tool === 'brush' || tool === 'eraser';
@@ -4595,8 +4594,14 @@ export class EditorCanvas implements OnDestroy {
     const overlayMy = this.overlayMouseY();
 
     if (isBrushOrEraser && overlayMx !== null && overlayMy !== null) {
-      const logicalX = (overlayMx - panX) / scale;
-      const logicalY = (overlayMy - panY) / scale;
+      const canvasOffsetX = canvasRect.left - overlayRect.left;
+      const canvasOffsetY = canvasRect.top - overlayRect.top;
+
+      const localX = overlayMx - canvasOffsetX;
+      const localY = overlayMy - canvasOffsetY;
+
+      const logicalX = localX / scale;
+      const logicalY = localY / scale;
 
       const size =
         tool === 'eraser' ? this.tools.eraserSize() : this.tools.brushSize();
@@ -4605,11 +4610,9 @@ export class EditorCanvas implements OnDestroy {
 
       const brushLeft = Math.floor(logicalX) - half;
       const brushTop = Math.floor(logicalY) - half;
-      const brushRight = brushLeft + bSize;
-      const brushBottom = brushTop + bSize;
 
-      const screenX = panX + brushLeft * scale;
-      const screenY = panY + brushTop * scale;
+      const screenX = canvasOffsetX + brushLeft * scale;
+      const screenY = canvasOffsetY + brushTop * scale;
       const screenW = bSize * scale;
       const screenH = bSize * scale;
 
