@@ -13,3 +13,13 @@ canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+/* Overlay canvas for brush/eraser preview - covers entire workspace */
+.overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  z-index: 10;
+}
