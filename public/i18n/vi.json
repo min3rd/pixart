@@ -880,6 +880,8 @@
     "pickFromPalette": "Chọn từ bảng màu",
     "colorGrid": "Lưới màu. Dùng phím mũi tên để di chuyển, Enter để chọn.",
     "pickColorFromCanvas": "Chọn màu từ canvas",
-    "pickingColor": "Click vào canvas để chọn màu..."
+    "pickingColor": "Click vào canvas để chọn màu...",
+    "colorPickerLabel": "Chọn màu",
+    "hexInputLabel": "Giá trị hex màu"
   }
 }
