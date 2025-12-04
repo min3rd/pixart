@@ -987,6 +987,10 @@ export class EditorCanvas implements OnDestroy {
     if (!rect) return false;
     const shape = this.document.selectionShape();
     if (shape === 'lasso') {
+      const mask = this.document.selectionMask();
+      if (mask && mask.size > 0) {
+        return mask.has(`${x},${y}`);
+      }
       const polygon = this.document.selectionPolygon();
       if (!polygon || polygon.length < 3) return false;
       return this.pointInPolygon(x, y, polygon);
