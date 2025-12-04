@@ -1028,7 +1028,7 @@ export class CanvasPointerService {
     const existingMask =
       mode !== 'normal' ? this.selectionService.selectionMask() : null;
 
-    const mask = smartSelectTool.performSmartSelect(
+    const result = smartSelectTool.performSmartSelect(
       x,
       y,
       buffer,
@@ -1039,13 +1039,11 @@ export class CanvasPointerService {
       mode,
     );
 
-    if (mode === 'normal') {
-      this.selectionService.beginSmartSelection(mask);
-    } else if (mode === 'add') {
-      this.selectionService.addToSelection(mask);
-    } else if (mode === 'subtract') {
-      this.selectionService.subtractFromSelection(mask);
+    if (result.newPixels.size === 0) {
+      return;
     }
+
+    this.selectionService.updateSmartSelection(result.combined);
   }
 
   private readonly SMART_SELECT_POINTS_PER_UPDATE = 5;
@@ -1070,7 +1068,7 @@ export class CanvasPointerService {
       -this.SMART_SELECT_POINTS_PER_UPDATE,
     );
 
-    const mask = smartSelectTool.expandSmartSelect(
+    const result = smartSelectTool.expandSmartSelect(
       newPoints,
       buffer,
       w,
@@ -1080,6 +1078,8 @@ export class CanvasPointerService {
       mode,
     );
 
-    this.selectionService.updateSmartSelection(mask);
+    if (result.combined.size > 0 || (mode === 'subtract' && existingMask && existingMask.size > 0)) {
+      this.selectionService.updateSmartSelection(result.combined);
+    }
   }
 }

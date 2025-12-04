@@ -51,12 +51,12 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     tolerance: number,
     existingMask?: Set<string> | null,
     mode: SmartSelectMode = 'normal',
-  ): Set<string> {
+  ): { newPixels: Set<string>; combined: Set<string> } {
     this.sampledColors.clear();
     
     const targetColor = this.getPixelColor(startX, startY, buffer, width);
     if (!targetColor) {
-      return existingMask ? new Set(existingMask) : new Set();
+      return { newPixels: new Set(), combined: existingMask ? new Set(existingMask) : new Set() };
     }
 
     this.sampledColors.add(targetColor);
@@ -68,7 +68,7 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
       tolerance,
     );
 
-    return this.combineSelections(existingMask, newSelection, mode);
+    return { newPixels: newSelection, combined: this.combineSelections(existingMask, newSelection, mode) };
   }
 
   expandSmartSelect(
@@ -79,7 +79,7 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     tolerance: number,
     existingMask: Set<string> | null,
     mode: SmartSelectMode = 'normal',
-  ): Set<string> {
+  ): { newPixels: Set<string>; combined: Set<string> } {
     for (const point of points) {
       const color = this.getPixelColor(point.x, point.y, buffer, width);
       if (color) {
@@ -94,15 +94,8 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
       tolerance,
     );
 
-    if (mode === 'normal' || mode === 'add') {
-      const combined = existingMask ? new Set(existingMask) : new Set<string>();
-      for (const key of newSelection) {
-        combined.add(key);
-      }
-      return combined;
-    } else {
-      return this.combineSelections(existingMask, newSelection, mode);
-    }
+    const combined = this.combineSelections(existingMask, newSelection, mode);
+    return { newPixels: newSelection, combined };
   }
 
   private selectAllMatchingPixels(
