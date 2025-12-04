@@ -154,6 +154,9 @@ export class EditorCanvas implements OnDestroy {
     currentBoneId: null,
     draggingPointId: null,
     draggingPointBoneId: null,
+    smartSelecting: false,
+    smartSelectPoints: [],
+    smartSelectMode: 'normal',
   };
 
   private movingContentBuffer: string[] | null = null;
