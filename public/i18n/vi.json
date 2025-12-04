@@ -34,7 +34,8 @@
     "rotate180": "Xoay 180°",
     "fillSelection": "Đổ màu vùng chọn",
     "contentAwareFill": "Tô thông minh",
-    "stroke": "Viền"
+    "stroke": "Viền",
+    "imageSize": "Kích thước bản vẽ"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha",
@@ -585,6 +586,7 @@
       "edit.defineBrush": "Tạo Brush",
       "edit.stroke": "Viền",
       "edit.defineShape": "Tạo Shape",
+      "edit.imageSize": "Chỉnh kích thước bản vẽ",
       "tool.selectLayer": "Công cụ chọn layer",
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
@@ -677,6 +679,16 @@
     "height": "Chiều cao",
     "scaleX": "Tỷ lệ rộng",
     "scaleY": "Tỷ lệ cao",
+    "preview": "Xem trước",
+    "ok": "Đồng ý",
+    "cancel": "Hủy"
+  },
+  "imageSize": {
+    "title": "Kích thước bản vẽ",
+    "originalSize": "Kích thước gốc",
+    "width": "Chiều rộng",
+    "height": "Chiều cao",
+    "aspectRatio": "Giữ tỷ lệ khung hình",
     "preview": "Xem trước",
     "ok": "Đồng ý",
     "cancel": "Hủy"

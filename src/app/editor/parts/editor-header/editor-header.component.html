@@ -3,6 +3,27 @@
   class="flex items-center gap-4 px-3 h-10 text-sm select-none"
 >
   <div id="header-title" class="font-semibold tracking-wide">Pixart</div>
+  <div id="header-saved-status" class="flex items-center gap-1 text-xs">
+    @if (document.canvasSaved()) {
+      <ng-icon
+        id="header-saved-icon"
+        name="heroCheckCircle"
+        class="w-4 h-4 text-green-500"
+      ></ng-icon>
+      <span id="header-saved-text" class="text-green-600 dark:text-green-400">
+        {{ "canvas.saved" | transloco }}
+      </span>
+    } @else {
+      <ng-icon
+        id="header-unsaved-icon"
+        name="heroClock"
+        class="w-4 h-4 text-amber-500"
+      ></ng-icon>
+      <span id="header-unsaved-text" class="text-amber-600 dark:text-amber-400">
+        {{ "canvas.unsaved" | transloco }}
+      </span>
+    }
+  </div>
   <nav id="header-nav" class="flex items-center gap-2">
     <div
       id="menu-file-wrapper"
@@ -405,6 +426,35 @@
               >
                 {{
                   hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.stroke")!)
+                }}
+              </span>
+            }
+          </button>
+          <div
+            id="menu-edit-divider-4"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-edit-image-size-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onEditImageSize()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('edit.imageSize')"
+          >
+            <ng-icon
+              id="menu-edit-image-size-icon"
+              name="heroArrowsPointingOut"
+              class="w-4 h-4 mr-2"
+            ></ng-icon>
+            <span id="menu-edit-image-size-label" class="flex-1">{{
+              "menu.imageSize" | transloco
+            }}</span>
+            @if (hotkeys.getBinding("edit.imageSize")) {
+              <span
+                id="menu-edit-image-size-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.imageSize")!)
                 }}
               </span>
             }
@@ -1323,3 +1373,8 @@
 
 <pa-hotkey-config-dialog />
 <pa-fill-selection-dialog />
+
+<pa-image-size-dialog
+  (onConfirm)="handleImageSizeConfirm($event)"
+  (onCancel)="handleImageSizeCancel()"
+/>
