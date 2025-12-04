@@ -394,8 +394,8 @@ export class EditorCanvas implements OnDestroy {
     if (this.pointerState.panning) return this.handGrabbingCursor;
     const tool = this.tools.currentTool();
     if (tool === 'rect-select' || tool === 'ellipse-select' || tool === 'lasso-select') return `crosshair`;
-    if (tool === 'brush') return this.brushCursor;
-    if (tool === 'eraser') return this.eraserCursor;
+    if (tool === 'brush') return 'none';
+    if (tool === 'eraser') return 'none';
     if (tool === 'line' || tool === 'circle' || tool === 'square' || tool === 'pen') return `crosshair`;
     if (tool === 'bone') return `crosshair`;
     return this.defaultCursor;
