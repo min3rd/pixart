@@ -53,6 +53,10 @@ import { DefineBrushService } from '../../../services/editor/define-brush.servic
 import { DefineShapeService } from '../../../services/editor/define-shape.service';
 import { EditorStrokeService } from '../../../services/editor/editor-stroke.service';
 import { PaletteService } from '../../../services/palette.service';
+import {
+  ImageSizeDialog,
+  ImageSizeResult,
+} from '../../../shared/components/image-size-dialog/image-size-dialog';
 
 @Component({
   selector: 'pa-editor-header',
@@ -72,6 +76,7 @@ import { PaletteService } from '../../../services/palette.service';
     PuppetWarpDialog,
     ContentAwareScaleDialog,
     FillSelectionDialog,
+    ImageSizeDialog,
   ],
   host: {
     class:
@@ -115,6 +120,7 @@ export class EditorHeader {
   readonly puppetWarpDialog = viewChild(PuppetWarpDialog);
   readonly contentAwareScaleDialog = viewChild(ContentAwareScaleDialog);
   readonly fillSelectionDialog = viewChild(FillSelectionDialog);
+  readonly imageSizeDialog = viewChild(ImageSizeDialog);
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
   readonly onDefinePatternToggle = output<void>();
@@ -730,6 +736,13 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'edit.imageSize',
+      category: 'edit',
+      defaultKey: 'ctrl+alt+i',
+      handler: () => this.onEditImageSize(),
+    });
+
+    this.hotkeys.register({
       id: 'palette.createNew',
       category: 'palette',
       defaultKey: 'ctrl+shift+n',
@@ -841,6 +854,20 @@ export class EditorHeader {
     this.onStrokeToggle.emit();
     this.showEditMenu.set(false);
   }
+
+  onEditImageSize(): void {
+    const dialog = this.imageSizeDialog();
+    if (dialog) {
+      dialog.open(this.document.canvasWidth(), this.document.canvasHeight());
+    }
+    this.showEditMenu.set(false);
+  }
+
+  handleImageSizeConfirm(result: ImageSizeResult): void {
+    this.document.setCanvasSize(result.width, result.height);
+  }
+
+  handleImageSizeCancel(): void {}
 
   onDefineShape(): void {
     const sel = this.document.selectionRect();
