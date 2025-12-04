@@ -35,6 +35,10 @@ export interface DrawCanvasContext {
 
 @Injectable({ providedIn: 'root' })
 export class CanvasDrawService {
+  private static readonly BRUSH_PREVIEW_OPACITY = 0.3;
+  private static readonly ERASER_X_COLOR = '#ef4444';
+  private static readonly ERASER_LINE_WIDTH_MULTIPLIER = 1.5;
+
   private readonly document = inject(EditorDocumentService);
   private readonly tools = inject(EditorToolsService);
   private readonly boneService = inject(EditorBoneService);
@@ -385,13 +389,20 @@ export class CanvasDrawService {
         ctx.save();
         ctx.lineWidth = pxLineWidth;
         if (tool === 'eraser') {
-          ctx.fillStyle = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)';
-          ctx.fillRect(brushX, brushY, bSize, bSize);
-          ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+          ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
           ctx.strokeRect(brushX + 0.5, brushY + 0.5, Math.max(0, bSize - 1), Math.max(0, bSize - 1));
+          ctx.strokeStyle = CanvasDrawService.ERASER_X_COLOR;
+          ctx.lineWidth = pxLineWidth * CanvasDrawService.ERASER_LINE_WIDTH_MULTIPLIER;
+          ctx.beginPath();
+          ctx.moveTo(brushX, brushY);
+          ctx.lineTo(brushX + bSize, brushY + bSize);
+          ctx.moveTo(brushX + bSize, brushY);
+          ctx.lineTo(brushX, brushY + bSize);
+          ctx.stroke();
         } else {
-          ctx.fillStyle = this.tools.brushColor();
-          ctx.globalAlpha = 0.9;
+          const brushColor = this.tools.brushColor();
+          ctx.fillStyle = brushColor;
+          ctx.globalAlpha = CanvasDrawService.BRUSH_PREVIEW_OPACITY;
           ctx.fillRect(brushX, brushY, bSize, bSize);
           ctx.globalAlpha = 1;
           ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)';
