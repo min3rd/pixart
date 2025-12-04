@@ -9,7 +9,7 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     id: 'smart-select',
     name: 'Smart select',
     labelKey: 'tools.smartSelect',
-    icon: 'heroiconsCursorArrowRays',
+    icon: 'heroCursorArrowRays',
   };
 
   readonly tolerance = signal(32);
