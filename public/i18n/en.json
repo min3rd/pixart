@@ -224,6 +224,8 @@
     "zoom": "Zoom",
     "zoomIncrease": "Increase zoom",
     "zoomDecrease": "Decrease zoom",
+    "zoomMinReached": "Minimum zoom reached",
+    "zoomMaxReached": "Maximum zoom reached",
     "rotate": "Rotate",
     "resetRotation": "Reset rotation",
     "size": "Canvas size",

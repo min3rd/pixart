@@ -2,13 +2,19 @@ import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class CanvasViewportService {
+  private static readonly SCALE_TOLERANCE = 0.0001;
+
   readonly panX = signal(0);
   readonly panY = signal(0);
   readonly scale = signal(1);
   readonly rotation = signal(0);
-  readonly minScale = 0.05;
 
+  private _minScale = 0.05;
   private _maxScale = 256;
+
+  get minScale(): number {
+    return this._minScale;
+  }
 
   get maxScale(): number {
     return this._maxScale;
@@ -19,6 +25,24 @@ export class CanvasViewportService {
     const targetPx = 512;
     const computed = Math.ceil(targetPx / maxDim);
     this._maxScale = Math.min(Math.max(8, computed), 256);
+  }
+
+  updateMinScale(canvasWidth: number, canvasHeight: number): void {
+    const maxDim = Math.max(1, canvasWidth, canvasHeight);
+    this._minScale = 1 / maxDim;
+  }
+
+  updateScaleLimits(canvasWidth: number, canvasHeight: number): void {
+    this.updateMaxScale(canvasWidth, canvasHeight);
+    this.updateMinScale(canvasWidth, canvasHeight);
+  }
+
+  isAtMinZoom(): boolean {
+    return Math.abs(this.scale() - this._minScale) < CanvasViewportService.SCALE_TOLERANCE || this.scale() <= this._minScale;
+  }
+
+  isAtMaxZoom(): boolean {
+    return Math.abs(this.scale() - this._maxScale) < CanvasViewportService.SCALE_TOLERANCE || this.scale() >= this._maxScale;
   }
 
   applyZoom(
@@ -32,7 +56,7 @@ export class CanvasViewportService {
     );
     const prev = this.scale();
 
-    if (Math.abs(clamped - prev) < 0.0001) {
+    if (Math.abs(clamped - prev) < CanvasViewportService.SCALE_TOLERANCE) {
       return;
     }
 

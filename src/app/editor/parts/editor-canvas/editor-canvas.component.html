@@ -163,9 +163,11 @@
       <button
         type="button"
         id="editor-canvas-zoom-decrease"
-        class="w-7 h-7 grid place-items-center bg-neutral-100 dark:bg-neutral-800 rounded-sm"
+        class="w-7 h-7 grid place-items-center bg-neutral-100 dark:bg-neutral-800 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        [disabled]="isAtMinZoom()"
         (click)="decreaseZoom()"
-        aria-label="{{ 'canvas.zoomDecrease' | transloco }}"
+        [attr.aria-label]="isAtMinZoom() ? ('canvas.zoomMinReached' | transloco) : ('canvas.zoomDecrease' | transloco)"
+        [attr.title]="isAtMinZoom() ? ('canvas.zoomMinReached' | transloco) : ('canvas.zoomDecrease' | transloco)"
       >
         <ng-icon name="featherMinus" class="w-4 h-4"></ng-icon>
       </button>
@@ -182,9 +184,11 @@
       <button
         type="button"
         id="editor-canvas-zoom-increase"
-        class="w-7 h-7 grid place-items-center bg-neutral-100 dark:bg-neutral-800 rounded-sm"
+        class="w-7 h-7 grid place-items-center bg-neutral-100 dark:bg-neutral-800 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        [disabled]="isAtMaxZoom()"
         (click)="increaseZoom()"
-        aria-label="{{ 'canvas.zoomIncrease' | transloco }}"
+        [attr.aria-label]="isAtMaxZoom() ? ('canvas.zoomMaxReached' | transloco) : ('canvas.zoomIncrease' | transloco)"
+        [attr.title]="isAtMaxZoom() ? ('canvas.zoomMaxReached' | transloco) : ('canvas.zoomIncrease' | transloco)"
       >
         <ng-icon name="featherPlus" class="w-4 h-4"></ng-icon>
       </button>

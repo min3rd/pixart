@@ -224,6 +224,8 @@
     "zoom": "Thu phóng",
     "zoomIncrease": "Tăng thu phóng",
     "zoomDecrease": "Giảm thu phóng",
+    "zoomMinReached": "Đã đạt mức thu phóng tối thiểu",
+    "zoomMaxReached": "Đã đạt mức thu phóng tối đa",
     "rotate": "Nghiêng",
     "resetRotation": "Đặt lại nghiêng",
     "height": "Chiều cao",
