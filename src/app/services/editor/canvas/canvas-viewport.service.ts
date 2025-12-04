@@ -9,7 +9,7 @@ export class CanvasViewportService {
   readonly scale = signal(1);
   readonly rotation = signal(0);
 
-  private _minScale = 0.05;
+  private _minScale = 0.5;
   private _maxScale = 256;
 
   get minScale(): number {
@@ -22,14 +22,12 @@ export class CanvasViewportService {
 
   updateMaxScale(canvasWidth: number, canvasHeight: number): void {
     const maxDim = Math.max(1, Math.max(canvasWidth, canvasHeight));
-    const targetPx = 512;
-    const computed = Math.ceil(targetPx / maxDim);
-    this._maxScale = Math.min(Math.max(8, computed), 256);
+    const targetPixelRatio = maxDim / 3;
+    this._maxScale = Math.max(32, Math.ceil(targetPixelRatio));
   }
 
-  updateMinScale(canvasWidth: number, canvasHeight: number): void {
-    const maxDim = Math.max(1, canvasWidth, canvasHeight);
-    this._minScale = 1 / maxDim;
+  updateMinScale(_canvasWidth: number, _canvasHeight: number): void {
+    this._minScale = 0.5;
   }
 
   updateScaleLimits(canvasWidth: number, canvasHeight: number): void {
