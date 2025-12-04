@@ -1014,17 +1014,29 @@ export class CanvasPointerService {
   }
 
   private beginSmartSelection(x: number, y: number, mode: SmartSelectMode): void {
+    console.log('[SmartSelect] beginSmartSelection called:', { x, y, mode });
+    
     const layerId = this.document.selectedLayerId();
-    if (!layerId) return;
+    if (!layerId) {
+      console.log('[SmartSelect] No layer selected');
+      return;
+    }
 
     const buffer = this.document.getLayerBuffer(layerId);
-    if (!buffer) return;
+    if (!buffer) {
+      console.log('[SmartSelect] No buffer found');
+      return;
+    }
+    
+    console.log('[SmartSelect] Buffer length:', buffer.length, 'Non-empty pixels:', buffer.filter(c => c && c.length > 0).length);
 
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
     const tolerance = this.tools.smartSelectTolerance();
     const smartSelectTool = this.tools.getSmartSelectToolService();
 
+    console.log('[SmartSelect] Canvas size:', w, 'x', h, 'Tolerance:', tolerance);
+    
     const existingMask =
       mode !== 'normal' ? this.selectionService.selectionMask() : null;
 
@@ -1039,11 +1051,15 @@ export class CanvasPointerService {
       mode,
     );
 
+    console.log('[SmartSelect] Result:', { newPixelsCount: result.newPixels.size, combinedCount: result.combined.size });
+
     if (result.newPixels.size === 0) {
+      console.log('[SmartSelect] No new pixels found');
       return;
     }
 
     this.selectionService.updateSmartSelection(result.combined);
+    console.log('[SmartSelect] Selection updated');
   }
 
   private readonly SMART_SELECT_POINTS_PER_UPDATE = 5;
