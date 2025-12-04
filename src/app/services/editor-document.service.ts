@@ -481,35 +481,24 @@ export class EditorDocumentService {
     if (!buf || buf.length === 0) return;
     const w = this.canvasState.canvasWidth();
     const h = this.canvasState.canvasHeight();
-    let minX = w;
-    let minY = h;
-    let maxX = -1;
-    let maxY = -1;
+
+    const pixelMask = new Set<string>();
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const idx = y * w + x;
         const pixel = buf[idx];
         if (pixel && pixel.length > 0) {
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
+          pixelMask.add(`${x},${y}`);
         }
       }
     }
-    if (minX > maxX || minY > maxY) {
+
+    if (pixelMask.size === 0) {
       return;
     }
+
     this.saveSnapshotForUndo('Select pixels');
-    this.selectionService.selectionRect.set({
-      x: minX,
-      y: minY,
-      width: maxX - minX + 1,
-      height: maxY - minY + 1,
-    });
-    this.selectionService.selectionShape.set('rect');
-    this.selectionService.selectionPolygon.set(null);
-    this.selectionService.selectionMask.set(null);
+    this.selectionService.beginSmartSelection(pixelMask);
   }
 
   mergeLayers(layerIds: string[]): LayerItem | null {
