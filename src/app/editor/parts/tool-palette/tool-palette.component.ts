@@ -132,6 +132,7 @@ export class ToolPalette {
       'rect-select': 'tool.rectSelect',
       'ellipse-select': 'tool.ellipseSelect',
       'lasso-select': 'tool.lassoSelect',
+      'smart-select': 'tool.smartSelect',
       eyedropper: 'tool.eyedropper',
       fill: 'tool.fill',
       eraser: 'tool.eraser',
@@ -151,6 +152,7 @@ export class ToolPalette {
       'rect-select': 'tooltips.tools.rectSelect',
       'ellipse-select': 'tooltips.tools.ellipseSelect',
       'lasso-select': 'tooltips.tools.lassoSelect',
+      'smart-select': 'tooltips.tools.smartSelect',
       eyedropper: 'tooltips.tools.eyedropper',
       fill: 'tooltips.tools.fill',
       eraser: 'tooltips.tools.eraser',
@@ -162,6 +164,14 @@ export class ToolPalette {
       bone: 'tooltips.tools.bone',
     };
     return mapping[toolId] || '';
+  }
+
+  onSmartSelectToleranceInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    const n = Number(v);
+    if (!Number.isNaN(n)) {
+      this.tools.setSmartSelectTolerance(Math.floor(n));
+    }
   }
 
   setFillMode(mode: FillToolMode) {

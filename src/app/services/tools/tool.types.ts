@@ -3,6 +3,7 @@ export type ToolId =
   | 'rect-select'
   | 'ellipse-select'
   | 'lasso-select'
+  | 'smart-select'
   | 'eyedropper'
   | 'fill'
   | 'brush'
@@ -52,7 +53,8 @@ export type ToolMetaKey =
   | 'squareGradientType'
   | 'squareGradientAngle'
   | 'boneThickness'
-  | 'boneColor';
+  | 'boneColor'
+  | 'smartSelectTolerance';
 
 export type ShapeFillMode = 'solid' | 'gradient';
 export type GradientType = 'linear' | 'radial';
@@ -139,6 +141,10 @@ export interface BoneToolSnapshot {
   autoBindRadius?: number;
 }
 
+export interface SmartSelectToolSnapshot {
+  tolerance: number;
+}
+
 export interface ToolSnapshot {
   currentTool: ToolId;
   fill: FillToolSnapshot;
@@ -149,4 +155,5 @@ export interface ToolSnapshot {
   circle: CircleToolSnapshot;
   square: SquareToolSnapshot;
   bone: BoneToolSnapshot;
+  smartSelect: SmartSelectToolSnapshot;
 }

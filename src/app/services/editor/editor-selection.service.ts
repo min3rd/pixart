@@ -321,4 +321,99 @@ export class EditorSelectionService {
       mask: this.selectionMask(),
     };
   }
+
+  beginSmartSelection(mask: Set<string>) {
+    if (mask.size === 0) {
+      this.clearSelection();
+      return;
+    }
+
+    const bounds = this.computeMaskBounds(mask);
+    this.selectionShape.set('lasso');
+    this.selectionPolygon.set(null);
+    this.selectionMask.set(mask);
+    this.selectionRect.set(bounds);
+  }
+
+  updateSmartSelection(mask: Set<string>) {
+    if (mask.size === 0) {
+      return;
+    }
+
+    const bounds = this.computeMaskBounds(mask);
+    this.selectionMask.set(mask);
+    this.selectionRect.set(bounds);
+  }
+
+  addToSelection(newMask: Set<string>) {
+    const existing = this.selectionMask();
+    if (!existing) {
+      this.beginSmartSelection(newMask);
+      return;
+    }
+
+    const combined = new Set<string>(existing);
+    for (const key of newMask) {
+      combined.add(key);
+    }
+
+    const bounds = this.computeMaskBounds(combined);
+    this.selectionMask.set(combined);
+    this.selectionRect.set(bounds);
+  }
+
+  subtractFromSelection(toRemove: Set<string>) {
+    const existing = this.selectionMask();
+    if (!existing) return;
+
+    const result = new Set<string>();
+    for (const key of existing) {
+      if (!toRemove.has(key)) {
+        result.add(key);
+      }
+    }
+
+    if (result.size === 0) {
+      this.clearSelection();
+      return;
+    }
+
+    const bounds = this.computeMaskBounds(result);
+    this.selectionMask.set(result);
+    this.selectionRect.set(bounds);
+  }
+
+  private computeMaskBounds(mask: Set<string>): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const key of mask) {
+      const [xStr, yStr] = key.split(',');
+      const x = parseInt(xStr, 10);
+      const y = parseInt(yStr, 10);
+
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+
+    if (minX === Infinity) {
+      return { x: 0, y: 0, width: 0, height: 0 };
+    }
+
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX + 1,
+      height: maxY - minY + 1,
+    };
+  }
 }

@@ -54,7 +54,8 @@
     "circle": "Hình tròn",
     "square": "Hình vuông",
     "brush": "Cọ vẽ",
-    "bone": "Xương"
+    "bone": "Xương",
+    "smartSelect": "Chọn thông minh"
   },
   "tooltips": {
     "menu": {
@@ -105,6 +106,7 @@
       "square": "Vẽ hình vuông và chữ nhật",
       "brush": "Vẽ bằng cọ",
       "bone": "Tạo và chỉnh sửa điểm xương cho hoạt ảnh",
+      "smartSelect": "Chọn pixel liền kề theo màu",
       "contentAwareFill": "Tô thông minh cho vùng chọn",
       "definePattern": "Tạo pattern lặp từ vùng chọn",
       "stroke": "Thêm viền cho vùng chọn",
@@ -371,6 +373,15 @@
         "copyHex": "Click để sao chép mã màu HEX",
         "copyRgb": "Click để sao chép mã màu RGB",
         "copyHsl": "Click để sao chép mã màu HSL"
+      },
+      "smartSelect": {
+        "title": "Chọn thông minh",
+        "tolerance": "Độ dung sai",
+        "toleranceTooltip": "Ngưỡng tương đồng màu sắc (0-50)",
+        "modeNormal": "Bình thường (click để chọn)",
+        "modeAdd": "Chế độ thêm (Shift+kéo)",
+        "modeSubtract": "Chế độ bớt (Alt+kéo)",
+        "modeHint": "Giữ Shift để thêm, Alt để bớt"
       }
     },
     "layers": {
@@ -576,6 +587,7 @@
       "tool.rectSelect": "Công cụ chọn vùng chữ nhật",
       "tool.ellipseSelect": "Công cụ chọn vùng hình tròn",
       "tool.lassoSelect": "Công cụ chọn vùng tự do",
+      "tool.smartSelect": "Công cụ chọn thông minh",
       "tool.eyedropper": "Công cụ chấm điểm màu",
       "tool.fill": "Công cụ đổ màu",
       "tool.eraser": "Công cụ tẩy",

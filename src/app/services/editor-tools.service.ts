@@ -24,6 +24,7 @@ import { RectSelectToolService } from './tools/rect-select-tool.service';
 import { SelectLayerToolService } from './tools/select-layer-tool.service';
 import { SquareToolService } from './tools/square-tool.service';
 import { BoneToolService } from './tools/bone-tool.service';
+import { SmartSelectToolService } from './tools/smart-select-tool.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorToolsService {
@@ -34,6 +35,7 @@ export class EditorToolsService {
   private readonly rectSelectTool = inject(RectSelectToolService);
   private readonly ellipseSelectTool = inject(EllipseSelectToolService);
   private readonly lassoSelectTool = inject(LassoSelectToolService);
+  private readonly smartSelectTool = inject(SmartSelectToolService);
   private readonly eyedropperTool = inject(EyedropperToolService);
   private readonly fillTool = inject(FillToolService);
   private readonly brushTool = inject(BrushToolService);
@@ -49,6 +51,7 @@ export class EditorToolsService {
     ['rect-select', this.rectSelectTool],
     ['ellipse-select', this.ellipseSelectTool],
     ['lasso-select', this.lassoSelectTool],
+    ['smart-select', this.smartSelectTool],
     ['eyedropper', this.eyedropperTool],
     ['fill', this.fillTool],
     ['brush', this.brushTool],
@@ -112,6 +115,8 @@ export class EditorToolsService {
     this.eyedropperTool.lastPickedColorRGB;
   readonly eyedropperLastPickedColorHSL =
     this.eyedropperTool.lastPickedColorHSL;
+  readonly smartSelectTolerance = this.smartSelectTool.tolerance.asReadonly();
+  readonly smartSelectMode = this.smartSelectTool.mode.asReadonly();
 
   constructor() {
     this.loadFromStorage();
@@ -321,6 +326,19 @@ export class EditorToolsService {
     this.eyedropperTool.setLastPickedColor(color);
   }
 
+  setSmartSelectTolerance(tolerance: number) {
+    this.smartSelectTool.setTolerance(tolerance);
+    this.saveToStorage();
+  }
+
+  setSmartSelectMode(mode: 'normal' | 'add' | 'subtract') {
+    this.smartSelectTool.setMode(mode);
+  }
+
+  getSmartSelectToolService() {
+    return this.smartSelectTool;
+  }
+
   applySnapshot(snapshot: Partial<ToolSnapshot>, context?: ToolRestoreContext) {
     if (!snapshot) return;
     if (snapshot.currentTool && this.hasTool(snapshot.currentTool)) {
@@ -334,6 +352,7 @@ export class EditorToolsService {
     this.circleTool.restore(snapshot.circle);
     this.squareTool.restore(snapshot.square);
     this.boneTool.restore(snapshot.bone, context);
+    this.smartSelectTool.restore(snapshot.smartSelect);
     this.saveToStorage();
   }
 
@@ -341,6 +360,14 @@ export class EditorToolsService {
     if (key === 'currentTool') {
       if (typeof value === 'string' && this.hasTool(value as ToolId)) {
         this.currentTool.set(value as ToolId);
+        this.saveToStorage();
+      }
+      return;
+    }
+
+    if (key === 'smartSelectTolerance') {
+      if (typeof value === 'number') {
+        this.smartSelectTool.setTolerance(value);
         this.saveToStorage();
       }
       return;
@@ -372,6 +399,7 @@ export class EditorToolsService {
       circle: this.circleTool.snapshot(),
       square: this.squareTool.snapshot(),
       bone: this.boneTool.snapshot(),
+      smartSelect: this.smartSelectTool.snapshot(),
     };
   }
 
@@ -416,6 +444,7 @@ export class EditorToolsService {
         boneColor: this.boneTool.color(),
         boneAutoBindEnabled: this.boneTool.autoBindEnabled(),
         boneAutoBindRadius: this.boneTool.autoBindRadius(),
+        smartSelectTolerance: this.smartSelectTool.tolerance(),
       } as const;
       window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch {}
@@ -466,6 +495,7 @@ export class EditorToolsService {
         boneColor: string;
         boneAutoBindEnabled: boolean;
         boneAutoBindRadius: number;
+        smartSelectTolerance: number;
       }> | null;
       if (!parsed) return;
       if (parsed.currentTool && this.hasTool(parsed.currentTool)) {
@@ -660,6 +690,10 @@ export class EditorToolsService {
       if (typeof parsed.boneAutoBindRadius === 'number') {
         boneSnapshot.autoBindRadius = parsed.boneAutoBindRadius;
       }
+      const smartSelectSnapshot: Partial<ToolSnapshot['smartSelect']> = {};
+      if (typeof parsed.smartSelectTolerance === 'number') {
+        smartSelectSnapshot.tolerance = parsed.smartSelectTolerance;
+      }
       this.fillTool.restore(fillSnapshot);
       this.brushTool.restore(brushSnapshot);
       this.eraserTool.restore(eraserSnapshot);
@@ -668,6 +702,7 @@ export class EditorToolsService {
       this.circleTool.restore(circleSnapshot);
       this.squareTool.restore(squareSnapshot);
       this.boneTool.restore(boneSnapshot);
+      this.smartSelectTool.restore(smartSelectSnapshot);
     } catch {}
   }
 }
