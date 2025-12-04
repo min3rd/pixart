@@ -34,7 +34,8 @@
     "rotate180": "Rotate 180°",
     "fillSelection": "Fill Selection",
     "contentAwareFill": "Content-Aware Fill",
-    "stroke": "Stroke"
+    "stroke": "Stroke",
+    "imageSize": "Image Size"
   },
   "badges": {
     "title": "2D Editor • Alpha",
@@ -582,6 +583,7 @@
       "edit.defineBrush": "Define Brush",
       "edit.stroke": "Stroke",
       "edit.defineShape": "Define Shape",
+      "edit.imageSize": "Edit Image Size",
       "tool.selectLayer": "Select Layer Tool",
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
@@ -674,6 +676,16 @@
     "height": "Height",
     "scaleX": "Width scale",
     "scaleY": "Height scale",
+    "preview": "Preview",
+    "ok": "OK",
+    "cancel": "Cancel"
+  },
+  "imageSize": {
+    "title": "Image Size",
+    "originalSize": "Original size",
+    "width": "Width",
+    "height": "Height",
+    "aspectRatio": "Maintain aspect ratio",
     "preview": "Preview",
     "ok": "OK",
     "cancel": "Cancel"

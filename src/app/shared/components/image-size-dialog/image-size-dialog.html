@@ -1,0 +1,114 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'imageSize.title' | transloco"
+  [size]="'sm'"
+  [modalId]="'image-size-dialog'"
+  (onClose)="handleCancel()"
+>
+  <div id="image-size-dialog-content" class="space-y-4">
+    <div
+      id="image-size-original-section"
+      class="text-sm text-neutral-600 dark:text-neutral-400"
+    >
+      <span id="image-size-original-label"
+        >{{ "imageSize.originalSize" | transloco }}:</span
+      >
+      <span id="image-size-original-value" class="font-mono ml-2">
+        {{ originalWidth() }} × {{ originalHeight() }}
+      </span>
+    </div>
+
+    <div id="image-size-aspect-section" class="flex items-center gap-2">
+      <input
+        type="checkbox"
+        id="image-size-aspect-checkbox"
+        [checked]="maintainAspectRatio()"
+        (change)="onMaintainAspectRatioChange($event)"
+        class="w-4 h-4"
+      />
+      <label
+        for="image-size-aspect-checkbox"
+        id="image-size-aspect-label"
+        class="text-sm text-neutral-700 dark:text-neutral-300"
+      >
+        {{ "imageSize.aspectRatio" | transloco }}
+      </label>
+    </div>
+
+    <div id="image-size-dimensions-section" class="grid grid-cols-2 gap-4">
+      <div id="image-size-width-field">
+        <label
+          for="image-size-width-input"
+          id="image-size-width-label"
+          class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+        >
+          {{ "imageSize.width" | transloco }}
+        </label>
+        <input
+          type="number"
+          id="image-size-width-input"
+          [value]="targetWidth()"
+          (input)="onWidthInput($event)"
+          min="1"
+          max="4096"
+          class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+        />
+      </div>
+      <div id="image-size-height-field">
+        <label
+          for="image-size-height-input"
+          id="image-size-height-label"
+          class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+        >
+          {{ "imageSize.height" | transloco }}
+        </label>
+        <input
+          type="number"
+          id="image-size-height-input"
+          [value]="targetHeight()"
+          (input)="onHeightInput($event)"
+          min="1"
+          max="4096"
+          class="w-full px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+        />
+      </div>
+    </div>
+
+    <div
+      id="image-size-preview-section"
+      class="pt-2 border-t border-neutral-200 dark:border-neutral-700"
+    >
+      <div
+        id="image-size-preview-label"
+        class="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
+      >
+        {{ "imageSize.preview" | transloco }}:
+      </div>
+      <div
+        id="image-size-preview-value"
+        class="text-sm text-neutral-600 dark:text-neutral-400 font-mono"
+      >
+        {{ previewDimensions() }}
+      </div>
+    </div>
+  </div>
+
+  <div modal-footer id="image-size-dialog-actions" class="flex gap-2">
+    <button
+      type="button"
+      id="image-size-dialog-confirm-button"
+      (click)="handleConfirm()"
+      class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm"
+    >
+      {{ "imageSize.ok" | transloco }}
+    </button>
+    <button
+      type="button"
+      id="image-size-dialog-cancel-button"
+      (click)="handleCancel()"
+      class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded-sm"
+    >
+      {{ "imageSize.cancel" | transloco }}
+    </button>
+  </div>
+</pa-modal>

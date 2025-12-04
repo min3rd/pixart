@@ -234,7 +234,10 @@
         id="animation-creator-tab-button"
         [paTooltip]="'tooltips.panels.animationCreator' | transloco"
       >
-        {{ "animationCreator.title" | transloco }}
+        <span id="animation-creator-tab-title">{{ "animationCreator.title" | transloco }}</span>
+        <span id="animation-creator-tab-dev-badge" class="ml-2 inline-flex items-center px-2 py-0.5 text-[10px] font-medium rounded-sm bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-50" title="{{ 'badges.dev' | transloco }}">
+          {{ "badges.dev" | transloco }}
+        </span>
       </button>
     </div>
     <div class="flex-1 overflow-hidden">
