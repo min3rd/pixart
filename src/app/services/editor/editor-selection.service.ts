@@ -324,7 +324,6 @@ export class EditorSelectionService {
 
   beginSmartSelection(mask: Set<string>) {
     if (mask.size === 0) {
-      this.clearSelection();
       return;
     }
 
@@ -341,6 +340,7 @@ export class EditorSelectionService {
     }
 
     const bounds = this.computeMaskBounds(mask);
+    this.selectionShape.set('lasso');
     this.selectionMask.set(mask);
     this.selectionRect.set(bounds);
   }
@@ -357,7 +357,12 @@ export class EditorSelectionService {
       combined.add(key);
     }
 
+    if (combined.size === 0) {
+      return;
+    }
+
     const bounds = this.computeMaskBounds(combined);
+    this.selectionShape.set('lasso');
     this.selectionMask.set(combined);
     this.selectionRect.set(bounds);
   }
@@ -379,6 +384,7 @@ export class EditorSelectionService {
     }
 
     const bounds = this.computeMaskBounds(result);
+    this.selectionShape.set('lasso');
     this.selectionMask.set(result);
     this.selectionRect.set(bounds);
   }
