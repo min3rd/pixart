@@ -336,6 +336,7 @@ export class EditorSelectionService {
 
   updateSmartSelection(mask: Set<string>) {
     if (mask.size === 0) {
+      this.clearSelection();
       return;
     }
 
