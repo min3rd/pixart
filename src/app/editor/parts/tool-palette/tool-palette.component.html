@@ -1519,6 +1519,74 @@
           }
         </section>
       }
+      @case ("smart-select") {
+        <section
+          id="palette-smart-select-panel"
+          class="space-y-2 p-2"
+        >
+          <div id="palette-smart-select-header" class="flex items-center gap-1">
+            <ng-icon id="palette-smart-select-header-icon" name="heroiconsCursorArrowRays" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
+            <span id="palette-smart-select-header-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.smartSelect.title" | transloco }}</span>
+          </div>
+          <div id="palette-smart-select-mode-section" class="space-y-1">
+            <div id="palette-smart-select-mode-header" class="flex items-center gap-1">
+              <ng-icon id="palette-smart-select-mode-header-icon" name="heroiconsAdjustmentsHorizontalMini" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
+              <span id="palette-smart-select-mode-header-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.sections.mode" | transloco }}</span>
+            </div>
+            <div id="palette-smart-select-mode-indicator" class="text-xs text-neutral-500 dark:text-neutral-400 p-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-sm">
+              @switch (tools.smartSelectMode()) {
+                @case ("normal") {
+                  <span id="palette-smart-select-mode-normal">{{ "editor.tools.smartSelect.modeNormal" | transloco }}</span>
+                }
+                @case ("add") {
+                  <span id="palette-smart-select-mode-add" class="text-green-600 dark:text-green-400">{{ "editor.tools.smartSelect.modeAdd" | transloco }}</span>
+                }
+                @case ("subtract") {
+                  <span id="palette-smart-select-mode-subtract" class="text-red-600 dark:text-red-400">{{ "editor.tools.smartSelect.modeSubtract" | transloco }}</span>
+                }
+              }
+            </div>
+            <div id="palette-smart-select-mode-hint" class="text-xs text-neutral-400 dark:text-neutral-500">
+              {{ "editor.tools.smartSelect.modeHint" | transloco }}
+            </div>
+          </div>
+          <div id="palette-smart-select-tolerance-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+            <div id="palette-smart-select-tolerance-header" class="flex items-center justify-between">
+              <label id="palette-smart-select-tolerance-label" class="text-xs text-neutral-600 dark:text-neutral-400" for="palette-smart-select-tolerance-range">
+                {{ "editor.tools.smartSelect.tolerance" | transloco }}
+              </label>
+              <span id="palette-smart-select-tolerance-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">
+                {{ tools.smartSelectTolerance() }}
+              </span>
+            </div>
+            <div
+              id="palette-smart-select-tolerance-row"
+              class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+              [paTooltip]="'editor.tools.smartSelect.toleranceTooltip' | transloco"
+            >
+              <input
+                id="palette-smart-select-tolerance-range"
+                type="range"
+                min="0"
+                max="50"
+                [value]="tools.smartSelectTolerance()"
+                (input)="onSmartSelectToleranceInput($event)"
+                class="w-full accent-blue-500"
+              />
+              <input
+                id="palette-smart-select-tolerance-number"
+                type="number"
+                min="0"
+                max="50"
+                [value]="tools.smartSelectTolerance()"
+                (input)="onSmartSelectToleranceInput($event)"
+                [attr.aria-labelledby]="'palette-smart-select-tolerance-label'"
+                class="w-14 rounded-sm border border-neutral-300/70 bg-white px-1.5 py-0.5 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+              />
+            </div>
+          </div>
+        </section>
+      }
       @default {
         <section
           id="palette-empty-state"

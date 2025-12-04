@@ -15,6 +15,8 @@ import { CanvasDistortHandler } from './canvas-distort.handler';
 import { CanvasPerspectiveHandler } from './canvas-perspective.handler';
 import { CanvasWarpHandler } from './canvas-warp.handler';
 import { CanvasPuppetWarpHandler } from './canvas-puppet-warp.handler';
+import { EditorSelectionService } from '../editor-selection.service';
+import { SmartSelectMode } from '../../tools/smart-select-tool.service';
 
 export interface PointerState {
   panning: boolean;
@@ -32,6 +34,9 @@ export interface PointerState {
   currentBoneId: string | null;
   draggingPointId: string | null;
   draggingPointBoneId: string | null;
+  smartSelecting: boolean;
+  smartSelectPoints: { x: number; y: number }[];
+  smartSelectMode: SmartSelectMode;
 }
 
 export interface PointerCallbacks {
@@ -74,6 +79,7 @@ export class CanvasPointerService {
   private readonly perspectiveHandler = inject(CanvasPerspectiveHandler);
   private readonly warpHandler = inject(CanvasWarpHandler);
   private readonly puppetWarpHandler = inject(CanvasPuppetWarpHandler);
+  private readonly selectionService = inject(EditorSelectionService);
 
   readonly moveSelectionHotkeyActive = signal(false);
   private moveSelectionHotkeyParts = new Set<string>();
@@ -235,6 +241,17 @@ export class CanvasPointerService {
       return { hoverX, hoverY, mouseX, mouseY };
     }
 
+    if (state.smartSelecting) {
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+      const lastPoint = state.smartSelectPoints[state.smartSelectPoints.length - 1];
+      if (!lastPoint || lastPoint.x !== clampedX || lastPoint.y !== clampedY) {
+        state.smartSelectPoints.push({ x: clampedX, y: clampedY });
+        this.updateSmartSelection(state);
+      }
+      return { hoverX, hoverY, mouseX, mouseY };
+    }
+
     if (state.shaping) {
       const clampedX = Math.max(0, Math.min(w - 1, logicalX));
       const clampedY = Math.max(0, Math.min(h - 1, logicalY));
@@ -334,7 +351,7 @@ export class CanvasPointerService {
 
       const hasExistingSelection = !!this.document.selectionRect();
       const clickedInSelection = hasExistingSelection && callbacks.isPointInSelection(logicalX, logicalY);
-      const isSelectTool = tool === 'rect-select' || tool === 'ellipse-select' || tool === 'lasso-select';
+      const isSelectTool = tool === 'rect-select' || tool === 'ellipse-select' || tool === 'lasso-select' || tool === 'smart-select';
 
       if (clickedInSelection && insideCanvas && this.moveSelectionHotkeyActive()) {
         const selectedLayer = this.document.selectedLayer();
@@ -347,7 +364,7 @@ export class CanvasPointerService {
         return;
       }
 
-      if (clickedInSelection && insideCanvas && !ev.shiftKey && !ev.ctrlKey && isSelectTool) {
+      if (clickedInSelection && insideCanvas && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && isSelectTool) {
         callbacks.capturePointer(ev);
         this.document.beginMoveSelection('Move selection');
         state.selectionMoving = true;
@@ -355,7 +372,23 @@ export class CanvasPointerService {
         return;
       }
 
-      if (isSelectTool && insideCanvas) {
+      if (tool === 'smart-select' && insideCanvas) {
+        callbacks.capturePointer(ev);
+        let mode: SmartSelectMode = 'normal';
+        if (ev.shiftKey) {
+          mode = 'add';
+        } else if (ev.altKey) {
+          mode = 'subtract';
+        }
+        this.tools.setSmartSelectMode(mode);
+        state.smartSelecting = true;
+        state.smartSelectPoints = [{ x: logicalX, y: logicalY }];
+        state.smartSelectMode = mode;
+        this.beginSmartSelection(logicalX, logicalY, mode);
+        return;
+      }
+
+      if (isSelectTool && insideCanvas && tool !== 'smart-select') {
         callbacks.capturePointer(ev);
         if (tool === 'lasso-select') {
           state.selectionStart = { x: logicalX, y: logicalY };
@@ -966,10 +999,87 @@ export class CanvasPointerService {
       return;
     }
 
+    if (state.smartSelecting) {
+      state.smartSelecting = false;
+      state.smartSelectPoints = [];
+      this.tools.setSmartSelectMode('normal');
+      return;
+    }
+
     if (state.selectionDragging) {
       state.selectionDragging = false;
       state.selectionStart = null;
       this.document.endSelection();
     }
+  }
+
+  private beginSmartSelection(x: number, y: number, mode: SmartSelectMode): void {
+    const layerId = this.document.selectedLayerId();
+    if (!layerId) return;
+
+    const buffer = this.document.getLayerBuffer(layerId);
+    if (!buffer) return;
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const tolerance = this.tools.smartSelectTolerance();
+    const smartSelectTool = this.tools.getSmartSelectToolService();
+
+    const existingMask =
+      mode !== 'normal' ? this.selectionService.selectionMask() : null;
+
+    const mask = smartSelectTool.performSmartSelect(
+      x,
+      y,
+      buffer,
+      w,
+      h,
+      tolerance,
+      existingMask,
+      mode,
+    );
+
+    if (mode === 'normal') {
+      this.selectionService.beginSmartSelection(mask);
+    } else if (mode === 'add') {
+      this.selectionService.addToSelection(mask);
+    } else if (mode === 'subtract') {
+      this.selectionService.subtractFromSelection(mask);
+    }
+  }
+
+  private readonly SMART_SELECT_POINTS_PER_UPDATE = 5;
+
+  private updateSmartSelection(state: PointerState): void {
+    if (!state.smartSelecting || state.smartSelectPoints.length === 0) return;
+
+    const layerId = this.document.selectedLayerId();
+    if (!layerId) return;
+
+    const buffer = this.document.getLayerBuffer(layerId);
+    if (!buffer) return;
+
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const tolerance = this.tools.smartSelectTolerance();
+    const smartSelectTool = this.tools.getSmartSelectToolService();
+    const mode = state.smartSelectMode;
+
+    const existingMask = this.selectionService.selectionMask();
+    const newPoints = state.smartSelectPoints.slice(
+      -this.SMART_SELECT_POINTS_PER_UPDATE,
+    );
+
+    const mask = smartSelectTool.expandSmartSelect(
+      newPoints,
+      buffer,
+      w,
+      h,
+      tolerance,
+      existingMask,
+      mode,
+    );
+
+    this.selectionService.updateSmartSelection(mask);
   }
 }

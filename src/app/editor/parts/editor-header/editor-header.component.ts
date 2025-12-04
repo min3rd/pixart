@@ -520,6 +520,13 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'tool.smartSelect',
+      category: 'tool',
+      defaultKey: 'w',
+      handler: () => this.tools.selectTool('smart-select'),
+    });
+
+    this.hotkeys.register({
       id: 'tool.eyedropper',
       category: 'tool',
       defaultKey: 'i',

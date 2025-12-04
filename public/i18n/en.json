@@ -54,7 +54,8 @@
     "circle": "Circle",
     "square": "Square",
     "brush": "Brush",
-    "bone": "Bone"
+    "bone": "Bone",
+    "smartSelect": "Smart select"
   },
   "tooltips": {
     "menu": {
@@ -105,6 +106,7 @@
       "square": "Draw squares and rectangles",
       "brush": "Paint with a brush",
       "bone": "Create and edit bone points for animation",
+      "smartSelect": "Smart select connected pixels by color",
       "contentAwareFill": "Content-aware fill for selection",
       "definePattern": "Create a repeatable pattern from selection",
       "stroke": "Add stroke border to selection",
@@ -371,6 +373,15 @@
         "copyHex": "Click to copy HEX color code",
         "copyRgb": "Click to copy RGB color code",
         "copyHsl": "Click to copy HSL color code"
+      },
+      "smartSelect": {
+        "title": "Smart Select",
+        "tolerance": "Tolerance",
+        "toleranceTooltip": "Color similarity threshold (0-50)",
+        "modeNormal": "Normal (click to select)",
+        "modeAdd": "Add mode (Shift+drag)",
+        "modeSubtract": "Subtract mode (Alt+drag)",
+        "modeHint": "Hold Shift to add, Alt to subtract"
       }
     },
     "layers": {
@@ -573,6 +584,7 @@
       "tool.rectSelect": "Rectangle Select Tool",
       "tool.ellipseSelect": "Ellipse Select Tool",
       "tool.lassoSelect": "Lasso Select Tool",
+      "tool.smartSelect": "Smart Select Tool",
       "tool.eyedropper": "Eyedropper Tool",
       "tool.fill": "Fill Tool",
       "tool.eraser": "Eraser Tool",
