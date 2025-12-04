@@ -163,7 +163,7 @@ export class Modal {
   }
 
   handleBackdropClick(event: MouseEvent): void {
-    if (this.closeOnBackdrop() && event.target === event.currentTarget) {
+    if (this.showBackdrop() && this.closeOnBackdrop() && event.target === event.currentTarget) {
       this.handleClose();
     }
   }
