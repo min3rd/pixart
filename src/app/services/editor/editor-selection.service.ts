@@ -83,16 +83,6 @@ export class EditorSelectionService {
     const newX = Math.max(0, Math.min(canvasWidth - rect.width, rect.x + dx));
     const newY = Math.max(0, Math.min(canvasHeight - rect.height, rect.y + dy));
     const shape = this.selectionShape();
-    if (shape === 'lasso') {
-      const poly = this.selectionPolygon();
-      if (poly && poly.length > 0) {
-        const movedPoly = poly.map((p) => ({
-          x: Math.max(0, Math.min(canvasWidth - 1, p.x + dx)),
-          y: Math.max(0, Math.min(canvasHeight - 1, p.y + dy)),
-        }));
-        this.selectionPolygon.set(movedPoly);
-      }
-    }
     const mask = this.selectionMask();
     if (mask) {
       const movedMask = new Set<string>();
@@ -100,11 +90,64 @@ export class EditorSelectionService {
         const [xStr, yStr] = key.split(',');
         const x = parseInt(xStr, 10);
         const y = parseInt(yStr, 10);
-        const newMaskX = Math.max(0, Math.min(canvasWidth - 1, x + dx));
-        const newMaskY = Math.max(0, Math.min(canvasHeight - 1, y + dy));
-        movedMask.add(`${newMaskX},${newMaskY}`);
+        const newMaskX = x + dx;
+        const newMaskY = y + dy;
+        if (
+          newMaskX >= 0 &&
+          newMaskX < canvasWidth &&
+          newMaskY >= 0 &&
+          newMaskY < canvasHeight
+        ) {
+          movedMask.add(`${newMaskX},${newMaskY}`);
+        }
+      }
+      if (movedMask.size === 0) {
+        this.clearSelection();
+        return;
       }
       this.selectionMask.set(movedMask);
+      const bounds = this.computeMaskBounds(movedMask);
+      this.selectionRect.set(bounds);
+      return;
+    }
+    if (shape === 'lasso') {
+      const poly = this.selectionPolygon();
+      if (poly && poly.length > 0) {
+        const movedPoly = poly
+          .map((p) => ({
+            x: p.x + dx,
+            y: p.y + dy,
+          }))
+          .filter(
+            (p) =>
+              p.x >= 0 &&
+              p.x < canvasWidth &&
+              p.y >= 0 &&
+              p.y < canvasHeight,
+          );
+        if (movedPoly.length === 0) {
+          this.clearSelection();
+          return;
+        }
+        this.selectionPolygon.set(movedPoly);
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+        for (const p of movedPoly) {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+        }
+        this.selectionRect.set({
+          x: Math.max(0, Math.floor(minX)),
+          y: Math.max(0, Math.floor(minY)),
+          width: Math.max(1, Math.ceil(maxX - minX) + 1),
+          height: Math.max(1, Math.ceil(maxY - minY) + 1),
+        });
+        return;
+      }
     }
     this.selectionRect.set({
       x: newX,
