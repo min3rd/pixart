@@ -14,9 +14,10 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
 
   readonly tolerance = signal(32);
   readonly mode = signal<SmartSelectMode>('normal');
+  private sampledColors: Set<string> = new Set();
 
   setTolerance(value: number): void {
-    const clamped = Math.max(0, Math.min(50, Math.round(value)));
+    const clamped = Math.max(0, Math.min(100, Math.round(value)));
     this.tolerance.set(clamped);
   }
 
@@ -37,6 +38,10 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     }
   }
 
+  resetSampledColors(): void {
+    this.sampledColors.clear();
+  }
+
   performSmartSelect(
     startX: number,
     startY: number,
@@ -47,18 +52,19 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     existingMask?: Set<string> | null,
     mode: SmartSelectMode = 'normal',
   ): Set<string> {
+    this.sampledColors.clear();
+    
     const targetColor = this.getPixelColor(startX, startY, buffer, width);
     if (!targetColor) {
       return existingMask ? new Set(existingMask) : new Set();
     }
 
-    const newSelection = this.floodFillSelect(
-      startX,
-      startY,
+    this.sampledColors.add(targetColor);
+
+    const newSelection = this.selectAllMatchingPixels(
       buffer,
       width,
       height,
-      targetColor,
       tolerance,
     );
 
@@ -74,26 +80,69 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     existingMask: Set<string> | null,
     mode: SmartSelectMode = 'normal',
   ): Set<string> {
-    let result = existingMask ? new Set(existingMask) : new Set<string>();
-
     for (const point of points) {
-      const targetColor = this.getPixelColor(point.x, point.y, buffer, width);
-      if (!targetColor) continue;
-
-      const newSelection = this.floodFillSelect(
-        point.x,
-        point.y,
-        buffer,
-        width,
-        height,
-        targetColor,
-        tolerance,
-      );
-
-      result = this.combineSelections(result, newSelection, mode);
+      const color = this.getPixelColor(point.x, point.y, buffer, width);
+      if (color) {
+        this.sampledColors.add(color);
+      }
     }
 
-    return result;
+    const newSelection = this.selectAllMatchingPixels(
+      buffer,
+      width,
+      height,
+      tolerance,
+    );
+
+    if (mode === 'normal' || mode === 'add') {
+      const combined = existingMask ? new Set(existingMask) : new Set<string>();
+      for (const key of newSelection) {
+        combined.add(key);
+      }
+      return combined;
+    } else {
+      return this.combineSelections(existingMask, newSelection, mode);
+    }
+  }
+
+  private selectAllMatchingPixels(
+    buffer: string[],
+    width: number,
+    height: number,
+    tolerance: number,
+  ): Set<string> {
+    const selected = new Set<string>();
+    
+    const sampledRGBs: { r: number; g: number; b: number }[] = [];
+    for (const color of this.sampledColors) {
+      const rgb = this.hexToRGB(color);
+      if (rgb) {
+        sampledRGBs.push(rgb);
+      }
+    }
+
+    if (sampledRGBs.length === 0) {
+      return selected;
+    }
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const color = this.getPixelColor(x, y, buffer, width);
+        if (!color) continue;
+
+        const rgb = this.hexToRGB(color);
+        if (!rgb) continue;
+
+        for (const sampledRGB of sampledRGBs) {
+          if (this.colorDistance(sampledRGB, rgb) <= tolerance) {
+            selected.add(`${x},${y}`);
+            break;
+          }
+        }
+      }
+    }
+
+    return selected;
   }
 
   private getPixelColor(
@@ -105,50 +154,6 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
     const idx = y * width + x;
     if (idx < 0 || idx >= buffer.length) return null;
     return buffer[idx] || null;
-  }
-
-  private floodFillSelect(
-    startX: number,
-    startY: number,
-    buffer: string[],
-    width: number,
-    height: number,
-    targetColor: string,
-    tolerance: number,
-  ): Set<string> {
-    const selected = new Set<string>();
-    const visited = new Set<string>();
-    const queue: { x: number; y: number }[] = [{ x: startX, y: startY }];
-
-    const targetRGB = this.hexToRGB(targetColor);
-    if (!targetRGB) return selected;
-
-    while (queue.length > 0) {
-      const { x, y } = queue.shift()!;
-      const key = `${x},${y}`;
-
-      if (visited.has(key)) continue;
-      visited.add(key);
-
-      if (x < 0 || x >= width || y < 0 || y >= height) continue;
-
-      const currentColor = this.getPixelColor(x, y, buffer, width);
-      if (!currentColor) continue;
-
-      const currentRGB = this.hexToRGB(currentColor);
-      if (!currentRGB) continue;
-
-      if (this.colorDistance(targetRGB, currentRGB) <= tolerance) {
-        selected.add(key);
-
-        queue.push({ x: x + 1, y });
-        queue.push({ x: x - 1, y });
-        queue.push({ x, y: y + 1 });
-        queue.push({ x, y: y - 1 });
-      }
-    }
-
-    return selected;
   }
 
   private combineSelections(
