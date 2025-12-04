@@ -19,17 +19,12 @@
         class="flex items-center justify-center p-4 bg-neutral-50 dark:bg-neutral-900 rounded-sm border border-neutral-200 dark:border-neutral-700 min-h-[200px]"
       >
         @if (imagePreviewUrl()) {
-          <div
-            id="insert-image-preview-canvas"
-            class="relative"
-            [style.width.px]="previewWidth()"
-            [style.height.px]="previewHeight()"
-          >
+          <div id="insert-image-preview-canvas" class="relative">
             <img
               id="insert-image-preview-img"
               [src]="imagePreviewUrl()"
               [alt]="'insert.preview' | transloco"
-              class="w-full h-full"
+              class="max-w-full max-h-64 object-contain"
               [style.image-rendering]="'pixelated'"
             />
           </div>
