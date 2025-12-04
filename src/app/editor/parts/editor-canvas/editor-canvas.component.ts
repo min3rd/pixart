@@ -264,7 +264,7 @@ export class EditorCanvas implements OnDestroy {
     this.hotkeys.register({
       id: 'edit.deselect',
       category: 'edit',
-      defaultKey: 'ctrl+shift+d',
+      defaultKey: 'ctrl+shift+a',
       handler: () => this.document.clearSelection(),
     });
 
@@ -480,7 +480,7 @@ export class EditorCanvas implements OnDestroy {
     }
 
     const key = ev.key?.toLowerCase?.() ?? ev.key;
-    if (ev.ctrlKey && ev.shiftKey && key === 'd') { ev.preventDefault(); this.document.clearSelection(); return; }
+    if (ev.ctrlKey && ev.shiftKey && key === 'a') { ev.preventDefault(); this.document.clearSelection(); return; }
     if (ev.ctrlKey && key === 'd') { ev.preventDefault(); this.document.duplicateLayer(); return; }
     if (ev.ctrlKey && key === 'l') {
       ev.preventDefault();
