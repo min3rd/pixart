@@ -38,11 +38,11 @@ export class CanvasViewportService {
   }
 
   isAtMinZoom(): boolean {
-    return Math.abs(this.scale() - this._minScale) < CanvasViewportService.SCALE_TOLERANCE || this.scale() <= this._minScale;
+    return this.scale() <= this._minScale + CanvasViewportService.SCALE_TOLERANCE;
   }
 
   isAtMaxZoom(): boolean {
-    return Math.abs(this.scale() - this._maxScale) < CanvasViewportService.SCALE_TOLERANCE || this.scale() >= this._maxScale;
+    return this.scale() >= this._maxScale - CanvasViewportService.SCALE_TOLERANCE;
   }
 
   applyZoom(
