@@ -170,8 +170,6 @@ export class EditorCanvas implements OnDestroy {
   private resizeListener: (() => void) | null = null;
   private keyListener: ((e: KeyboardEvent) => void) | null = null;
   private readonly defaultCursor = `url('/cursors/link.png') 12 12, link`;
-  private readonly brushCursor = `url('/cursors/handwriting.png') 12 12, crosshair`;
-  private readonly eraserCursor = `url('/cursors/unavailable.png') 12 12, cell`;
   private readonly handGrabbingCursor = `url('/cursors/grab.png') 12 12, grab`;
   infoVisible = signal(true);
 
@@ -375,20 +373,6 @@ export class EditorCanvas implements OnDestroy {
     if (!binding) return;
     this.pointerService.activateMoveSelectionHotkey(binding);
   }
-
-  private readonly layoutEffect = effect(
-    () => {
-      if (!this.viewReady()) return;
-      const w = this.document.canvasWidth();
-      const h = this.document.canvasHeight();
-      this.viewport.updateScaleLimits(w, h);
-      const scheduler = typeof queueMicrotask === 'function'
-        ? queueMicrotask
-        : (cb: () => void) => Promise.resolve().then(cb);
-      scheduler(() => this.centerAndFitCanvas());
-    },
-    { injector: this.injector },
-  );
 
   cursor(): string {
     if (this.pointerState.panning) return this.handGrabbingCursor;
@@ -929,7 +913,7 @@ export class EditorCanvas implements OnDestroy {
     this.shapeConstrainUniform.set(false);
   }
 
-  onDoubleClick(ev: MouseEvent) {
+  onDoubleClick() {
     const tool = this.tools.currentTool();
     if (tool === 'pen' && this.penDrawing()) this.finishPenPath();
   }
