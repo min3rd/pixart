@@ -117,6 +117,9 @@ export class EditorCanvas implements OnDestroy {
   get minScale() { return this.viewport.minScale; }
   get maxScale() { return this.viewport.maxScale; }
 
+  isAtMinZoom(): boolean { return this.viewport.isAtMinZoom(); }
+  isAtMaxZoom(): boolean { return this.viewport.isAtMaxZoom(); }
+
   get contextMenuVisible() { return this.contextMenu.visible; }
   get contextMenuPosition() { return this.contextMenu.position; }
   get contextMenuActions() { return this.contextMenu.actions; }
@@ -378,7 +381,7 @@ export class EditorCanvas implements OnDestroy {
       if (!this.viewReady()) return;
       const w = this.document.canvasWidth();
       const h = this.document.canvasHeight();
-      this.viewport.updateMaxScale(w, h);
+      this.viewport.updateScaleLimits(w, h);
       const scheduler = typeof queueMicrotask === 'function'
         ? queueMicrotask
         : (cb: () => void) => Promise.resolve().then(cb);
