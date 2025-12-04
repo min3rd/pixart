@@ -160,24 +160,21 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
       return newSelection;
     }
 
-    const result = new Set<string>();
-
     if (mode === 'add') {
-      for (const key of existing) {
-        result.add(key);
-      }
-      for (const key of newSelection) {
-        result.add(key);
-      }
-    } else if (mode === 'subtract') {
+      return new Set([...existing, ...newSelection]);
+    }
+
+    if (mode === 'subtract') {
+      const result = new Set<string>();
       for (const key of existing) {
         if (!newSelection.has(key)) {
           result.add(key);
         }
       }
+      return result;
     }
 
-    return result;
+    return newSelection;
   }
 
   private hexToRGB(hex: string): { r: number; g: number; b: number } | null {
