@@ -6,7 +6,6 @@ import {
   signal,
   effect,
   EffectRef,
-  EnvironmentInjector,
   OnDestroy,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -110,33 +109,72 @@ export class EditorCanvas implements OnDestroy {
   readonly hoverX = signal<number | null>(null);
   readonly hoverY = signal<number | null>(null);
 
-  get panX() { return this.viewport.panX; }
-  get panY() { return this.viewport.panY; }
-  get scale() { return this.viewport.scale; }
-  get rotation() { return this.viewport.rotation; }
-  get minScale() { return this.viewport.minScale; }
-  get maxScale() { return this.viewport.maxScale; }
+  get panX() {
+    return this.viewport.panX;
+  }
+  get panY() {
+    return this.viewport.panY;
+  }
+  get scale() {
+    return this.viewport.scale;
+  }
+  get rotation() {
+    return this.viewport.rotation;
+  }
+  get minScale() {
+    return this.viewport.minScale;
+  }
+  get maxScale() {
+    return this.viewport.maxScale;
+  }
 
-  isAtMinZoom(): boolean { return this.viewport.isAtMinZoom(); }
-  isAtMaxZoom(): boolean { return this.viewport.isAtMaxZoom(); }
+  isAtMinZoom(): boolean {
+    return this.viewport.isAtMinZoom();
+  }
+  isAtMaxZoom(): boolean {
+    return this.viewport.isAtMaxZoom();
+  }
 
-  get contextMenuVisible() { return this.contextMenu.visible; }
-  get contextMenuPosition() { return this.contextMenu.position; }
-  get contextMenuActions() { return this.contextMenu.actions; }
-  get submenuVisible() { return this.contextMenu.submenuVisible; }
-  get submenuPosition() { return this.contextMenu.submenuPosition; }
-  get submenuActions() { return this.contextMenu.submenuActions; }
-  get inputDialogVisible() { return this.contextMenu.inputDialogVisible; }
-  get inputDialogPosition() { return this.contextMenu.inputDialogPosition; }
-  get inputDialogValue() { return this.contextMenu.inputDialogValue; }
-  get inputDialogTitle() { return this.contextMenu.inputDialogTitle; }
-  get inputDialogCallback() { return this.contextMenu.inputDialogCallback; }
+  get contextMenuVisible() {
+    return this.contextMenu.visible;
+  }
+  get contextMenuPosition() {
+    return this.contextMenu.position;
+  }
+  get contextMenuActions() {
+    return this.contextMenu.actions;
+  }
+  get submenuVisible() {
+    return this.contextMenu.submenuVisible;
+  }
+  get submenuPosition() {
+    return this.contextMenu.submenuPosition;
+  }
+  get submenuActions() {
+    return this.contextMenu.submenuActions;
+  }
+  get inputDialogVisible() {
+    return this.contextMenu.inputDialogVisible;
+  }
+  get inputDialogPosition() {
+    return this.contextMenu.inputDialogPosition;
+  }
+  get inputDialogValue() {
+    return this.contextMenu.inputDialogValue;
+  }
+  get inputDialogTitle() {
+    return this.contextMenu.inputDialogTitle;
+  }
+  get inputDialogCallback() {
+    return this.contextMenu.inputDialogCallback;
+  }
 
-  private readonly injector = inject(EnvironmentInjector);
   private readonly viewReady = signal(false);
   private readonly shapeStart = signal<{ x: number; y: number } | null>(null);
   private readonly shapeCurrent = signal<{ x: number; y: number } | null>(null);
-  private readonly activeShapeTool = signal<'line' | 'circle' | 'square' | null>(null);
+  private readonly activeShapeTool = signal<
+    'line' | 'circle' | 'square' | null
+  >(null);
   private readonly shapeConstrainUniform = signal(false);
   private readonly penPoints = signal<{ x: number; y: number }[]>([]);
   private readonly penDrawing = signal(false);
@@ -163,13 +201,18 @@ export class EditorCanvas implements OnDestroy {
   };
 
   private movingContentBuffer: string[] | null = null;
-  private movingContentOriginalRect: { x: number; y: number; width: number; height: number } | null = null;
+  private movingContentOriginalRect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
   private originalLayerId: string | null = null;
   private stopRenderEffect: EffectRef | null = null;
   readonly tileSize = signal(1);
   private resizeListener: (() => void) | null = null;
   private keyListener: ((e: KeyboardEvent) => void) | null = null;
-  private readonly defaultCursor = `url('/cursors/link.png') 12 12, link`;
+  private readonly defaultCursor = `default`;
   private readonly handGrabbingCursor = `url('/cursors/grab.png') 12 12, grab`;
   infoVisible = signal(true);
 
@@ -342,7 +385,8 @@ export class EditorCanvas implements OnDestroy {
 
   async openFillSelectionDialog() {
     const selectionRect = this.document.selectionRect();
-    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0) return;
+    if (!selectionRect || selectionRect.width <= 0 || selectionRect.height <= 0)
+      return;
 
     const result = await this.fillSelectionDialog?.open();
     if (!result) return;
@@ -361,10 +405,14 @@ export class EditorCanvas implements OnDestroy {
       this.tools.setFillMode(result.mode);
       if (result.color) this.tools.setFillColor(result.color);
       if (result.patternId) this.tools.setFillPatternId(result.patternId);
-      if (result.gradientStartColor) this.tools.setFillGradientStartColor(result.gradientStartColor);
-      if (result.gradientEndColor) this.tools.setFillGradientEndColor(result.gradientEndColor);
-      if (result.gradientType) this.tools.setFillGradientType(result.gradientType);
-      if (result.gradientAngle !== undefined) this.tools.setFillGradientAngle(result.gradientAngle);
+      if (result.gradientStartColor)
+        this.tools.setFillGradientStartColor(result.gradientStartColor);
+      if (result.gradientEndColor)
+        this.tools.setFillGradientEndColor(result.gradientEndColor);
+      if (result.gradientType)
+        this.tools.setFillGradientType(result.gradientType);
+      if (result.gradientAngle !== undefined)
+        this.tools.setFillGradientAngle(result.gradientAngle);
     }
   }
 
@@ -377,12 +425,8 @@ export class EditorCanvas implements OnDestroy {
   cursor(): string {
     if (this.pointerState.panning) return this.handGrabbingCursor;
     const tool = this.tools.currentTool();
-    if (tool === 'select-layer') return 'default';
-    if (tool === 'rect-select' || tool === 'ellipse-select' || tool === 'lasso-select') return `crosshair`;
     if (tool === 'brush') return 'none';
     if (tool === 'eraser') return 'none';
-    if (tool === 'line' || tool === 'circle' || tool === 'square' || tool === 'pen') return `crosshair`;
-    if (tool === 'bone') return `crosshair`;
     return this.defaultCursor;
   }
 
@@ -400,19 +444,30 @@ export class EditorCanvas implements OnDestroy {
       });
       this.resizeObserver.observe(container);
       const rect = container.getBoundingClientRect();
-      this.workspaceWidth.set(Math.floor(rect.width) || EditorCanvas.DEFAULT_WORKSPACE_WIDTH);
-      this.workspaceHeight.set(Math.floor(rect.height) || EditorCanvas.DEFAULT_WORKSPACE_HEIGHT);
+      this.workspaceWidth.set(
+        Math.floor(rect.width) || EditorCanvas.DEFAULT_WORKSPACE_WIDTH,
+      );
+      this.workspaceHeight.set(
+        Math.floor(rect.height) || EditorCanvas.DEFAULT_WORKSPACE_HEIGHT,
+      );
     }
 
     this.centerAndFitCanvas();
-    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestAnimationFrame === 'function'
+    ) {
       window.requestAnimationFrame(() => this.centerAndFitCanvas());
     }
     this.updateTileSize(this.tools.brushSize());
 
     const flatLayers = this.document.getFlattenedLayers();
     for (const l of flatLayers) {
-      this.document.ensureLayerBuffer(l.id, this.document.canvasWidth(), this.document.canvasHeight());
+      this.document.ensureLayerBuffer(
+        l.id,
+        this.document.canvasWidth(),
+        this.document.canvasHeight(),
+      );
     }
 
     this.resizeListener = () => this.centerAndFitCanvas();
@@ -437,16 +492,32 @@ export class EditorCanvas implements OnDestroy {
     const target = ev.target as HTMLElement | null;
     if (target) {
       const tag = target.tagName.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || target.isContentEditable) return;
+      if (tag === 'input' || tag === 'textarea' || target.isContentEditable)
+        return;
     }
 
     if (ev.key === 'Escape') {
-      if (this.freeTransform.isActive()) { this.freeTransformHandler.cancel(); return; }
-      if (this.distort.isActive()) { this.distortHandler.cancel(); return; }
-      if (this.perspective.isActive()) { this.perspectiveHandler.cancel(); return; }
-      if (this.contextMenuVisible()) { this.closeContextMenu(); return; }
+      if (this.freeTransform.isActive()) {
+        this.freeTransformHandler.cancel();
+        return;
+      }
+      if (this.distort.isActive()) {
+        this.distortHandler.cancel();
+        return;
+      }
+      if (this.perspective.isActive()) {
+        this.perspectiveHandler.cancel();
+        return;
+      }
+      if (this.contextMenuVisible()) {
+        this.closeContextMenu();
+        return;
+      }
       const tool = this.tools.currentTool();
-      if (tool === 'pen' && this.penDrawing()) { this.cancelPenPath(); return; }
+      if (tool === 'pen' && this.penDrawing()) {
+        this.cancelPenPath();
+        return;
+      }
       if (tool === 'bone') {
         this.pointerState.currentBoneId = null;
         this.boneService.clearSelection();
@@ -463,16 +534,36 @@ export class EditorCanvas implements OnDestroy {
     }
 
     if (ev.key === 'Enter') {
-      if (this.freeTransform.isActive()) { this.freeTransformHandler.commit(); return; }
-      if (this.distort.isActive()) { this.distortHandler.commit(); return; }
-      if (this.perspective.isActive()) { this.perspectiveHandler.commit(); return; }
+      if (this.freeTransform.isActive()) {
+        this.freeTransformHandler.commit();
+        return;
+      }
+      if (this.distort.isActive()) {
+        this.distortHandler.commit();
+        return;
+      }
+      if (this.perspective.isActive()) {
+        this.perspectiveHandler.commit();
+        return;
+      }
       const tool = this.tools.currentTool();
-      if (tool === 'pen' && this.penDrawing()) { this.finishPenPath(); return; }
+      if (tool === 'pen' && this.penDrawing()) {
+        this.finishPenPath();
+        return;
+      }
     }
 
     const key = ev.key?.toLowerCase?.() ?? ev.key;
-    if (ev.ctrlKey && ev.shiftKey && key === 'a') { ev.preventDefault(); this.document.clearSelection(); return; }
-    if (ev.ctrlKey && key === 'd') { ev.preventDefault(); this.document.duplicateLayer(); return; }
+    if (ev.ctrlKey && ev.shiftKey && key === 'a') {
+      ev.preventDefault();
+      this.document.clearSelection();
+      return;
+    }
+    if (ev.ctrlKey && key === 'd') {
+      ev.preventDefault();
+      this.document.duplicateLayer();
+      return;
+    }
     if (ev.ctrlKey && key === 'l') {
       ev.preventDefault();
       const selectedId = this.document.selectedLayerId();
@@ -501,14 +592,22 @@ export class EditorCanvas implements OnDestroy {
 
   updateTileSize(brushSize = 1, desiredScreenTilePx = 24) {
     const s = Math.max(0.001, this.scale());
-    const tile = Math.max(1, Math.round(desiredScreenTilePx / (s * Math.max(1, brushSize))));
+    const tile = Math.max(
+      1,
+      Math.round(desiredScreenTilePx / (s * Math.max(1, brushSize))),
+    );
     this.tileSize.set(tile);
   }
 
   onPointerMove(ev: PointerEvent) {
     const rect = this.canvasEl.nativeElement.getBoundingClientRect();
     const callbacks = this.createPointerCallbacks();
-    const result = this.pointerService.handlePointerMove(ev, rect, this.pointerState, callbacks);
+    const result = this.pointerService.handlePointerMove(
+      ev,
+      rect,
+      this.pointerState,
+      callbacks,
+    );
     this.mouseX.set(result.mouseX);
     this.mouseY.set(result.mouseY);
     this.hoverX.set(result.hoverX);
@@ -548,11 +647,18 @@ export class EditorCanvas implements OnDestroy {
     const target = ev.target as HTMLElement | null;
     if (target) {
       const tag = target.tagName.toLowerCase();
-      if (tag === 'input' || tag === 'textarea' || target.isContentEditable) return;
+      if (tag === 'input' || tag === 'textarea' || target.isContentEditable)
+        return;
     }
 
     const rect = container.getBoundingClientRect();
-    if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) return;
+    if (
+      ev.clientX < rect.left ||
+      ev.clientX > rect.right ||
+      ev.clientY < rect.top ||
+      ev.clientY > rect.bottom
+    )
+      return;
 
     ev.preventDefault();
     ev.stopPropagation();
@@ -589,16 +695,26 @@ export class EditorCanvas implements OnDestroy {
     return {
       capturePointer: (ev: PointerEvent) => this.capturePointer(ev),
       releasePointer: (ev: PointerEvent) => this.releasePointer(ev),
-      startShape: (mode: 'line' | 'circle' | 'square', x: number, y: number) => this.startShape(mode, x, y),
+      startShape: (mode: 'line' | 'circle' | 'square', x: number, y: number) =>
+        this.startShape(mode, x, y),
       finishShape: (shiftKey: boolean) => this.finishShape(shiftKey),
       addPenPoint: (x: number, y: number) => this.addPenPoint(x, y),
       getCurrentFrameId: () => this.getCurrentFrameId(),
       startSelectionContentMove: () => this.startSelectionContentMove(),
-      moveSelectionContent: (dx: number, dy: number) => this.moveSelectionContent(dx, dy),
+      moveSelectionContent: (dx: number, dy: number) =>
+        this.moveSelectionContent(dx, dy),
       endSelectionContentMove: () => this.endSelectionContentMove(),
-      isPointInSelection: (x: number, y: number) => this.isPointInSelection(x, y),
-      drawLinePaint: (layerId: string, x0: number, y0: number, x1: number, y1: number, brushSize: number, color: string | null) =>
-        this.drawLinePaint(layerId, x0, y0, x1, y1, brushSize, color),
+      isPointInSelection: (x: number, y: number) =>
+        this.isPointInSelection(x, y),
+      drawLinePaint: (
+        layerId: string,
+        x0: number,
+        y0: number,
+        x1: number,
+        y1: number,
+        brushSize: number,
+        color: string | null,
+      ) => this.drawLinePaint(layerId, x0, y0, x1, y1, brushSize, color),
     };
   }
 
@@ -610,7 +726,10 @@ export class EditorCanvas implements OnDestroy {
   private releasePointer(ev: PointerEvent): void {
     const target = ev.currentTarget as HTMLElement;
     if (target?.releasePointerCapture) {
-      try { if (target.hasPointerCapture(ev.pointerId)) target.releasePointerCapture(ev.pointerId); } catch {}
+      try {
+        if (target.hasPointerCapture(ev.pointerId))
+          target.releasePointerCapture(ev.pointerId);
+      } catch {}
     }
   }
 
@@ -626,10 +745,20 @@ export class EditorCanvas implements OnDestroy {
     const currentPanY = this.panY();
     const logicalX = Math.floor((visX - currentPanX) / currentScale);
     const logicalY = Math.floor((visY - currentPanY) / currentScale);
-    const insideCanvas = logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h;
-    if (!insideCanvas) { this.closeContextMenu(); return; }
-    const containerRect = this.canvasContainer.nativeElement.getBoundingClientRect();
-    this.contextMenu.show(ev.clientX, ev.clientY, containerRect, this.hasNonEmptySelection());
+    const insideCanvas =
+      logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h;
+    if (!insideCanvas) {
+      this.closeContextMenu();
+      return;
+    }
+    const containerRect =
+      this.canvasContainer.nativeElement.getBoundingClientRect();
+    this.contextMenu.show(
+      ev.clientX,
+      ev.clientY,
+      containerRect,
+      this.hasNonEmptySelection(),
+    );
   }
 
   private hasNonEmptySelection(): boolean {
@@ -642,24 +771,37 @@ export class EditorCanvas implements OnDestroy {
     const h = this.document.canvasHeight();
     for (let y = sel.y; y < sel.y + sel.height && y < h; y++) {
       for (let x = sel.x; x < sel.x + sel.width && x < w; x++) {
-        if (this.isPointInSelection(x, y) && buf[y * w + x] && buf[y * w + x].length > 0) return true;
+        if (
+          this.isPointInSelection(x, y) &&
+          buf[y * w + x] &&
+          buf[y * w + x].length > 0
+        )
+          return true;
       }
     }
     return false;
   }
 
-  closeContextMenu() { this.contextMenu.close(); }
+  closeContextMenu() {
+    this.contextMenu.close();
+  }
 
-  onSubmenuTrigger(action: ContextMenuAction, event: MouseEvent, buttonElement: HTMLElement) {
+  onSubmenuTrigger(
+    action: ContextMenuAction,
+    event: MouseEvent,
+    buttonElement: HTMLElement,
+  ) {
     if (!action.submenu || action.submenu.length === 0) return;
     event.stopPropagation();
     const rect = buttonElement.getBoundingClientRect();
-    const containerRect = this.canvasContainer.nativeElement.getBoundingClientRect();
+    const containerRect =
+      this.canvasContainer.nativeElement.getBoundingClientRect();
     this.contextMenu.showSubmenu(action, rect, containerRect);
   }
 
   onContextMenuAction(actionId: ContextMenuActionId, event?: MouseEvent) {
-    const containerRect = this.canvasContainer.nativeElement.getBoundingClientRect();
+    const containerRect =
+      this.canvasContainer.nativeElement.getBoundingClientRect();
     this.contextMenu.executeAction(
       actionId,
       event,
@@ -669,10 +811,18 @@ export class EditorCanvas implements OnDestroy {
     );
   }
 
-  closeInputDialog() { this.contextMenu.closeInputDialog(); }
-  getShortcutForAction(actionId: ContextMenuActionId): string | null { return this.contextMenu.getShortcutForAction(actionId); }
-  onInputDialogSubmit() { this.contextMenu.submitInputDialog(); }
-  onInputDialogCancel() { this.closeInputDialog(); }
+  closeInputDialog() {
+    this.contextMenu.closeInputDialog();
+  }
+  getShortcutForAction(actionId: ContextMenuActionId): string | null {
+    return this.contextMenu.getShortcutForAction(actionId);
+  }
+  onInputDialogSubmit() {
+    this.contextMenu.submitInputDialog();
+  }
+  onInputDialogCancel() {
+    this.closeInputDialog();
+  }
 
   startSelectionContentMove() {
     const sel = this.document.selectionRect();
@@ -683,7 +833,12 @@ export class EditorCanvas implements OnDestroy {
     const w = this.document.canvasWidth();
     const h = this.document.canvasHeight();
     this.originalLayerId = layerId;
-    this.movingContentOriginalRect = { x: sel.x, y: sel.y, width: sel.width, height: sel.height };
+    this.movingContentOriginalRect = {
+      x: sel.x,
+      y: sel.y,
+      width: sel.width,
+      height: sel.height,
+    };
     this.movingContentBuffer = [];
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -699,10 +854,17 @@ export class EditorCanvas implements OnDestroy {
     this.document.layerPixelsVersion.update((v) => v + 1);
   }
 
-  moveSelectionContent(dx: number, dy: number) { this.document.moveSelection(dx, dy); }
+  moveSelectionContent(dx: number, dy: number) {
+    this.document.moveSelection(dx, dy);
+  }
 
   endSelectionContentMove() {
-    if (!this.movingContentBuffer || !this.originalLayerId || !this.movingContentOriginalRect) return;
+    if (
+      !this.movingContentBuffer ||
+      !this.originalLayerId ||
+      !this.movingContentOriginalRect
+    )
+      return;
     const originalBuf = this.document.getLayerBuffer(this.originalLayerId);
     if (!originalBuf) return;
     const w = this.document.canvasWidth();
@@ -736,7 +898,12 @@ export class EditorCanvas implements OnDestroy {
     if (width > 0) {
       this.document.setCanvasSize(width, this.document.canvasHeight());
       const flatLayers = this.document.getFlattenedLayers();
-      for (const l of flatLayers) this.document.ensureLayerBuffer(l.id, width, this.document.canvasHeight());
+      for (const l of flatLayers)
+        this.document.ensureLayerBuffer(
+          l.id,
+          width,
+          this.document.canvasHeight(),
+        );
     }
   }
 
@@ -746,11 +913,24 @@ export class EditorCanvas implements OnDestroy {
     if (height > 0) {
       this.document.setCanvasSize(this.document.canvasWidth(), height);
       const flatLayers = this.document.getFlattenedLayers();
-      for (const l of flatLayers) this.document.ensureLayerBuffer(l.id, this.document.canvasWidth(), height);
+      for (const l of flatLayers)
+        this.document.ensureLayerBuffer(
+          l.id,
+          this.document.canvasWidth(),
+          height,
+        );
     }
   }
 
-  private drawLinePaint(layerId: string, x0: number, y0: number, x1: number, y1: number, brushSize: number, color: string | null) {
+  private drawLinePaint(
+    layerId: string,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    brushSize: number,
+    color: string | null,
+  ) {
     const dx = Math.abs(x1 - x0);
     const sx = x0 < x1 ? 1 : -1;
     const dy = -Math.abs(y1 - y0);
@@ -758,13 +938,29 @@ export class EditorCanvas implements OnDestroy {
     let err = dx + dy;
     let x = x0;
     let y = y0;
-    const eraserOptions = color === null ? { eraserStrength: this.tools.eraserStrength() } : undefined;
+    const eraserOptions =
+      color === null
+        ? { eraserStrength: this.tools.eraserStrength() }
+        : undefined;
     while (true) {
-      this.document.applyBrushToLayer(layerId, x, y, brushSize, color, eraserOptions);
+      this.document.applyBrushToLayer(
+        layerId,
+        x,
+        y,
+        brushSize,
+        color,
+        eraserOptions,
+      );
       if (x === x1 && y === y1) break;
       const e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x += sx; }
-      if (e2 <= dx) { err += dx; y += sy; }
+      if (e2 >= dy) {
+        err += dy;
+        x += sx;
+      }
+      if (e2 <= dx) {
+        err += dx;
+        y += sy;
+      }
     }
   }
 
@@ -775,27 +971,52 @@ export class EditorCanvas implements OnDestroy {
     this.applyZoom(v);
   }
 
-  resetRotation() { this.rotation.set(0); }
-  increaseZoom(step = 0.1) { const factor = 1 + Math.max(0, step); this.applyZoom(this.scale() * factor); }
-  decreaseZoom(step = 0.1) { const factor = 1 + Math.max(0, step); this.applyZoom(this.scale() / factor); }
+  resetRotation() {
+    this.rotation.set(0);
+  }
+  increaseZoom(step = 0.1) {
+    const factor = 1 + Math.max(0, step);
+    this.applyZoom(this.scale() * factor);
+  }
+  decreaseZoom(step = 0.1) {
+    const factor = 1 + Math.max(0, step);
+    this.applyZoom(this.scale() / factor);
+  }
 
   ngOnDestroy(): void {
     this.viewReady.set(false);
     this.closeContextMenu();
-    if (this.resizeObserver) { try { this.resizeObserver.disconnect(); } catch {} this.resizeObserver = null; }
+    if (this.resizeObserver) {
+      try {
+        this.resizeObserver.disconnect();
+      } catch {}
+      this.resizeObserver = null;
+    }
     if (this.stopRenderEffect) {
       try {
-        if ((this.stopRenderEffect as any).destroy) (this.stopRenderEffect as any).destroy();
-        else if (typeof (this.stopRenderEffect as any) === 'function') (this.stopRenderEffect as any)();
+        if ((this.stopRenderEffect as any).destroy)
+          (this.stopRenderEffect as any).destroy();
+        else if (typeof (this.stopRenderEffect as any) === 'function')
+          (this.stopRenderEffect as any)();
       } catch {}
       this.stopRenderEffect = null;
     }
     if (this.resizeListener && typeof window !== 'undefined') {
-      try { window.removeEventListener('resize', this.resizeListener as EventListener); } catch {}
+      try {
+        window.removeEventListener(
+          'resize',
+          this.resizeListener as EventListener,
+        );
+      } catch {}
       this.resizeListener = null;
     }
     if (this.keyListener && typeof window !== 'undefined') {
-      try { window.removeEventListener('keydown', this.keyListener as EventListener); } catch {}
+      try {
+        window.removeEventListener(
+          'keydown',
+          this.keyListener as EventListener,
+        );
+      } catch {}
       this.keyListener = null;
     }
     this.generationService.clearGenerationInterval();
@@ -807,9 +1028,13 @@ export class EditorCanvas implements OnDestroy {
       if (!canvas) return;
       const w = Math.max(1, this.document.canvasWidth());
       const h = Math.max(1, this.document.canvasHeight());
-      const { contentWidth, contentHeight, paddingLeft, paddingTop } = this.measureContainer();
+      const { contentWidth, contentHeight, paddingLeft, paddingTop } =
+        this.measureContainer();
       if (contentWidth <= 0 || contentHeight <= 0) return;
-      const fitScale = Math.max(this.minScale, Math.min(contentWidth / w, contentHeight / h));
+      const fitScale = Math.max(
+        this.minScale,
+        Math.min(contentWidth / w, contentHeight / h),
+      );
       const initialScale = Math.min(this.maxScale, fitScale);
       this.scale.set(initialScale);
       const displayWidth = w * initialScale;
@@ -822,17 +1047,28 @@ export class EditorCanvas implements OnDestroy {
     } catch (e) {}
   }
 
-  private applyZoom(nextScale: number, anchor?: { clientX: number; clientY: number }) {
+  private applyZoom(
+    nextScale: number,
+    anchor?: { clientX: number; clientY: number },
+  ) {
     const clamped = Math.min(this.maxScale, Math.max(this.minScale, nextScale));
     const prev = this.scale();
-    if (!this.canvasEl?.nativeElement) { this.scale.set(clamped); this.updateTileSize(this.tools.brushSize()); return; }
+    if (!this.canvasEl?.nativeElement) {
+      this.scale.set(clamped);
+      this.updateTileSize(this.tools.brushSize());
+      return;
+    }
     if (Math.abs(clamped - prev) < 0.0001) return;
     const container = this.canvasContainer?.nativeElement;
     const containerRect = container ? container.getBoundingClientRect() : null;
     const prevPanX = this.panX();
     const prevPanY = this.panY();
-    const pivotX = anchor?.clientX ?? (containerRect ? containerRect.left + containerRect.width / 2 : 0);
-    const pivotY = anchor?.clientY ?? (containerRect ? containerRect.top + containerRect.height / 2 : 0);
+    const pivotX =
+      anchor?.clientX ??
+      (containerRect ? containerRect.left + containerRect.width / 2 : 0);
+    const pivotY =
+      anchor?.clientY ??
+      (containerRect ? containerRect.top + containerRect.height / 2 : 0);
     const containerOffsetX = containerRect ? pivotX - containerRect.left : 0;
     const containerOffsetY = containerRect ? pivotY - containerRect.top : 0;
     const worldX = containerRect ? (containerOffsetX - prevPanX) / prev : 0;
@@ -875,7 +1111,10 @@ export class EditorCanvas implements OnDestroy {
   private startShape(mode: 'line' | 'circle' | 'square', x: number, y: number) {
     const width = Math.max(1, this.document.canvasWidth());
     const height = Math.max(1, this.document.canvasHeight());
-    const point = { x: this.clampCoord(x, width), y: this.clampCoord(y, height) };
+    const point = {
+      x: this.clampCoord(x, width),
+      y: this.clampCoord(y, height),
+    };
     this.document.saveSnapshot(mode);
     this.pointerState.shaping = true;
     this.activeShapeTool.set(mode);
@@ -888,19 +1127,53 @@ export class EditorCanvas implements OnDestroy {
     const mode = this.activeShapeTool();
     const start = this.shapeStart();
     const current = this.shapeCurrent();
-    if (!mode || !start || !current) { this.clearShapeState(); return; }
+    if (!mode || !start || !current) {
+      this.clearShapeState();
+      return;
+    }
     const layerId = this.document.selectedLayerId();
-    if (!layerId) { this.clearShapeState(); return; }
+    if (!layerId) {
+      this.clearShapeState();
+      return;
+    }
     if (mode === 'line') {
       const thickness = this.tools.lineThickness();
       const color = this.tools.lineColor();
-      this.document.applyLineToLayer(layerId, start.x, start.y, current.x, current.y, color, thickness);
+      this.document.applyLineToLayer(
+        layerId,
+        start.x,
+        start.y,
+        current.x,
+        current.y,
+        color,
+        thickness,
+      );
     } else if (mode === 'circle') {
-      this.document.applyCircleToLayer(layerId, start.x, start.y, current.x, current.y, this.getCircleDrawOptions(),
-        typeof constrainOverride === 'boolean' ? constrainOverride : this.shapeConstrainUniform());
+      this.document.applyCircleToLayer(
+        layerId,
+        start.x,
+        start.y,
+        current.x,
+        current.y,
+        this.getCircleDrawOptions(),
+        typeof constrainOverride === 'boolean'
+          ? constrainOverride
+          : this.shapeConstrainUniform(),
+      );
     } else {
-      const constrainSquare = typeof constrainOverride === 'boolean' ? constrainOverride : this.shapeConstrainUniform();
-      this.document.applySquareToLayer(layerId, start.x, start.y, current.x, current.y, this.getSquareDrawOptions(), constrainSquare);
+      const constrainSquare =
+        typeof constrainOverride === 'boolean'
+          ? constrainOverride
+          : this.shapeConstrainUniform();
+      this.document.applySquareToLayer(
+        layerId,
+        start.x,
+        start.y,
+        current.x,
+        current.y,
+        this.getSquareDrawOptions(),
+        constrainSquare,
+      );
     }
     this.clearShapeState();
   }
@@ -924,19 +1197,29 @@ export class EditorCanvas implements OnDestroy {
     const clampedX = Math.max(0, Math.min(w - 1, x));
     const clampedY = Math.max(0, Math.min(h - 1, y));
     const points = this.penPoints();
-    if (!this.penDrawing()) { this.document.saveSnapshot('Pen path'); this.penDrawing.set(true); }
+    if (!this.penDrawing()) {
+      this.document.saveSnapshot('Pen path');
+      this.penDrawing.set(true);
+    }
     this.penPoints.set([...points, { x: clampedX, y: clampedY }]);
   }
 
   private finishPenPath() {
     const points = this.penPoints();
-    if (points.length < 2) { this.cancelPenPath(); return; }
+    if (points.length < 2) {
+      this.cancelPenPath();
+      return;
+    }
     const layerId = this.document.selectedLayerId();
-    if (!layerId) { this.cancelPenPath(); return; }
+    if (!layerId) {
+      this.cancelPenPath();
+      return;
+    }
     const thickness = this.tools.penThickness();
     const color = this.tools.penColor();
     const lineMode = this.tools.penLineMode();
-    if (lineMode === 'spline') this.applySplinePath(layerId, points, color, thickness);
+    if (lineMode === 'spline')
+      this.applySplinePath(layerId, points, color, thickness);
     else this.applyPolylinePath(layerId, points, color, thickness);
     this.clearPenState();
   }
@@ -946,27 +1229,64 @@ export class EditorCanvas implements OnDestroy {
     this.clearPenState();
   }
 
-  private clearPenState() { this.penDrawing.set(false); this.penPoints.set([]); }
+  private clearPenState() {
+    this.penDrawing.set(false);
+    this.penPoints.set([]);
+  }
 
-  private applyPolylinePath(layerId: string, points: { x: number; y: number }[], color: string, thickness: number) {
+  private applyPolylinePath(
+    layerId: string,
+    points: { x: number; y: number }[],
+    color: string,
+    thickness: number,
+  ) {
     for (let i = 0; i < points.length - 1; i++) {
       const start = points[i];
       const end = points[i + 1];
-      this.document.applyLineToLayer(layerId, start.x, start.y, end.x, end.y, color, thickness);
+      this.document.applyLineToLayer(
+        layerId,
+        start.x,
+        start.y,
+        end.x,
+        end.y,
+        color,
+        thickness,
+      );
     }
   }
 
-  private applySplinePath(layerId: string, points: { x: number; y: number }[], color: string, thickness: number) {
+  private applySplinePath(
+    layerId: string,
+    points: { x: number; y: number }[],
+    color: string,
+    thickness: number,
+  ) {
     if (points.length < 2) return;
     if (points.length === 2) {
-      this.document.applyLineToLayer(layerId, points[0].x, points[0].y, points[1].x, points[1].y, color, thickness);
+      this.document.applyLineToLayer(
+        layerId,
+        points[0].x,
+        points[0].y,
+        points[1].x,
+        points[1].y,
+        color,
+        thickness,
+      );
       return;
     }
     const splinePoints = this.shapeService.catmullRomSpline(points, 10);
     for (let i = 0; i < splinePoints.length - 1; i++) {
       const start = splinePoints[i];
       const end = splinePoints[i + 1];
-      this.document.applyLineToLayer(layerId, Math.round(start.x), Math.round(start.y), Math.round(end.x), Math.round(end.y), color, thickness);
+      this.document.applyLineToLayer(
+        layerId,
+        Math.round(start.x),
+        Math.round(start.y),
+        Math.round(end.x),
+        Math.round(end.y),
+        color,
+        thickness,
+      );
     }
   }
 
@@ -995,30 +1315,42 @@ export class EditorCanvas implements OnDestroy {
       const cy = rect.y + (rect.height - 1) / 2;
       const normX = x - cx;
       const normY = y - cy;
-      const ellipseTest = (normX * normX) / (rx * rx) + (normY * normY) / (ry * ry);
+      const ellipseTest =
+        (normX * normX) / (rx * rx) + (normY * normY) / (ry * ry);
       return ellipseTest <= 1;
     }
     return withinRect;
   }
 
-  private pointInPolygon(x: number, y: number, polygon: { x: number; y: number }[]): boolean {
+  private pointInPolygon(
+    x: number,
+    y: number,
+    polygon: { x: number; y: number }[],
+  ): boolean {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
       const xi = polygon[i].x;
       const yi = polygon[i].y;
       const xj = polygon[j].x;
       const yj = polygon[j].y;
-      const intersects = yi > y !== yj > y && x <= ((xj - xi) * (y - yi)) / (yj - yi || Number.EPSILON) + xi;
+      const intersects =
+        yi > y !== yj > y &&
+        x <= ((xj - xi) * (y - yi)) / (yj - yi || Number.EPSILON) + xi;
       if (intersects) inside = !inside;
     }
     return inside;
   }
 
-  private clampCoord(value: number, max: number) { return Math.max(0, Math.min(Math.floor(value), max - 1)); }
+  private clampCoord(value: number, max: number) {
+    return Math.max(0, Math.min(Math.floor(value), max - 1));
+  }
 
   private getCircleDrawOptions(): ShapeDrawOptions {
     return {
-      strokeThickness: Math.max(0, Math.floor(this.tools.circleStrokeThickness())),
+      strokeThickness: Math.max(
+        0,
+        Math.floor(this.tools.circleStrokeThickness()),
+      ),
       strokeColor: this.tools.circleStrokeColor(),
       fillMode: this.tools.circleFillMode(),
       fillColor: this.tools.circleFillColor(),
@@ -1031,7 +1363,10 @@ export class EditorCanvas implements OnDestroy {
 
   private getSquareDrawOptions(): ShapeDrawOptions {
     return {
-      strokeThickness: Math.max(0, Math.floor(this.tools.squareStrokeThickness())),
+      strokeThickness: Math.max(
+        0,
+        Math.floor(this.tools.squareStrokeThickness()),
+      ),
       strokeColor: this.tools.squareStrokeColor(),
       fillMode: this.tools.squareFillMode(),
       fillColor: this.tools.squareFillColor(),
@@ -1063,7 +1398,12 @@ export class EditorCanvas implements OnDestroy {
       (px, py) => this.isPointInSelection(px, py),
     );
     if (!sketchDataUrl) return;
-    this.pixelGenerationDialog?.show(sketchDataUrl, sel.width, sel.height, 'selection');
+    this.pixelGenerationDialog?.show(
+      sketchDataUrl,
+      sel.width,
+      sel.height,
+      'selection',
+    );
   }
 
   handleGenerate(request: GeneratePixelArtRequest): void {
