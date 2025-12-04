@@ -54,13 +54,9 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
   ): { newPixels: Set<string>; combined: Set<string> } {
     this.sampledColors.clear();
     
-    console.log('[SmartSelectTool] performSmartSelect:', { startX, startY, width, height, tolerance, mode });
-    
     const targetColor = this.getPixelColor(startX, startY, buffer, width);
-    console.log('[SmartSelectTool] Target color at', startX, startY, ':', targetColor);
     
     if (!targetColor) {
-      console.log('[SmartSelectTool] No target color, returning existing mask');
       return { newPixels: new Set(), combined: existingMask ? new Set(existingMask) : new Set() };
     }
 
@@ -72,8 +68,6 @@ export class SmartSelectToolService implements ToolService<SmartSelectToolSnapsh
       height,
       tolerance,
     );
-    
-    console.log('[SmartSelectTool] New selection size:', newSelection.size);
 
     return { newPixels: newSelection, combined: this.combineSelections(existingMask, newSelection, mode) };
   }
