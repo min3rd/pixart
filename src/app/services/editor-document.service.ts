@@ -116,6 +116,7 @@ export class EditorDocumentService {
 
   constructor() {
     this.animationService.setLoadFrameCallback((index: number) => {
+      this.saveCurrentFrameState();
       this.loadFrameState(index);
     });
 
