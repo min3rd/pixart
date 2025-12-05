@@ -601,6 +601,13 @@ export class EditorHeader {
     });
 
     this.hotkeys.register({
+      id: 'tool.text',
+      category: 'tool',
+      defaultKey: 't',
+      handler: () => this.tools.selectTool('text'),
+    });
+
+    this.hotkeys.register({
       id: 'insert.image',
       category: 'insert',
       defaultKey: 'ctrl+i',

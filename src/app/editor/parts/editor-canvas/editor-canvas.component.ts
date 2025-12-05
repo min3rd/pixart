@@ -8,6 +8,7 @@ import {
   EffectRef,
   OnDestroy,
   ChangeDetectionStrategy,
+  computed,
 } from '@angular/core';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
@@ -16,6 +17,7 @@ import { NgIcon } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import { EditorBoneService } from '../../../services/editor/editor-bone.service';
 import { EditorCanvasStateService } from '../../../services/editor/editor-canvas-state.service';
+import { EditorTextSessionService } from '../../../services/editor/editor-text-session.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import {
   PixelGenerationDialog,
@@ -29,6 +31,7 @@ import { EditorPuppetWarpService } from '../../../services/editor/editor-puppet-
 import { FillSelectionDialog } from '../../../shared/components/fill-selection-dialog/fill-selection-dialog.component';
 import { FillSelectionService } from '../../../services/editor/fill-selection.service';
 import { ColorPickerStateService } from '../../../services/color-picker-state.service';
+import { FormsModule } from '@angular/forms';
 import {
   CanvasViewportService,
   CanvasShapeService,
@@ -56,6 +59,7 @@ import {
     CommonModule,
     TranslocoPipe,
     NgIcon,
+    FormsModule,
     PixelGenerationDialog,
     FillSelectionDialog,
   ],
@@ -105,11 +109,59 @@ export class EditorCanvas implements OnDestroy {
   readonly drawService = inject(CanvasDrawService);
   readonly pointerService = inject(CanvasPointerService);
   readonly canvasState = inject(EditorCanvasStateService);
+  readonly textSession = inject(EditorTextSessionService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
   readonly hoverX = signal<number | null>(null);
   readonly hoverY = signal<number | null>(null);
+
+  readonly textEditOverlayStyle = computed(() => {
+    const session = this.textSession.sessionState();
+    if (!session) return null;
+
+    const bounds = session.bounds;
+    const currentScale = this.viewport.scale();
+    const currentPanX = this.viewport.panX();
+    const currentPanY = this.viewport.panY();
+
+    const left = bounds.x * currentScale + currentPanX;
+    const top = bounds.y * currentScale + currentPanY;
+    const width = bounds.width * currentScale;
+    const height = bounds.height * currentScale;
+
+    return {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${Math.max(100, width)}px`,
+      minHeight: `${Math.max(30, height)}px`,
+    };
+  });
+
+  readonly textDragPreviewStyle = computed(() => {
+    const start = this.pointerState.textDragStart;
+    const current = this.pointerService.textDragCurrent();
+    if (!start || !current) return null;
+
+    const currentScale = this.viewport.scale();
+    const currentPanX = this.viewport.panX();
+    const currentPanY = this.viewport.panY();
+
+    const x = Math.min(start.x, current.x);
+    const y = Math.min(start.y, current.y);
+    const width = Math.abs(current.x - start.x);
+    const height = Math.abs(current.y - start.y);
+
+    const left = x * currentScale + currentPanX;
+    const top = y * currentScale + currentPanY;
+
+    return {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width * currentScale}px`,
+      height: `${height * currentScale}px`,
+    };
+  });
 
   get panX() {
     return this.viewport.panX;
@@ -200,6 +252,8 @@ export class EditorCanvas implements OnDestroy {
     smartSelecting: false,
     smartSelectPoints: [],
     smartSelectMode: 'normal',
+    textDragging: false,
+    textDragStart: null,
   };
 
   private movingContentBuffer: string[] | null = null;
@@ -971,6 +1025,19 @@ export class EditorCanvas implements OnDestroy {
   decreaseZoom(step = 0.1) {
     const factor = 1 + Math.max(0, step);
     this.applyZoom(this.scale() / factor);
+  }
+
+  onTextInput(event: Event): void {
+    const target = event.target as HTMLTextAreaElement;
+    this.textSession.updateTextContent(target.value);
+  }
+
+  commitTextSession(): void {
+    this.textSession.commitText();
+  }
+
+  cancelTextSession(): void {
+    this.textSession.cancelText();
   }
 
   ngOnDestroy(): void {

@@ -23,3 +23,4 @@ export * from './editor-auto-align.service';
 export * from './editor-auto-blend.service';
 export * from './editor-warp.service';
 export * from './editor-puppet-warp.service';
+export * from './editor-text-session.service';
