@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@a
 import { FormsModule } from '@angular/forms';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { EditorToolsService } from '../../../services/editor-tools.service';
-import { FillToolMode, GradientType, PenLineMode, ToolId } from '../../../services/tools/tool.types';
+import { FillToolMode, GradientType, PenLineMode, PixelFontFamily, ToolId } from '../../../services/tools/tool.types';
 import { NgIcon } from '@ng-icons/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommonModule } from '@angular/common';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { PaletteService } from '../../../services/palette.service';
+import { PIXEL_FONTS } from '../../../services/tools/text-tool.service';
 
 type LineToolVariant = 'line' | 'pen';
 
@@ -100,6 +101,9 @@ export class ToolPalette {
       case 'bone':
         this.tools.setBoneColor(color);
         break;
+      case 'text':
+        this.tools.setTextColor(color);
+        break;
     }
     this.hidePalettePicker();
   }
@@ -142,6 +146,7 @@ export class ToolPalette {
       square: 'tool.square',
       brush: 'tool.brush',
       bone: 'tool.bone',
+      text: 'tool.text',
     };
     return mapping[toolId] || '';
   }
@@ -162,6 +167,7 @@ export class ToolPalette {
       square: 'tooltips.tools.square',
       brush: 'tooltips.tools.brush',
       bone: 'tooltips.tools.bone',
+      text: 'tooltips.tools.text',
     };
     return mapping[toolId] || '';
   }
@@ -421,5 +427,30 @@ export class ToolPalette {
       this.tools.setBrushColor(color);
       this.tools.selectTool('brush');
     }
+  }
+
+  readonly pixelFonts = PIXEL_FONTS;
+
+  onTextContentInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    this.tools.setTextContent(v);
+  }
+
+  onTextFontFamilyChange(event: Event) {
+    const v = (event.target as HTMLSelectElement).value as PixelFontFamily;
+    this.tools.setTextFontFamily(v);
+  }
+
+  onTextFontSizeInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    const n = Number(v);
+    if (!Number.isNaN(n)) {
+      this.tools.setTextFontSize(Math.floor(n));
+    }
+  }
+
+  onTextColorInput(event: Event) {
+    const v = (event.target as HTMLInputElement).value;
+    this.tools.setTextColor(v);
   }
 }

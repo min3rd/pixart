@@ -30,9 +30,9 @@
     "autoBlendLayers": "Auto-Blend Layers",
     "flipHorizontal": "Flip Horizontal",
     "flipVertical": "Flip Vertical",
-    "rotate90CW": "Rotate 90° CW",
-    "rotate90CCW": "Rotate 90° CCW",
-    "rotate180": "Rotate 180°",
+    "rotate90CW": "Rotate 90\u00b0 CW",
+    "rotate90CCW": "Rotate 90\u00b0 CCW",
+    "rotate180": "Rotate 180\u00b0",
     "fillSelection": "Fill Selection",
     "contentAwareFill": "Content-Aware Fill",
     "stroke": "Stroke",
@@ -41,7 +41,7 @@
     "hideOutOfBoundsPixels": "Hide Out-of-Bounds Pixels"
   },
   "badges": {
-    "title": "2D Editor • Alpha",
+    "title": "2D Editor \u2022 Alpha",
     "dev": "In Development"
   },
   "tools": {
@@ -59,7 +59,8 @@
     "square": "Square",
     "brush": "Brush",
     "bone": "Bone",
-    "smartSelect": "Smart select"
+    "smartSelect": "Smart select",
+    "text": "Text"
   },
   "tooltips": {
     "menu": {
@@ -117,7 +118,8 @@
       "definePattern": "Create a repeatable pattern from selection",
       "stroke": "Add stroke border to selection",
       "defineBrush": "Create a custom brush from selection",
-      "defineShape": "Create a custom vector shape from selection"
+      "defineShape": "Create a custom vector shape from selection",
+      "text": "Add pixel text to canvas"
     },
     "panels": {
       "layers": "Manage layers and their properties",
@@ -246,7 +248,7 @@
       "duplicate": "Duplicate",
       "mirrorX": "Mirror Horizontal",
       "mirrorY": "Mirror Vertical",
-      "snapHint": "Hold Shift to snap rotation (15°) / constrain proportions"
+      "snapHint": "Hold Shift to snap rotation (15\u00b0) / constrain proportions"
     }
   },
   "editor": {
@@ -262,7 +264,7 @@
       "units": {
         "px": "px",
         "percent": "%",
-        "degrees": "°"
+        "degrees": "\u00b0"
       },
       "brush": {
         "title": "Brush",
@@ -390,6 +392,19 @@
         "modeAdd": "Add mode (Shift+drag)",
         "modeSubtract": "Subtract mode (Alt+drag)",
         "modeHint": "Hold Shift to add, Alt to subtract"
+      },
+      "text": {
+        "title": "Text",
+        "content": "Text",
+        "placeholder": "Enter text...",
+        "font": "Font",
+        "fontTooltip": "Select pixel font family",
+        "size": "Size",
+        "sizeTooltip": "Text size in pixels (8-64)",
+        "color": "Color",
+        "colorTooltip": "Select text color",
+        "preview": "Preview",
+        "previewPlaceholder": "Sample Text"
       }
     },
     "layers": {
@@ -621,20 +636,21 @@
       "transform.autoBlendLayers": "Auto-Blend Layers",
       "transform.flipHorizontal": "Flip Horizontal",
       "transform.flipVertical": "Flip Vertical",
-      "transform.rotate90CW": "Rotate 90° CW",
-      "transform.rotate90CCW": "Rotate 90° CCW",
-      "transform.rotate180": "Rotate 180°",
+      "transform.rotate90CW": "Rotate 90\u00b0 CW",
+      "transform.rotate90CCW": "Rotate 90\u00b0 CCW",
+      "transform.rotate180": "Rotate 180\u00b0",
       "palette.createNew": "Create New Palette",
       "palette.createFromSelection": "Create Palette from Selection",
       "palette.createFromLayer": "Create Palette from Layer",
       "palette.manage": "Manage Palettes",
-      "view.toggleOutOfBoundsPixels": "Toggle Out-of-Bounds Pixels"
+      "view.toggleOutOfBoundsPixels": "Toggle Out-of-Bounds Pixels",
+      "tool.text": "Text Tool"
     }
   },
   "pixelGeneration": {
     "title": "Generate Pixel Art",
     "inDevelopment": "In Development",
-    "devNotice": "⚠️ This feature is currently under development. AI model support is being added. For now, it uses traditional image processing.",
+    "devNotice": "\u26a0\ufe0f This feature is currently under development. AI model support is being added. For now, it uses traditional image processing.",
     "description": "Create pixel art from your sketch and text prompt",
     "prompt": "Describe what you want to create",
     "promptPlaceholder": "E.g., a small tree with green leaves and brown trunk",
@@ -748,7 +764,7 @@
   "warp": {
     "title": "Warp",
     "inDevelopment": "In Development",
-    "devNotice": "⚠️ Warp is currently under development and may produce unexpected results.",
+    "devNotice": "\u26a0\ufe0f Warp is currently under development and may produce unexpected results.",
     "originalSize": "Original size",
     "gridSize": "Grid size",
     "smoothing": "Smoothing",
@@ -759,7 +775,7 @@
   "puppetWarp": {
     "title": "Puppet Warp",
     "inDevelopment": "In Development",
-    "devNotice": "⚠️ Puppet Warp is currently under development and may produce unexpected results.",
+    "devNotice": "\u26a0\ufe0f Puppet Warp is currently under development and may produce unexpected results.",
     "originalSize": "Original size",
     "addPin": "Add Pin",
     "removePin": "Remove Pin",
@@ -932,19 +948,19 @@
   },
   "languages": {
     "en": "English",
-    "vi": "Tiếng Việt",
-    "zh": "中文",
-    "es": "Español",
-    "fr": "Français",
+    "vi": "Ti\u1ebfng Vi\u1ec7t",
+    "zh": "\u4e2d\u6587",
+    "es": "Espa\u00f1ol",
+    "fr": "Fran\u00e7ais",
     "de": "Deutsch",
-    "ru": "Русский",
-    "ja": "日本語",
-    "ko": "한국어",
-    "th": "ภาษาไทย",
-    "pt": "Português",
+    "ru": "\u0420\u0443\u0441\u0441\u043a\u0438\u0439",
+    "ja": "\u65e5\u672c\u8a9e",
+    "ko": "\ud55c\uad6d\uc5b4",
+    "th": "\u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22",
+    "pt": "Portugu\u00eas",
     "it": "Italiano",
-    "ar": "العربية",
-    "hi": "हिन्दी"
+    "ar": "\u0627\u0644\u0639\u0631\u0628\u064a\u0629",
+    "hi": "\u0939\u093f\u0928\u094d\u0926\u0940"
   },
   "languageSelector": {
     "selectLanguage": "Select language",

@@ -59,7 +59,8 @@
     "square": "Rettangolo",
     "brush": "Pennello",
     "bone": "Osso",
-    "smartSelect": "Selezione intelligente"
+    "smartSelect": "Selezione intelligente",
+    "text": "Testo"
   },
   "layers": {
     "title": "Livelli",
@@ -112,7 +113,10 @@
     "edit": "Modifica",
     "save": "Salva",
     "cancel": "Annulla",
-    "reset": "Reimposta"
+    "reset": "Reimposta",
+    "action": {
+      "tool.text": "Strumento testo"
+    }
   },
   "scale": {
     "title": "Scala",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "Seleziona lingua",
     "moreLanguages": "Altre lingue"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "Aggiungi testo pixel alla tela"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "Testo",
+        "content": "Contenuto",
+        "placeholder": "Inserisci testo...",
+        "font": "Font",
+        "fontTooltip": "Seleziona famiglia font pixel",
+        "size": "Dimensione",
+        "sizeTooltip": "Dimensione del testo in pixel (8-64)",
+        "color": "Colore",
+        "colorTooltip": "Seleziona colore del testo",
+        "preview": "Anteprima",
+        "previewPlaceholder": "Testo di esempio"
+      }
+    }
   }
 }

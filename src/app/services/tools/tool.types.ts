@@ -12,7 +12,15 @@ export type ToolId =
   | 'pen'
   | 'circle'
   | 'square'
-  | 'bone';
+  | 'bone'
+  | 'text';
+
+export type PixelFontFamily =
+  | 'Press Start 2P'
+  | 'VT323'
+  | 'Silkscreen'
+  | 'DotGothic16'
+  | 'Share Tech Mono';
 
 export type PenLineMode = 'polyline' | 'spline';
 
@@ -54,7 +62,11 @@ export type ToolMetaKey =
   | 'squareGradientAngle'
   | 'boneThickness'
   | 'boneColor'
-  | 'smartSelectTolerance';
+  | 'smartSelectTolerance'
+  | 'textContent'
+  | 'textFontFamily'
+  | 'textFontSize'
+  | 'textColor';
 
 export type ShapeFillMode = 'solid' | 'gradient';
 export type GradientType = 'linear' | 'radial';
@@ -145,6 +157,13 @@ export interface SmartSelectToolSnapshot {
   tolerance: number;
 }
 
+export interface TextToolSnapshot {
+  content: string;
+  fontFamily: PixelFontFamily;
+  fontSize: number;
+  color: string;
+}
+
 export interface ToolSnapshot {
   currentTool: ToolId;
   fill: FillToolSnapshot;
@@ -156,4 +175,5 @@ export interface ToolSnapshot {
   square: SquareToolSnapshot;
   bone: BoneToolSnapshot;
   smartSelect: SmartSelectToolSnapshot;
+  text: TextToolSnapshot;
 }

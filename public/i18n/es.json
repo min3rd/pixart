@@ -59,7 +59,8 @@
     "square": "Cuadrado",
     "brush": "Pincel",
     "bone": "Hueso",
-    "smartSelect": "Selección inteligente"
+    "smartSelect": "Selección inteligente",
+    "text": "Texto"
   },
   "tooltips": {
     "menu": {
@@ -117,7 +118,8 @@
       "definePattern": "Crear patrón repetible de selección",
       "stroke": "Añadir borde de trazo a selección",
       "defineBrush": "Crear pincel personalizado de selección",
-      "defineShape": "Crear forma vectorial de selección"
+      "defineShape": "Crear forma vectorial de selección",
+      "text": "Agregar texto pixel al lienzo"
     },
     "panels": {
       "layers": "Gestionar capas y propiedades",
@@ -390,6 +392,19 @@
         "modeAdd": "Modo añadir (Shift+arrastrar)",
         "modeSubtract": "Modo restar (Alt+arrastrar)",
         "modeHint": "Mantenga Shift para añadir, Alt para restar"
+      },
+      "text": {
+        "title": "Texto",
+        "content": "Contenido",
+        "placeholder": "Ingrese texto...",
+        "font": "Fuente",
+        "fontTooltip": "Seleccionar familia de fuentes pixel",
+        "size": "Tamaño",
+        "sizeTooltip": "Tamaño del texto en píxeles (8-64)",
+        "color": "Color",
+        "colorTooltip": "Seleccionar color del texto",
+        "preview": "Vista previa",
+        "previewPlaceholder": "Texto de muestra"
       }
     },
     "layers": {
@@ -628,7 +643,8 @@
       "palette.createFromSelection": "Crear paleta desde selección",
       "palette.createFromLayer": "Crear paleta desde capa",
       "palette.manage": "Gestionar paletas",
-      "view.toggleOutOfBoundsPixels": "Alternar píxeles fuera de límites"
+      "view.toggleOutOfBoundsPixels": "Alternar píxeles fuera de límites",
+      "tool.text": "Herramienta de texto"
     }
   },
   "pixelGeneration": {
