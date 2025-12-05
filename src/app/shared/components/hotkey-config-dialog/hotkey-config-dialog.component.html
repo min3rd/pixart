@@ -14,7 +14,28 @@
       {{ "hotkeys.description" | transloco }}
     </p>
 
-    @for (group of groupedActions() | keyvalue; track group.key) {
+    <div id="hotkey-search-container" class="relative">
+      <input
+        type="text"
+        id="hotkey-search-input"
+        class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-sm"
+        [placeholder]="'hotkeys.searchPlaceholder' | transloco"
+        [value]="searchTerm()"
+        #searchInput
+        (input)="onSearchChange(searchInput.value)"
+      />
+    </div>
+
+    @if (filteredGroupedActions().size === 0 && searchTerm()) {
+      <div
+        id="hotkey-no-results"
+        class="text-center py-8 text-neutral-500 dark:text-neutral-400"
+      >
+        {{ "hotkeys.noResults" | transloco }}
+      </div>
+    }
+
+    @for (group of filteredGroupedActions() | keyvalue; track group.key) {
       <div [id]="'hotkey-group-' + group.key" class="mb-4">
         <h3
           [id]="'hotkey-group-title-' + group.key"

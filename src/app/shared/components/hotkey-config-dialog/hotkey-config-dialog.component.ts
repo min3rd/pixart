@@ -6,7 +6,8 @@ import {
   computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   HotkeysService,
   HotkeyRegistration,
@@ -18,14 +19,16 @@ import { Modal } from '../modal/modal';
   templateUrl: './hotkey-config-dialog.component.html',
   styleUrls: ['./hotkey-config-dialog.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, Modal],
+  imports: [CommonModule, FormsModule, TranslocoPipe, Modal],
 })
 export class HotkeyConfigDialog {
   readonly hotkeys = inject(HotkeysService);
+  private readonly transloco = inject(TranslocoService);
   readonly isOpen = signal(false);
   readonly editingActionId = signal<string | null>(null);
   readonly capturedKey = signal<string>('');
   readonly conflictError = signal<string | null>(null);
+  readonly searchTerm = signal<string>('');
 
   readonly groupedActions = computed(() => {
     const registrations = this.hotkeys.registrations();
@@ -40,11 +43,71 @@ export class HotkeyConfigDialog {
     return groups;
   });
 
+  private readonly searchableData = computed(() => {
+    const groups = this.groupedActions();
+    const categoryTranslations = new Map<string, string>();
+    const actionTranslations = new Map<string, string>();
+
+    for (const [category, actions] of groups.entries()) {
+      categoryTranslations.set(
+        category,
+        this.transloco.translate(`hotkeys.category.${category}`).toLowerCase(),
+      );
+      for (const action of actions) {
+        actionTranslations.set(
+          action.id,
+          this.transloco.translate(`hotkeys.action.${action.id}`).toLowerCase(),
+        );
+      }
+    }
+
+    return { groups, categoryTranslations, actionTranslations };
+  });
+
+  readonly filteredGroupedActions = computed(() => {
+    const { groups, categoryTranslations, actionTranslations } =
+      this.searchableData();
+    const term = this.searchTerm().toLowerCase().trim();
+
+    if (!term) {
+      return groups;
+    }
+
+    const filteredGroups = new Map<string, HotkeyRegistration[]>();
+
+    for (const [category, actions] of groups.entries()) {
+      const categoryName =
+        categoryTranslations.get(category) ?? category.toLowerCase();
+      const categoryMatches = categoryName.includes(term);
+
+      const filteredActions = actions.filter((action) => {
+        if (categoryMatches) {
+          return true;
+        }
+
+        const actionName =
+          actionTranslations.get(action.id) ?? action.id.toLowerCase();
+        const keyMatches = this.displayKey(action.currentKey)
+          .toLowerCase()
+          .includes(term);
+
+        return actionName.includes(term) || keyMatches;
+      });
+
+      if (filteredActions.length > 0) {
+        filteredGroups.set(category, filteredActions);
+      }
+    }
+
+    return filteredGroups;
+  });
+
   open(): void {
     this.isOpen.set(true);
     this.editingActionId.set(null);
     this.capturedKey.set('');
     this.conflictError.set(null);
+    this.searchTerm.set('');
   }
 
   close(): void {
@@ -52,6 +115,7 @@ export class HotkeyConfigDialog {
     this.editingActionId.set(null);
     this.capturedKey.set('');
     this.conflictError.set(null);
+    this.searchTerm.set('');
   }
 
   startEdit(actionId: string): void {
@@ -121,5 +185,9 @@ export class HotkeyConfigDialog {
 
   displayKey(key: string): string {
     return this.hotkeys.keyStringToDisplay(key);
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
   }
 }
