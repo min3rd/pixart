@@ -15,6 +15,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIcon } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import { EditorBoneService } from '../../../services/editor/editor-bone.service';
+import { EditorCanvasStateService } from '../../../services/editor/editor-canvas-state.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
 import {
   PixelGenerationDialog,
@@ -103,6 +104,7 @@ export class EditorCanvas implements OnDestroy {
   readonly contextMenu = inject(CanvasContextMenuService);
   readonly drawService = inject(CanvasDrawService);
   readonly pointerService = inject(CanvasPointerService);
+  readonly canvasState = inject(EditorCanvasStateService);
 
   readonly mouseX = signal<number | null>(null);
   readonly mouseY = signal<number | null>(null);
@@ -201,6 +203,7 @@ export class EditorCanvas implements OnDestroy {
   };
 
   private movingContentBuffer: string[] | null = null;
+  private movingContentPixelMap: Map<string, string> | null = null;
   private movingContentOriginalRect: {
     x: number;
     y: number;
@@ -828,10 +831,6 @@ export class EditorCanvas implements OnDestroy {
     const sel = this.document.selectionRect();
     if (!sel) return;
     const layerId = this.document.selectedLayerId();
-    const sourceBuf = this.document.getLayerBuffer(layerId);
-    if (!sourceBuf) return;
-    const w = this.document.canvasWidth();
-    const h = this.document.canvasHeight();
     this.originalLayerId = layerId;
     this.movingContentOriginalRect = {
       x: sel.x,
@@ -839,13 +838,26 @@ export class EditorCanvas implements OnDestroy {
       width: sel.width,
       height: sel.height,
     };
+    this.movingContentPixelMap = new Map<string, string>();
     this.movingContentBuffer = [];
+    const w = this.document.canvasWidth();
+    const h = this.document.canvasHeight();
+    const pixelMap = this.canvasState.getLayerPixelMap(layerId);
+    for (const [key, color] of pixelMap.entries()) {
+      const coords = this.canvasState.parseCoordinateKey(key);
+      if (!coords) continue;
+      const { x, y } = coords;
+      if (this.isPointInSelection(x, y)) {
+        this.movingContentPixelMap.set(key, color);
+        this.canvasState.deletePixel(layerId, x, y);
+      }
+    }
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const idx = y * w + x;
-        if (this.isPointInSelection(x, y)) {
-          this.movingContentBuffer[idx] = sourceBuf[idx] || '';
-          sourceBuf[idx] = '';
+        const key = `${x},${y}`;
+        if (this.movingContentPixelMap.has(key)) {
+          this.movingContentBuffer[idx] = this.movingContentPixelMap.get(key) || '';
         } else {
           this.movingContentBuffer[idx] = '';
         }
@@ -860,34 +872,25 @@ export class EditorCanvas implements OnDestroy {
 
   endSelectionContentMove() {
     if (
-      !this.movingContentBuffer ||
+      !this.movingContentPixelMap ||
       !this.originalLayerId ||
       !this.movingContentOriginalRect
     )
       return;
-    const originalBuf = this.document.getLayerBuffer(this.originalLayerId);
-    if (!originalBuf) return;
-    const w = this.document.canvasWidth();
-    const h = this.document.canvasHeight();
     const sel = this.document.selectionRect();
     if (!sel) return;
     const dx = sel.x - this.movingContentOriginalRect.x;
     const dy = sel.y - this.movingContentOriginalRect.y;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = y * w + x;
-        if (this.movingContentBuffer[idx]) {
-          const newX = x + dx;
-          const newY = y + dy;
-          if (newX >= 0 && newX < w && newY >= 0 && newY < h) {
-            const newIdx = newY * w + newX;
-            originalBuf[newIdx] = this.movingContentBuffer[idx];
-          }
-        }
-      }
+    for (const [key, color] of this.movingContentPixelMap.entries()) {
+      const coords = this.canvasState.parseCoordinateKey(key);
+      if (!coords) continue;
+      const newX = coords.x + dx;
+      const newY = coords.y + dy;
+      this.canvasState.setPixel(this.originalLayerId, newX, newY, color);
     }
     this.document.layerPixelsVersion.update((v) => v + 1);
     this.movingContentBuffer = null;
+    this.movingContentPixelMap = null;
     this.movingContentOriginalRect = null;
     this.originalLayerId = null;
   }
@@ -1102,6 +1105,7 @@ export class EditorCanvas implements OnDestroy {
       penPoints: this.penPoints(),
       movingContentBuffer: this.movingContentBuffer,
       movingContentOriginalRect: this.movingContentOriginalRect,
+      movingContentPixelMap: this.movingContentPixelMap,
       getCurrentFrameId: () => this.getCurrentFrameId(),
       getCircleDrawOptions: () => this.getCircleDrawOptions(),
       getSquareDrawOptions: () => this.getSquareDrawOptions(),
