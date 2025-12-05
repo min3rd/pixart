@@ -145,7 +145,7 @@
       @if (showEditMenu()) {
         <div
           id="menu-edit-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onEditMenuFocusIn()"
           (focusout)="onEditMenuFocusOut()"
@@ -454,7 +454,9 @@
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
               >
                 {{
-                  hotkeys.keyStringToDisplay(hotkeys.getBinding("edit.imageSize")!)
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("edit.imageSize")!
+                  )
                 }}
               </span>
             }
@@ -481,7 +483,7 @@
       @if (showFillMenu()) {
         <div
           id="menu-fill-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onFillMenuFocusIn()"
           (focusout)="onFillMenuFocusOut()"
@@ -519,9 +521,17 @@
               name="heroSparkles"
               class="w-4 h-4 mr-2"
             ></ng-icon>
-            <span id="menu-content-aware-fill-label" class="flex-1">{{
-              "menu.contentAwareFill" | transloco
-            }}</span>
+            <span id="menu-content-aware-fill-label" class="flex-1">
+              {{ "menu.contentAwareFill" | transloco }}
+            </span>
+
+            <span
+              id="menu-content-aware-fill-dev-badge"
+              class="px-2 py-0.5 text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-sm border border-amber-300 dark:border-amber-700"
+            >
+              {{ "badges.dev" | transloco }}
+            </span>
+
             @if (hotkeys.getBinding("edit.contentAwareFill")) {
               <span
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
@@ -555,7 +565,7 @@
       @if (showPaletteMenu()) {
         <div
           id="menu-palette-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onPaletteMenuFocusIn()"
           (focusout)="onPaletteMenuFocusOut()"
@@ -577,18 +587,21 @@
             @if (hotkeys.getBinding("palette.createNew")) {
               <span
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
-              >{{
-                hotkeys.keyStringToDisplay(
-                  hotkeys.getBinding("palette.createNew")!
-                )
-              }}</span>
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("palette.createNew")!
+                  )
+                }}</span
+              >
             }
           </button>
           <button
             id="menu-palette-from-selection-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onPaletteCreateFromSelection()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromSelection')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('palette.createFromSelection')
+            "
           >
             <ng-icon
               id="menu-palette-from-selection-icon"
@@ -601,18 +614,21 @@
             @if (hotkeys.getBinding("palette.createFromSelection")) {
               <span
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
-              >{{
-                hotkeys.keyStringToDisplay(
-                  hotkeys.getBinding("palette.createFromSelection")!
-                )
-              }}</span>
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("palette.createFromSelection")!
+                  )
+                }}</span
+              >
             }
           </button>
           <button
             id="menu-palette-from-layer-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onPaletteCreateFromLayer()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('palette.createFromLayer')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('palette.createFromLayer')
+            "
           >
             <ng-icon
               id="menu-palette-from-layer-icon"
@@ -625,11 +641,12 @@
             @if (hotkeys.getBinding("palette.createFromLayer")) {
               <span
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
-              >{{
-                hotkeys.keyStringToDisplay(
-                  hotkeys.getBinding("palette.createFromLayer")!
-                )
-              }}</span>
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("palette.createFromLayer")!
+                  )
+                }}</span
+              >
             }
           </button>
           <div
@@ -652,11 +669,12 @@
             @if (hotkeys.getBinding("palette.manage")) {
               <span
                 class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
-              >{{
-                hotkeys.keyStringToDisplay(
-                  hotkeys.getBinding("palette.manage")!
-                )
-              }}</span>
+                >{{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("palette.manage")!
+                  )
+                }}</span
+              >
             }
           </button>
         </div>
@@ -727,7 +745,7 @@
       @if (showTransformMenu()) {
         <div
           id="menu-transform-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-64"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onTransformMenuFocusIn()"
           (focusout)="onTransformMenuFocusOut()"
@@ -1016,7 +1034,7 @@
       @if (showViewMenu()) {
         <div
           id="menu-view-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-64"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onViewMenuFocusIn()"
           (focusout)="onViewMenuFocusOut()"
@@ -1025,9 +1043,14 @@
             id="menu-view-toggle-oob-pixels-action"
             class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
             (click)="onToggleOutOfBoundsPixels()"
-            [attr.aria-keyshortcuts]="hotkeys.getBinding('view.toggleOutOfBoundsPixels')"
+            [attr.aria-keyshortcuts]="
+              hotkeys.getBinding('view.toggleOutOfBoundsPixels')
+            "
           >
-            <span id="menu-view-toggle-oob-pixels-label" class="flex items-center gap-2">
+            <span
+              id="menu-view-toggle-oob-pixels-label"
+              class="flex items-center gap-2"
+            >
               <ng-icon
                 id="menu-view-toggle-oob-pixels-check"
                 name="heroCheck"
@@ -1097,7 +1120,7 @@
       @if (showToolMenu()) {
         <div
           id="menu-tool-dropdown"
-          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-56"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-72"
           tabindex="0"
           (focusin)="onToolMenuFocusIn()"
           (focusout)="onToolMenuFocusOut()"
@@ -1369,7 +1392,9 @@
   >
     <span id="header-badges-title">{{ "badges.title" | transloco }}</span>
     <div id="header-controls" class="ml-2 flex items-center gap-1">
-      <pa-language-selector id="header-language-selector"></pa-language-selector>
+      <pa-language-selector
+        id="header-language-selector"
+      ></pa-language-selector>
       <button
         type="button"
         id="theme-toggle-button"
