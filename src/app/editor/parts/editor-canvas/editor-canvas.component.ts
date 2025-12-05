@@ -839,9 +839,7 @@ export class EditorCanvas implements OnDestroy {
       height: sel.height,
     };
     this.movingContentPixelMap = new Map<string, string>();
-    this.movingContentBuffer = [];
-    const w = this.document.canvasWidth();
-    const h = this.document.canvasHeight();
+    this.movingContentBuffer = null;
     const pixelMap = this.canvasState.getLayerPixelMap(layerId);
     for (const [key, color] of pixelMap.entries()) {
       const coords = this.canvasState.parseCoordinateKey(key);
@@ -850,17 +848,6 @@ export class EditorCanvas implements OnDestroy {
       if (this.isPointInSelection(x, y)) {
         this.movingContentPixelMap.set(key, color);
         this.canvasState.deletePixel(layerId, x, y);
-      }
-    }
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = y * w + x;
-        const key = `${x},${y}`;
-        if (this.movingContentPixelMap.has(key)) {
-          this.movingContentBuffer[idx] = this.movingContentPixelMap.get(key) || '';
-        } else {
-          this.movingContentBuffer[idx] = '';
-        }
       }
     }
     this.document.layerPixelsVersion.update((v) => v + 1);
