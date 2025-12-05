@@ -180,8 +180,13 @@
         "color": "สี",
         "colorTooltip": "เลือกสีข้อความ",
         "preview": "ตัวอย่าง",
-        "previewPlaceholder": "ข้อความตัวอย่าง"
+        "previewPlaceholder": "ข้อความตัวอย่าง",
+        "dragHint": "ลากบนผืนผ้าใบเพื่อสร้างพื้นที่ข้อความ"
       }
     }
+  },
+  "common": {
+    "confirm": "ยืนยัน",
+    "cancel": "ยกเลิก"
   }
 }

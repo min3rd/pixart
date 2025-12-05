@@ -180,8 +180,13 @@
         "color": "Farbe",
         "colorTooltip": "Textfarbe auswählen",
         "preview": "Vorschau",
-        "previewPlaceholder": "Beispieltext"
+        "previewPlaceholder": "Beispieltext",
+        "dragHint": "Auf Leinwand ziehen um Textbereich zu erstellen"
       }
     }
+  },
+  "common": {
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen"
   }
 }

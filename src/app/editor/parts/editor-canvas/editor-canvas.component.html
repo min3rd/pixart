@@ -17,6 +17,64 @@
       (dblclick)="onDoubleClick()"
       (contextmenu)="onCanvasContextMenu($event)"
     ></canvas>
+
+    @if (textDragPreviewStyle()) {
+      <div
+        id="editor-canvas-text-drag-preview"
+        class="absolute border-2 border-dashed border-blue-500 bg-blue-500/10 pointer-events-none"
+        [style.left]="textDragPreviewStyle()!.left"
+        [style.top]="textDragPreviewStyle()!.top"
+        [style.width]="textDragPreviewStyle()!.width"
+        [style.height]="textDragPreviewStyle()!.height"
+      ></div>
+    }
+
+    @if (textSession.isActive()) {
+      <div
+        id="editor-canvas-text-overlay"
+        class="absolute z-30"
+        [style.left]="textEditOverlayStyle()?.left"
+        [style.top]="textEditOverlayStyle()?.top"
+        [style.width]="textEditOverlayStyle()?.width"
+        [style.minHeight]="textEditOverlayStyle()?.minHeight"
+      >
+        <textarea
+          id="editor-canvas-text-input"
+          class="w-full h-full min-h-[30px] p-1 bg-white/90 dark:bg-neutral-900/90 border border-blue-500 rounded-sm resize-none outline-none text-neutral-900 dark:text-neutral-100"
+          [style.font-family]="tools.textFontFamily()"
+          [style.font-size.px]="tools.textFontSize() * viewport.scale()"
+          [style.color]="tools.textColor()"
+          [value]="textSession.currentText()"
+          (input)="onTextInput($event)"
+          (keydown.escape)="cancelTextSession()"
+          placeholder="{{ 'editor.tools.text.placeholder' | transloco }}"
+          autofocus
+        ></textarea>
+        <div
+          id="editor-canvas-text-buttons"
+          class="flex gap-1 mt-1"
+        >
+          <button
+            id="editor-canvas-text-commit"
+            type="button"
+            class="flex items-center justify-center w-7 h-7 rounded-sm bg-green-600 hover:bg-green-700 text-white"
+            (click)="commitTextSession()"
+            [attr.title]="'common.confirm' | transloco"
+          >
+            <ng-icon name="heroIconsCheckMini" class="w-4 h-4"></ng-icon>
+          </button>
+          <button
+            id="editor-canvas-text-cancel"
+            type="button"
+            class="flex items-center justify-center w-7 h-7 rounded-sm bg-red-600 hover:bg-red-700 text-white"
+            (click)="cancelTextSession()"
+            [attr.title]="'common.cancel' | transloco"
+          >
+            <ng-icon name="heroIconsXMarkMini" class="w-4 h-4"></ng-icon>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 
   <!-- Mouse coordinates -->

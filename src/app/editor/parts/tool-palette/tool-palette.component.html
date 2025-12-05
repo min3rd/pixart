@@ -1596,22 +1596,13 @@
             <ng-icon id="palette-text-header-icon" name="bootstrapFonts" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
             <span id="palette-text-header-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.text.title" | transloco }}</span>
           </div>
-          <div id="palette-text-content-section" class="space-y-1">
-            <label
-              id="palette-text-content-label"
-              class="text-xs text-neutral-600 dark:text-neutral-400"
-              for="palette-text-content-input"
+          <div id="palette-text-hint-section" class="space-y-1">
+            <div
+              id="palette-text-hint-box"
+              class="rounded-sm border border-dashed border-neutral-200/70 p-2 text-center text-xs text-neutral-400 dark:border-neutral-700 dark:text-neutral-500"
             >
-              {{ "editor.tools.text.content" | transloco }}
-            </label>
-            <input
-              id="palette-text-content-input"
-              type="text"
-              [value]="tools.textContent()"
-              (input)="onTextContentInput($event)"
-              [placeholder]="'editor.tools.text.placeholder' | transloco"
-              class="w-full px-2 py-1 text-xs border border-neutral-300/70 rounded-sm bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
-            />
+              {{ "editor.tools.text.dragHint" | transloco }}
+            </div>
           </div>
           <div id="palette-text-font-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
             <label
@@ -1702,21 +1693,6 @@
                 </button>
                 <span id="palette-text-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.textColor() }}</span>
               </div>
-            </div>
-          </div>
-          <div id="palette-text-preview-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
-            <div id="palette-text-preview-header" class="flex items-center gap-1">
-              <ng-icon id="palette-text-preview-icon" name="heroEyeMini" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
-              <span id="palette-text-preview-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.text.preview" | transloco }}</span>
-            </div>
-            <div
-              id="palette-text-preview-box"
-              class="p-2 bg-neutral-50 dark:bg-neutral-800 rounded-sm border border-neutral-200 dark:border-neutral-700 min-h-8 overflow-hidden"
-              [style.font-family]="tools.textFontFamily()"
-              [style.font-size.px]="tools.textFontSize()"
-              [style.color]="tools.textColor()"
-            >
-              {{ tools.textContent() || ('editor.tools.text.previewPlaceholder' | transloco) }}
             </div>
           </div>
         </section>

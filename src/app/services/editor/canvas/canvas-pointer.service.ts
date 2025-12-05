@@ -16,6 +16,7 @@ import { CanvasPerspectiveHandler } from './canvas-perspective.handler';
 import { CanvasWarpHandler } from './canvas-warp.handler';
 import { CanvasPuppetWarpHandler } from './canvas-puppet-warp.handler';
 import { EditorSelectionService } from '../editor-selection.service';
+import { EditorTextSessionService } from '../editor-text-session.service';
 import { SmartSelectMode } from '../../tools/smart-select-tool.service';
 
 export interface PointerState {
@@ -37,6 +38,8 @@ export interface PointerState {
   smartSelecting: boolean;
   smartSelectPoints: { x: number; y: number }[];
   smartSelectMode: SmartSelectMode;
+  textDragging: boolean;
+  textDragStart: { x: number; y: number } | null;
 }
 
 export interface PointerCallbacks {
@@ -63,6 +66,8 @@ export interface PointerCallbacks {
 
 @Injectable({ providedIn: 'root' })
 export class CanvasPointerService {
+  private static readonly MIN_TEXT_AREA_SIZE = 5;
+
   private readonly document = inject(EditorDocumentService);
   private readonly tools = inject(EditorToolsService);
   private readonly boneService = inject(EditorBoneService);
@@ -80,9 +85,11 @@ export class CanvasPointerService {
   private readonly warpHandler = inject(CanvasWarpHandler);
   private readonly puppetWarpHandler = inject(CanvasPuppetWarpHandler);
   private readonly selectionService = inject(EditorSelectionService);
+  private readonly textSession = inject(EditorTextSessionService);
 
   readonly moveSelectionHotkeyActive = signal(false);
   private moveSelectionHotkeyParts = new Set<string>();
+  readonly textDragCurrent = signal<{ x: number; y: number } | null>(null);
 
   activateMoveSelectionHotkey(binding: string): void {
     this.moveSelectionHotkeyActive.set(true);
@@ -239,6 +246,13 @@ export class CanvasPointerService {
         state.smartSelectPoints.push({ x: clampedX, y: clampedY });
         this.updateSmartSelection(state);
       }
+      return { hoverX, hoverY, mouseX, mouseY };
+    }
+
+    if (state.textDragging && state.textDragStart) {
+      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
+      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
+      this.textDragCurrent.set({ x: clampedX, y: clampedY });
       return { hoverX, hoverY, mouseX, mouseY };
     }
 
@@ -405,6 +419,17 @@ export class CanvasPointerService {
           shapeConstrainUniform(false);
         }
         callbacks.startShape(tool, logicalX, logicalY);
+        return;
+      }
+
+      if (tool === 'text' && insideCanvas) {
+        if (this.textSession.isActive()) {
+          return;
+        }
+        callbacks.capturePointer(ev);
+        state.textDragging = true;
+        state.textDragStart = { x: logicalX, y: logicalY };
+        this.textDragCurrent.set({ x: logicalX, y: logicalY });
         return;
       }
 
@@ -956,6 +981,24 @@ export class CanvasPointerService {
 
     if (this.puppetWarp.isDraggingPin()) {
       this.puppetWarp.endPinDrag();
+      return;
+    }
+
+    if (state.textDragging && state.textDragStart) {
+      const current = this.textDragCurrent();
+      if (current) {
+        const x = Math.min(state.textDragStart.x, current.x);
+        const y = Math.min(state.textDragStart.y, current.y);
+        const width = Math.abs(current.x - state.textDragStart.x);
+        const height = Math.abs(current.y - state.textDragStart.y);
+
+        if (width >= CanvasPointerService.MIN_TEXT_AREA_SIZE && height >= CanvasPointerService.MIN_TEXT_AREA_SIZE) {
+          this.textSession.startTextSession(x, y, width, height);
+        }
+      }
+      state.textDragging = false;
+      state.textDragStart = null;
+      this.textDragCurrent.set(null);
       return;
     }
 
