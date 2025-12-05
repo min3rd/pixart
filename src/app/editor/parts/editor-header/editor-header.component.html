@@ -1369,22 +1369,7 @@
   >
     <span id="header-badges-title">{{ "badges.title" | transloco }}</span>
     <div id="header-controls" class="ml-2 flex items-center gap-1">
-      <button
-        type="button"
-        id="lang-vi-button"
-        class="px-2 py-0.5 rounded-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-        (click)="setLang('vi')"
-      >
-        VI
-      </button>
-      <button
-        type="button"
-        id="lang-en-button"
-        class="px-2 py-0.5 rounded-sm border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700"
-        (click)="setLang('en')"
-      >
-        EN
-      </button>
+      <pa-language-selector id="header-language-selector"></pa-language-selector>
       <button
         type="button"
         id="theme-toggle-button"

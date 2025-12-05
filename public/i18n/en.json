@@ -929,5 +929,25 @@
     "pickingColor": "Click on canvas to pick a color...",
     "colorPickerLabel": "Select color",
     "hexInputLabel": "Color hex value"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "Select language",
+    "moreLanguages": "More languages"
   }
 }
