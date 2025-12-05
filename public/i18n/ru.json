@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "Файл",
+    "edit": "Редактирование",
+    "insert": "Вставка",
+    "tool": "Инструмент",
+    "help": "Справка",
+    "view": "Вид",
+    "undo": "Отменить",
+    "redo": "Повторить",
+    "cut": "Вырезать",
+    "copy": "Копировать",
+    "copyMerged": "Скопировать совмещённые",
+    "paste": "Вставить",
+    "pasteInPlace": "Вставить на место",
+    "pasteInto": "Вставить в",
+    "clear": "Очистить",
+    "transform": "Трансформирование",
+    "fill": "Заливка",
+    "freeTransform": "Свободное трансформирование",
+    "scale": "Масштабирование",
+    "rotate": "Поворот",
+    "skew": "Наклон",
+    "distort": "Искажение",
+    "perspective": "Перспектива",
+    "warp": "Деформация",
+    "puppetWarp": "Марионеточная деформация",
+    "contentAwareScale": "Масштаб с учётом содержимого",
+    "autoAlignLayers": "Автовыравнивание слоёв",
+    "autoBlendLayers": "Автоналожение слоёв",
+    "flipHorizontal": "Отразить по горизонтали",
+    "flipVertical": "Отразить по вертикали",
+    "rotate90CW": "Повернуть на 90° по часовой",
+    "rotate90CCW": "Повернуть на 90° против часовой",
+    "rotate180": "Повернуть на 180°",
+    "fillSelection": "Залить выделение",
+    "contentAwareFill": "Заливка с учётом содержимого",
+    "stroke": "Обводка",
+    "imageSize": "Размер изображения",
+    "showOutOfBoundsPixels": "Показать пиксели за границами",
+    "hideOutOfBoundsPixels": "Скрыть пиксели за границами"
+  },
+  "badges": {
+    "title": "2D Редактор • Alpha",
+    "dev": "В разработке"
+  },
+  "tools": {
+    "selectLayer": "Выбрать слой",
+    "rectSelect": "Прямоугольное выделение",
+    "ellipseSelect": "Овальное выделение",
+    "lassoSelect": "Лассо",
+    "eyedropper": "Пипетка",
+    "fill": "Заливка",
+    "eraser": "Ластик",
+    "line": "Линия",
+    "pen": "Перо",
+    "lineToolOptions": "Параметры линии",
+    "circle": "Круг",
+    "square": "Прямоугольник",
+    "brush": "Кисть",
+    "bone": "Кость",
+    "smartSelect": "Умное выделение"
+  },
+  "layers": {
+    "title": "Слои",
+    "hide": "Скрыть",
+    "show": "Показать",
+    "delete": "Удалить слой",
+    "add": "Добавить слой",
+    "pasted": "Вставлено",
+    "pastedInPlace": "Вставлено на место",
+    "pastedInto": "Вставлено в"
+  },
+  "timeline": {
+    "title": "Временная шкала",
+    "animations": "Анимации",
+    "addAnimation": "Добавить анимацию",
+    "removeAnimation": "Удалить анимацию",
+    "renameAnimation": "Переименовать анимацию",
+    "addFrame": "Добавить кадр",
+    "deleteFrame": "Удалить кадр",
+    "duplicateFrame": "Дублировать кадр",
+    "play": "Воспроизвести",
+    "stop": "Остановить",
+    "fps": "FPS",
+    "duration": "Длительность"
+  },
+  "theme": {
+    "toggle": "Сменить тему"
+  },
+  "canvas": {
+    "zoom": "Масштаб",
+    "zoomIncrease": "Увеличить",
+    "zoomDecrease": "Уменьшить",
+    "rotate": "Поворот",
+    "resetRotation": "Сбросить поворот",
+    "size": "Размер холста",
+    "width": "Ширина",
+    "height": "Высота",
+    "saved": "Сохранено",
+    "unsaved": "Не сохранено"
+  },
+  "file": {
+    "new": "Создать",
+    "openFromComputer": "Открыть с компьютера",
+    "saveToComputer": "Сохранить на компьютер",
+    "saveLocal": "Сохранить"
+  },
+  "hotkeys": {
+    "title": "Горячие клавиши",
+    "close": "Закрыть",
+    "edit": "Редактировать",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "reset": "Сброс"
+  },
+  "scale": {
+    "title": "Масштабирование",
+    "width": "Ширина",
+    "height": "Высота",
+    "ok": "OK",
+    "cancel": "Отмена"
+  },
+  "rotate": {
+    "title": "Поворот",
+    "angle": "Угол",
+    "apply": "Применить",
+    "cancel": "Отмена"
+  },
+  "modal": {
+    "close": "Закрыть"
+  },
+  "palette": {
+    "title": "Палитра",
+    "createNew": "Создать",
+    "addColor": "Добавить цвет",
+    "removeColor": "Удалить цвет",
+    "cancel": "Отмена",
+    "add": "Добавить"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "Выбрать язык",
+    "moreLanguages": "Больше языков"
+  }
+}

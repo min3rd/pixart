@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "ملف",
+    "edit": "تحرير",
+    "insert": "إدراج",
+    "tool": "أداة",
+    "help": "مساعدة",
+    "view": "عرض",
+    "undo": "تراجع",
+    "redo": "إعادة",
+    "cut": "قص",
+    "copy": "نسخ",
+    "copyMerged": "نسخ مدمج",
+    "paste": "لصق",
+    "pasteInPlace": "لصق في المكان",
+    "pasteInto": "لصق داخل",
+    "clear": "مسح",
+    "transform": "تحويل",
+    "fill": "تعبئة",
+    "freeTransform": "تحويل حر",
+    "scale": "تحجيم",
+    "rotate": "تدوير",
+    "skew": "إمالة",
+    "distort": "تشويه",
+    "perspective": "منظور",
+    "warp": "التواء",
+    "puppetWarp": "التواء الدمية",
+    "contentAwareScale": "تحجيم حسب المحتوى",
+    "autoAlignLayers": "محاذاة الطبقات تلقائياً",
+    "autoBlendLayers": "دمج الطبقات تلقائياً",
+    "flipHorizontal": "قلب أفقي",
+    "flipVertical": "قلب عمودي",
+    "rotate90CW": "تدوير 90° مع عقارب الساعة",
+    "rotate90CCW": "تدوير 90° عكس عقارب الساعة",
+    "rotate180": "تدوير 180°",
+    "fillSelection": "تعبئة التحديد",
+    "contentAwareFill": "تعبئة حسب المحتوى",
+    "stroke": "حد",
+    "imageSize": "حجم الصورة",
+    "showOutOfBoundsPixels": "إظهار البكسلات خارج الحدود",
+    "hideOutOfBoundsPixels": "إخفاء البكسلات خارج الحدود"
+  },
+  "badges": {
+    "title": "محرر ثنائي الأبعاد • ألفا",
+    "dev": "قيد التطوير"
+  },
+  "tools": {
+    "selectLayer": "تحديد الطبقة",
+    "rectSelect": "تحديد مستطيل",
+    "ellipseSelect": "تحديد بيضاوي",
+    "lassoSelect": "تحديد حر",
+    "eyedropper": "القطارة",
+    "fill": "تعبئة",
+    "eraser": "ممحاة",
+    "line": "خط",
+    "pen": "قلم",
+    "lineToolOptions": "خيارات أداة الخط",
+    "circle": "دائرة",
+    "square": "مستطيل",
+    "brush": "فرشاة",
+    "bone": "عظم",
+    "smartSelect": "تحديد ذكي"
+  },
+  "layers": {
+    "title": "الطبقات",
+    "hide": "إخفاء",
+    "show": "إظهار",
+    "delete": "حذف الطبقة",
+    "add": "إضافة طبقة",
+    "pasted": "تم اللصق",
+    "pastedInPlace": "تم اللصق في المكان",
+    "pastedInto": "تم اللصق داخل"
+  },
+  "timeline": {
+    "title": "الجدول الزمني",
+    "animations": "الرسوم المتحركة",
+    "addAnimation": "إضافة رسوم متحركة",
+    "removeAnimation": "إزالة الرسوم المتحركة",
+    "renameAnimation": "إعادة تسمية الرسوم المتحركة",
+    "addFrame": "إضافة إطار",
+    "deleteFrame": "حذف إطار",
+    "duplicateFrame": "تكرار الإطار",
+    "play": "تشغيل",
+    "stop": "إيقاف",
+    "fps": "FPS",
+    "duration": "المدة"
+  },
+  "theme": {
+    "toggle": "تبديل السمة"
+  },
+  "canvas": {
+    "zoom": "تكبير",
+    "zoomIncrease": "زيادة التكبير",
+    "zoomDecrease": "تقليل التكبير",
+    "rotate": "تدوير",
+    "resetRotation": "إعادة ضبط التدوير",
+    "size": "حجم اللوحة",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "saved": "تم الحفظ",
+    "unsaved": "غير محفوظ"
+  },
+  "file": {
+    "new": "جديد",
+    "openFromComputer": "فتح من الكمبيوتر",
+    "saveToComputer": "حفظ إلى الكمبيوتر",
+    "saveLocal": "حفظ"
+  },
+  "hotkeys": {
+    "title": "اختصارات لوحة المفاتيح",
+    "close": "إغلاق",
+    "edit": "تحرير",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "reset": "إعادة ضبط"
+  },
+  "scale": {
+    "title": "تحجيم",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "ok": "موافق",
+    "cancel": "إلغاء"
+  },
+  "rotate": {
+    "title": "تدوير",
+    "angle": "الزاوية",
+    "apply": "تطبيق",
+    "cancel": "إلغاء"
+  },
+  "modal": {
+    "close": "إغلاق"
+  },
+  "palette": {
+    "title": "لوحة الألوان",
+    "createNew": "جديد",
+    "addColor": "إضافة لون",
+    "removeColor": "إزالة اللون",
+    "cancel": "إلغاء",
+    "add": "إضافة"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "اختر اللغة",
+    "moreLanguages": "المزيد من اللغات"
+  }
+}

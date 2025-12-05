@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "File",
+    "edit": "Modifica",
+    "insert": "Inserisci",
+    "tool": "Strumento",
+    "help": "Aiuto",
+    "view": "Visualizza",
+    "undo": "Annulla",
+    "redo": "Ripeti",
+    "cut": "Taglia",
+    "copy": "Copia",
+    "copyMerged": "Copia unione",
+    "paste": "Incolla",
+    "pasteInPlace": "Incolla sul posto",
+    "pasteInto": "Incolla dentro",
+    "clear": "Cancella",
+    "transform": "Trasforma",
+    "fill": "Riempi",
+    "freeTransform": "Trasformazione libera",
+    "scale": "Scala",
+    "rotate": "Ruota",
+    "skew": "Inclina",
+    "distort": "Distorci",
+    "perspective": "Prospettiva",
+    "warp": "Altera",
+    "puppetWarp": "Alterazione marionetta",
+    "contentAwareScale": "Scala in base al contenuto",
+    "autoAlignLayers": "Allinea automaticamente livelli",
+    "autoBlendLayers": "Fondi automaticamente livelli",
+    "flipHorizontal": "Rifletti orizzontalmente",
+    "flipVertical": "Rifletti verticalmente",
+    "rotate90CW": "Ruota 90° orario",
+    "rotate90CCW": "Ruota 90° antiorario",
+    "rotate180": "Ruota 180°",
+    "fillSelection": "Riempi selezione",
+    "contentAwareFill": "Riempimento in base al contenuto",
+    "stroke": "Traccia",
+    "imageSize": "Dimensioni immagine",
+    "showOutOfBoundsPixels": "Mostra pixel fuori dai limiti",
+    "hideOutOfBoundsPixels": "Nascondi pixel fuori dai limiti"
+  },
+  "badges": {
+    "title": "Editor 2D • Alpha",
+    "dev": "In sviluppo"
+  },
+  "tools": {
+    "selectLayer": "Seleziona livello",
+    "rectSelect": "Selezione rettangolare",
+    "ellipseSelect": "Selezione ellittica",
+    "lassoSelect": "Lazo",
+    "eyedropper": "Contagocce",
+    "fill": "Riempi",
+    "eraser": "Gomma",
+    "line": "Linea",
+    "pen": "Penna",
+    "lineToolOptions": "Opzioni strumento linea",
+    "circle": "Cerchio",
+    "square": "Rettangolo",
+    "brush": "Pennello",
+    "bone": "Osso",
+    "smartSelect": "Selezione intelligente"
+  },
+  "layers": {
+    "title": "Livelli",
+    "hide": "Nascondi",
+    "show": "Mostra",
+    "delete": "Elimina livello",
+    "add": "Aggiungi livello",
+    "pasted": "Incollato",
+    "pastedInPlace": "Incollato sul posto",
+    "pastedInto": "Incollato dentro"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "animations": "Animazioni",
+    "addAnimation": "Aggiungi animazione",
+    "removeAnimation": "Rimuovi animazione",
+    "renameAnimation": "Rinomina animazione",
+    "addFrame": "Aggiungi fotogramma",
+    "deleteFrame": "Elimina fotogramma",
+    "duplicateFrame": "Duplica fotogramma",
+    "play": "Riproduci",
+    "stop": "Stop",
+    "fps": "FPS",
+    "duration": "Durata"
+  },
+  "theme": {
+    "toggle": "Cambia tema"
+  },
+  "canvas": {
+    "zoom": "Zoom",
+    "zoomIncrease": "Aumenta zoom",
+    "zoomDecrease": "Diminuisci zoom",
+    "rotate": "Ruota",
+    "resetRotation": "Reimposta rotazione",
+    "size": "Dimensione canvas",
+    "width": "Larghezza",
+    "height": "Altezza",
+    "saved": "Salvato",
+    "unsaved": "Non salvato"
+  },
+  "file": {
+    "new": "Nuovo",
+    "openFromComputer": "Apri dal computer",
+    "saveToComputer": "Salva sul computer",
+    "saveLocal": "Salva"
+  },
+  "hotkeys": {
+    "title": "Scorciatoie da tastiera",
+    "close": "Chiudi",
+    "edit": "Modifica",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "reset": "Reimposta"
+  },
+  "scale": {
+    "title": "Scala",
+    "width": "Larghezza",
+    "height": "Altezza",
+    "ok": "OK",
+    "cancel": "Annulla"
+  },
+  "rotate": {
+    "title": "Ruota",
+    "angle": "Angolo",
+    "apply": "Applica",
+    "cancel": "Annulla"
+  },
+  "modal": {
+    "close": "Chiudi"
+  },
+  "palette": {
+    "title": "Tavolozza",
+    "createNew": "Nuova",
+    "addColor": "Aggiungi colore",
+    "removeColor": "Rimuovi colore",
+    "cancel": "Annulla",
+    "add": "Aggiungi"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "Seleziona lingua",
+    "moreLanguages": "Altre lingue"
+  }
+}
