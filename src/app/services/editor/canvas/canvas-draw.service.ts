@@ -30,6 +30,7 @@ export interface DrawCanvasContext {
   penPoints: { x: number; y: number }[];
   movingContentBuffer: string[] | null;
   movingContentOriginalRect: { x: number; y: number; width: number; height: number } | null;
+  movingContentPixelMap: Map<string, string> | null;
   getCurrentFrameId: () => string;
   getCircleDrawOptions: () => ShapeDrawOptions;
   getSquareDrawOptions: () => ShapeDrawOptions;
@@ -109,7 +110,7 @@ export class CanvasDrawService {
     this.drawLayers(canvasCtx, w, h, frameId, animationId, currentTime, shouldApplyBoneTransforms);
     this.drawOutOfBoundsPixels(canvasCtx, w, h);
     this.drawCanvasBoundsBorder(canvasCtx, w, h, scale, isDark, pxLineWidth);
-    this.drawMovingContent(canvasCtx, ctx.movingContentBuffer, ctx.movingContentOriginalRect, w, h);
+    this.drawMovingContent(canvasCtx, ctx.movingContentBuffer, ctx.movingContentOriginalRect, ctx.movingContentPixelMap, w, h);
     this.drawShapePreview(canvasCtx, ctx, pxLineWidth);
     this.drawPenPreview(canvasCtx, ctx.penDrawing, ctx.penPoints, pxLineWidth);
     this.drawBrushCursor(canvasCtx, ctx.mouseX, ctx.mouseY, currentPanX, currentPanY, scale, isDark, pxLineWidth);
@@ -307,32 +308,56 @@ export class CanvasDrawService {
     ctx: CanvasRenderingContext2D,
     movingContentBuffer: string[] | null,
     movingContentOriginalRect: { x: number; y: number; width: number; height: number } | null,
+    movingContentPixelMap: Map<string, string> | null,
     w: number,
     h: number,
   ): void {
-    if (movingContentBuffer && movingContentOriginalRect) {
-      const sel = this.document.selectionRect();
-      if (sel) {
-        const dx = sel.x - movingContentOriginalRect.x;
-        const dy = sel.y - movingContentOriginalRect.y;
-        ctx.save();
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
-            const idx = y * w + x;
-            const col = movingContentBuffer[idx];
-            if (col && col.length) {
-              const newX = x + dx;
-              const newY = y + dy;
-              if (newX >= 0 && newX < w && newY >= 0 && newY < h) {
-                ctx.fillStyle = col;
-                ctx.fillRect(newX, newY, 1, 1);
-              }
+    if (!movingContentOriginalRect) return;
+    const sel = this.document.selectionRect();
+    if (!sel) return;
+
+    const dx = sel.x - movingContentOriginalRect.x;
+    const dy = sel.y - movingContentOriginalRect.y;
+    ctx.save();
+
+    if (movingContentPixelMap && movingContentPixelMap.size > 0) {
+      for (const [key, color] of movingContentPixelMap.entries()) {
+        if (!color || !color.length) continue;
+        const coords = this.canvasState.parseCoordinateKey(key);
+        if (!coords) continue;
+        const newX = coords.x + dx;
+        const newY = coords.y + dy;
+        const isOutOfBounds = newX < 0 || newX >= w || newY < 0 || newY >= h;
+        if (isOutOfBounds) {
+          ctx.globalAlpha = CanvasDrawService.OUT_OF_BOUNDS_OPACITY;
+        } else {
+          ctx.globalAlpha = 1;
+        }
+        ctx.fillStyle = color;
+        ctx.fillRect(newX, newY, 1, 1);
+      }
+    } else if (movingContentBuffer) {
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = y * w + x;
+          const col = movingContentBuffer[idx];
+          if (col && col.length) {
+            const newX = x + dx;
+            const newY = y + dy;
+            const isOutOfBounds = newX < 0 || newX >= w || newY < 0 || newY >= h;
+            if (isOutOfBounds) {
+              ctx.globalAlpha = CanvasDrawService.OUT_OF_BOUNDS_OPACITY;
+            } else {
+              ctx.globalAlpha = 1;
             }
+            ctx.fillStyle = col;
+            ctx.fillRect(newX, newY, 1, 1);
           }
         }
-        ctx.restore();
       }
     }
+
+    ctx.restore();
   }
 
   private drawShapePreview(

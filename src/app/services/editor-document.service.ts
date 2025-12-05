@@ -799,8 +799,8 @@ export class EditorDocumentService {
     const sel = this.selectionService.selectionRect();
     if (!sel) return;
     this.selectionService.selectionRect.set({
-      x: Math.max(0, Math.floor(x)),
-      y: Math.max(0, Math.floor(y)),
+      x: Math.floor(x),
+      y: Math.floor(y),
       width: Math.max(1, Math.floor(width)),
       height: Math.max(1, Math.floor(height)),
     });
