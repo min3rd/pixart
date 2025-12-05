@@ -5,6 +5,7 @@
     "insert": "Chèn",
     "tool": "Công cụ",
     "help": "Trợ giúp",
+    "view": "Hiển thị",
     "undo": "Quay lại",
     "redo": "Bước tiếp",
     "cut": "Cắt",
@@ -35,7 +36,9 @@
     "fillSelection": "Đổ màu vùng chọn",
     "contentAwareFill": "Tô thông minh",
     "stroke": "Viền",
-    "imageSize": "Kích thước bản vẽ"
+    "imageSize": "Kích thước bản vẽ",
+    "showOutOfBoundsPixels": "Hiện pixel ngoài vùng",
+    "hideOutOfBoundsPixels": "Ẩn pixel ngoài vùng"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha",
@@ -65,6 +68,7 @@
       "insert": "Chèn nội dung",
       "tool": "Công cụ vẽ và chỉnh sửa",
       "help": "Trợ giúp và cài đặt",
+      "view": "Tùy chọn hiển thị",
       "undo": "Hoàn tác thao tác cuối",
       "redo": "Làm lại thao tác vừa hoàn tác",
       "cut": "Cắt vùng chọn vào clipboard",
@@ -91,7 +95,8 @@
       "rotate90CW": "Xoay 90 độ theo chiều kim đồng hồ",
       "rotate90CCW": "Xoay 90 độ ngược chiều kim đồng hồ",
       "rotate180": "Xoay 180 độ",
-      "stroke": "Thêm viền cho vùng chọn"
+      "stroke": "Thêm viền cho vùng chọn",
+      "showOutOfBoundsPixels": "Hiện pixel ngoài vùng canvas"
     },
     "tools": {
       "selectLayer": "Chọn và di chuyển layer",
@@ -623,7 +628,8 @@
       "palette.createNew": "Tạo bảng màu mới",
       "palette.createFromSelection": "Tạo bảng màu từ vùng chọn",
       "palette.createFromLayer": "Tạo bảng màu từ layer",
-      "palette.manage": "Quản lý bảng màu"
+      "palette.manage": "Quản lý bảng màu",
+      "view.toggleOutOfBoundsPixels": "Bật/tắt pixel ngoài vùng"
     }
   },
   "pixelGeneration": {

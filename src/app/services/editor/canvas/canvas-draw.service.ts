@@ -11,6 +11,8 @@ import { CanvasViewportService } from './canvas-viewport.service';
 import { CanvasShapeService, ShapeDrawOptions } from './canvas-shape.service';
 import { CanvasRenderService } from './canvas-render.service';
 import { CanvasFreeTransformHandler } from './canvas-free-transform.handler';
+import { UserSettingsService } from '../../user-settings.service';
+import { EditorCanvasStateService } from '../editor-canvas-state.service';
 
 export interface DrawCanvasContext {
   canvas: HTMLCanvasElement;
@@ -38,6 +40,7 @@ export class CanvasDrawService {
   private static readonly BRUSH_PREVIEW_OPACITY = 0.3;
   private static readonly ERASER_X_COLOR = '#ef4444';
   private static readonly ERASER_LINE_WIDTH_MULTIPLIER = 1.5;
+  private static readonly OUT_OF_BOUNDS_OPACITY = 0.5;
 
   private readonly document = inject(EditorDocumentService);
   private readonly tools = inject(EditorToolsService);
@@ -51,6 +54,8 @@ export class CanvasDrawService {
   private readonly shapeService = inject(CanvasShapeService);
   private readonly renderService = inject(CanvasRenderService);
   private readonly freeTransformHandler = inject(CanvasFreeTransformHandler);
+  private readonly userSettings = inject(UserSettingsService);
+  private readonly canvasState = inject(EditorCanvasStateService);
 
   drawCanvas(ctx: DrawCanvasContext): void {
     const canvas = ctx.canvas;
@@ -102,6 +107,8 @@ export class CanvasDrawService {
     );
 
     this.drawLayers(canvasCtx, w, h, frameId, animationId, currentTime, shouldApplyBoneTransforms);
+    this.drawOutOfBoundsPixels(canvasCtx, w, h);
+    this.drawCanvasBoundsBorder(canvasCtx, w, h, scale, isDark, pxLineWidth);
     this.drawMovingContent(canvasCtx, ctx.movingContentBuffer, ctx.movingContentOriginalRect, w, h);
     this.drawShapePreview(canvasCtx, ctx, pxLineWidth);
     this.drawPenPreview(canvasCtx, ctx.penDrawing, ctx.penPoints, pxLineWidth);
@@ -169,6 +176,64 @@ export class CanvasDrawService {
       }
       ctx.restore();
     }
+  }
+
+  private drawOutOfBoundsPixels(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+  ): void {
+    if (!this.userSettings.showOutOfBoundsPixels()) return;
+
+    const layers = this.document.getFlattenedLayers();
+    ctx.save();
+    ctx.globalAlpha = CanvasDrawService.OUT_OF_BOUNDS_OPACITY;
+
+    for (let li = layers.length - 1; li >= 0; li--) {
+      const layer = layers[li];
+      if (!layer.visible) continue;
+
+      const pixelMap = this.canvasState.getLayerPixelMap(layer.id);
+      for (const [key, color] of pixelMap.entries()) {
+        const coords = this.parseCoordinateKey(key);
+        if (!coords) continue;
+        const { x, y } = coords;
+        if (x < 0 || x >= w || y < 0 || y >= h) {
+          if (color && color.length) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+    }
+
+    ctx.restore();
+  }
+
+  private parseCoordinateKey(key: string): { x: number; y: number } | null {
+    const parts = key.split(',');
+    if (parts.length !== 2) return null;
+    const x = parseInt(parts[0], 10);
+    const y = parseInt(parts[1], 10);
+    if (Number.isNaN(x) || Number.isNaN(y)) return null;
+    return { x, y };
+  }
+
+  private drawCanvasBoundsBorder(
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    scale: number,
+    isDark: boolean,
+    pxLineWidth: number,
+  ): void {
+    if (!this.userSettings.showOutOfBoundsPixels()) return;
+    ctx.save();
+    ctx.setLineDash([4 / scale, 4 / scale]);
+    ctx.strokeStyle = isDark ? 'rgba(59, 130, 246, 0.7)' : 'rgba(37, 99, 235, 0.7)';
+    ctx.lineWidth = Math.max(pxLineWidth, 2 / scale);
+    ctx.strokeRect(-pxLineWidth / 2, -pxLineWidth / 2, w + pxLineWidth, h + pxLineWidth);
+    ctx.restore();
   }
 
   private drawLayerWithBoneTransforms(
