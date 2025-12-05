@@ -59,7 +59,8 @@
     "square": "Rectangle",
     "brush": "Pinceau",
     "bone": "Os",
-    "smartSelect": "Sélection intelligente"
+    "smartSelect": "Sélection intelligente",
+    "text": "Texte"
   },
   "tooltips": {
     "menu": {
@@ -117,7 +118,8 @@
       "definePattern": "Créer un motif répétable à partir de la sélection",
       "stroke": "Ajouter un contour à la sélection",
       "defineBrush": "Créer un pinceau personnalisé à partir de la sélection",
-      "defineShape": "Créer une forme vectorielle à partir de la sélection"
+      "defineShape": "Créer une forme vectorielle à partir de la sélection",
+      "text": "Ajouter du texte pixel au canevas"
     },
     "panels": {
       "layers": "Gérer les calques et leurs propriétés",
@@ -390,6 +392,19 @@
         "modeAdd": "Mode ajout (Maj+glisser)",
         "modeSubtract": "Mode soustraction (Alt+glisser)",
         "modeHint": "Maintenez Maj pour ajouter, Alt pour soustraire"
+      },
+      "text": {
+        "title": "Texte",
+        "content": "Contenu",
+        "placeholder": "Entrez le texte...",
+        "font": "Police",
+        "fontTooltip": "Sélectionner la famille de polices pixel",
+        "size": "Taille",
+        "sizeTooltip": "Taille du texte en pixels (8-64)",
+        "color": "Couleur",
+        "colorTooltip": "Sélectionner la couleur du texte",
+        "preview": "Aperçu",
+        "previewPlaceholder": "Texte exemple"
       }
     },
     "layers": {
@@ -628,7 +643,8 @@
       "palette.createFromSelection": "Créer une palette à partir de la sélection",
       "palette.createFromLayer": "Créer une palette à partir du calque",
       "palette.manage": "Gérer les palettes",
-      "view.toggleOutOfBoundsPixels": "Basculer les pixels hors limites"
+      "view.toggleOutOfBoundsPixels": "Basculer les pixels hors limites",
+      "tool.text": "Outil texte"
     }
   },
   "pixelGeneration": {

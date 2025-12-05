@@ -59,7 +59,8 @@
     "square": "長方形",
     "brush": "ブラシ",
     "bone": "ボーン",
-    "smartSelect": "スマート選択"
+    "smartSelect": "スマート選択",
+    "text": "テキスト"
   },
   "layers": {
     "title": "レイヤー",
@@ -112,7 +113,10 @@
     "edit": "編集",
     "save": "保存",
     "cancel": "キャンセル",
-    "reset": "リセット"
+    "reset": "リセット",
+    "action": {
+      "tool.text": "テキストツール"
+    }
   },
   "scale": {
     "title": "拡大縮小",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "言語を選択",
     "moreLanguages": "その他の言語"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "キャンバスにピクセルテキストを追加"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "テキスト",
+        "content": "テキスト",
+        "placeholder": "テキストを入力...",
+        "font": "フォント",
+        "fontTooltip": "ピクセルフォントファミリーを選択",
+        "size": "サイズ",
+        "sizeTooltip": "テキストサイズ（8-64ピクセル）",
+        "color": "色",
+        "colorTooltip": "テキストの色を選択",
+        "preview": "プレビュー",
+        "previewPlaceholder": "サンプルテキスト"
+      }
+    }
   }
 }

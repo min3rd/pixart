@@ -3,6 +3,7 @@ import {
   FillToolMode,
   GradientType,
   PenLineMode,
+  PixelFontFamily,
   ToolDefinition,
   ToolHistoryAdapter,
   ToolId,
@@ -25,6 +26,7 @@ import { SelectLayerToolService } from './tools/select-layer-tool.service';
 import { SquareToolService } from './tools/square-tool.service';
 import { BoneToolService } from './tools/bone-tool.service';
 import { SmartSelectToolService } from './tools/smart-select-tool.service';
+import { TextToolService, VALID_PIXEL_FONTS } from './tools/text-tool.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorToolsService {
@@ -45,6 +47,7 @@ export class EditorToolsService {
   private readonly circleTool = inject(CircleToolService);
   private readonly squareTool = inject(SquareToolService);
   private readonly boneTool = inject(BoneToolService);
+  private readonly textTool = inject(TextToolService);
 
   private readonly toolRegistry = new Map<ToolId, ToolService>([
     ['select-layer', this.selectLayerTool],
@@ -61,6 +64,7 @@ export class EditorToolsService {
     ['circle', this.circleTool],
     ['square', this.squareTool],
     ['bone', this.boneTool],
+    ['text', this.textTool],
   ]);
 
   readonly tools = signal<ToolDefinition[]>(
@@ -117,6 +121,10 @@ export class EditorToolsService {
     this.eyedropperTool.lastPickedColorHSL;
   readonly smartSelectTolerance = this.smartSelectTool.tolerance.asReadonly();
   readonly smartSelectMode = this.smartSelectTool.mode.asReadonly();
+  readonly textContent = this.textTool.content.asReadonly();
+  readonly textFontFamily = this.textTool.fontFamily.asReadonly();
+  readonly textFontSize = this.textTool.fontSize.asReadonly();
+  readonly textColor = this.textTool.color.asReadonly();
 
   constructor() {
     this.loadFromStorage();
@@ -339,6 +347,26 @@ export class EditorToolsService {
     return this.smartSelectTool;
   }
 
+  setTextContent(content: string) {
+    this.textTool.setContent(content);
+    this.saveToStorage();
+  }
+
+  setTextFontFamily(fontFamily: PixelFontFamily) {
+    this.textTool.setFontFamily(fontFamily);
+    this.saveToStorage();
+  }
+
+  setTextFontSize(size: number) {
+    this.textTool.setFontSize(size);
+    this.saveToStorage();
+  }
+
+  setTextColor(color: string) {
+    this.textTool.setColor(color);
+    this.saveToStorage();
+  }
+
   applySnapshot(snapshot: Partial<ToolSnapshot>, context?: ToolRestoreContext) {
     if (!snapshot) return;
     if (snapshot.currentTool && this.hasTool(snapshot.currentTool)) {
@@ -353,6 +381,7 @@ export class EditorToolsService {
     this.squareTool.restore(snapshot.square);
     this.boneTool.restore(snapshot.bone, context);
     this.smartSelectTool.restore(snapshot.smartSelect);
+    this.textTool.restore(snapshot.text);
     this.saveToStorage();
   }
 
@@ -381,7 +410,8 @@ export class EditorToolsService {
       (this.penTool.applyMeta?.(key, value) ?? false) ||
       (this.circleTool.applyMeta?.(key, value) ?? false) ||
       (this.squareTool.applyMeta?.(key, value) ?? false) ||
-      (this.boneTool.applyMeta?.(key, value) ?? false);
+      (this.boneTool.applyMeta?.(key, value) ?? false) ||
+      (this.textTool.applyMeta?.(key, value) ?? false);
 
     if (handled) {
       this.saveToStorage();
@@ -400,6 +430,7 @@ export class EditorToolsService {
       square: this.squareTool.snapshot(),
       bone: this.boneTool.snapshot(),
       smartSelect: this.smartSelectTool.snapshot(),
+      text: this.textTool.snapshot(),
     };
   }
 
@@ -445,6 +476,10 @@ export class EditorToolsService {
         boneAutoBindEnabled: this.boneTool.autoBindEnabled(),
         boneAutoBindRadius: this.boneTool.autoBindRadius(),
         smartSelectTolerance: this.smartSelectTool.tolerance(),
+        textContent: this.textTool.content(),
+        textFontFamily: this.textTool.fontFamily(),
+        textFontSize: this.textTool.fontSize(),
+        textColor: this.textTool.color(),
       } as const;
       window.localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch {}
@@ -496,6 +531,10 @@ export class EditorToolsService {
         boneAutoBindEnabled: boolean;
         boneAutoBindRadius: number;
         smartSelectTolerance: number;
+        textContent: string;
+        textFontFamily: PixelFontFamily;
+        textFontSize: number;
+        textColor: string;
       }> | null;
       if (!parsed) return;
       if (parsed.currentTool && this.hasTool(parsed.currentTool)) {
@@ -694,6 +733,19 @@ export class EditorToolsService {
       if (typeof parsed.smartSelectTolerance === 'number') {
         smartSelectSnapshot.tolerance = parsed.smartSelectTolerance;
       }
+      const textSnapshot: Partial<ToolSnapshot['text']> = {};
+      if (typeof parsed.textContent === 'string') {
+        textSnapshot.content = parsed.textContent;
+      }
+      if (parsed.textFontFamily && VALID_PIXEL_FONTS.includes(parsed.textFontFamily)) {
+        textSnapshot.fontFamily = parsed.textFontFamily;
+      }
+      if (typeof parsed.textFontSize === 'number') {
+        textSnapshot.fontSize = parsed.textFontSize;
+      }
+      if (typeof parsed.textColor === 'string' && parsed.textColor.length) {
+        textSnapshot.color = parsed.textColor;
+      }
       this.fillTool.restore(fillSnapshot);
       this.brushTool.restore(brushSnapshot);
       this.eraserTool.restore(eraserSnapshot);
@@ -703,6 +755,7 @@ export class EditorToolsService {
       this.squareTool.restore(squareSnapshot);
       this.boneTool.restore(boneSnapshot);
       this.smartSelectTool.restore(smartSelectSnapshot);
+      this.textTool.restore(textSnapshot);
     } catch {}
   }
 }

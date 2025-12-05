@@ -59,7 +59,8 @@
     "square": "สี่เหลี่ยม",
     "brush": "แปรง",
     "bone": "กระดูก",
-    "smartSelect": "เลือกอัจฉริยะ"
+    "smartSelect": "เลือกอัจฉริยะ",
+    "text": "ข้อความ"
   },
   "layers": {
     "title": "เลเยอร์",
@@ -112,7 +113,10 @@
     "edit": "แก้ไข",
     "save": "บันทึก",
     "cancel": "ยกเลิก",
-    "reset": "รีเซ็ต"
+    "reset": "รีเซ็ต",
+    "action": {
+      "tool.text": "เครื่องมือข้อความ"
+    }
   },
   "scale": {
     "title": "ปรับขนาด",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "เลือกภาษา",
     "moreLanguages": "ภาษาอื่นๆ"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "เพิ่มข้อความพิกเซลบนผืนผ้าใบ"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "ข้อความ",
+        "content": "ข้อความ",
+        "placeholder": "ป้อนข้อความ...",
+        "font": "แบบอักษร",
+        "fontTooltip": "เลือกตระกูลแบบอักษรพิกเซล",
+        "size": "ขนาด",
+        "sizeTooltip": "ขนาดข้อความเป็นพิกเซล (8-64)",
+        "color": "สี",
+        "colorTooltip": "เลือกสีข้อความ",
+        "preview": "ตัวอย่าง",
+        "previewPlaceholder": "ข้อความตัวอย่าง"
+      }
+    }
   }
 }

@@ -59,7 +59,8 @@
     "square": "Hình vuông",
     "brush": "Cọ vẽ",
     "bone": "Xương",
-    "smartSelect": "Chọn thông minh"
+    "smartSelect": "Chọn thông minh",
+    "text": "Văn bản"
   },
   "tooltips": {
     "menu": {
@@ -117,7 +118,8 @@
       "definePattern": "Tạo pattern lặp từ vùng chọn",
       "stroke": "Thêm viền cho vùng chọn",
       "defineBrush": "Tạo brush tùy chỉnh từ vùng chọn",
-      "defineShape": "Tạo shape vector từ vùng chọn"
+      "defineShape": "Tạo shape vector từ vùng chọn",
+      "text": "Thêm văn bản pixel vào canvas"
     },
     "panels": {
       "layers": "Quản lý layer và thuộc tính",
@@ -390,6 +392,19 @@
         "modeAdd": "Chế độ thêm (Shift+kéo)",
         "modeSubtract": "Chế độ bớt (Alt+kéo)",
         "modeHint": "Giữ Shift để thêm, Alt để bớt"
+      },
+      "text": {
+        "title": "Văn bản",
+        "content": "Nội dung",
+        "placeholder": "Nhập văn bản...",
+        "font": "Phông chữ",
+        "fontTooltip": "Chọn họ phông chữ pixel",
+        "size": "Kích thước",
+        "sizeTooltip": "Kích thước văn bản theo pixel (8-64)",
+        "color": "Màu sắc",
+        "colorTooltip": "Chọn màu văn bản",
+        "preview": "Xem trước",
+        "previewPlaceholder": "Văn bản mẫu"
       }
     },
     "layers": {
@@ -631,7 +646,8 @@
       "palette.createFromSelection": "Tạo bảng màu từ vùng chọn",
       "palette.createFromLayer": "Tạo bảng màu từ layer",
       "palette.manage": "Quản lý bảng màu",
-      "view.toggleOutOfBoundsPixels": "Bật/tắt pixel ngoài vùng"
+      "view.toggleOutOfBoundsPixels": "Bật/tắt pixel ngoài vùng",
+      "tool.text": "Công cụ Văn bản"
     }
   },
   "pixelGeneration": {
