@@ -111,6 +111,7 @@ export class EditorHeader {
   readonly showTransformMenu = signal(false);
   readonly showFillMenu = signal(false);
   readonly showPaletteMenu = signal(false);
+  readonly showViewMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
@@ -144,6 +145,8 @@ export class EditorHeader {
   private fillHoverCloseTimer?: number;
   private paletteHoverOpenTimer?: number;
   private paletteHoverCloseTimer?: number;
+  private viewHoverOpenTimer?: number;
+  private viewHoverCloseTimer?: number;
 
   async onNewProject() {
     this.document.resetToNewProject();
@@ -769,6 +772,13 @@ export class EditorHeader {
       defaultKey: 'ctrl+shift+alt+p',
       handler: () => this.onPaletteManageOpen(),
     });
+
+    this.hotkeys.register({
+      id: 'view.toggleOutOfBoundsPixels',
+      category: 'view',
+      defaultKey: 'ctrl+shift+o',
+      handler: () => this.onToggleOutOfBoundsPixels(),
+    });
   }
 
   onPaletteCreateNew(): void {
@@ -841,6 +851,56 @@ export class EditorHeader {
       this.showPaletteMenu.set(false);
       this.paletteHoverCloseTimer = undefined;
     }, 150);
+  }
+
+  openViewMenuHover(): void {
+    if (this.viewHoverCloseTimer) {
+      clearTimeout(this.viewHoverCloseTimer);
+      this.viewHoverCloseTimer = undefined;
+    }
+    if (!this.showViewMenu()) {
+      this.viewHoverOpenTimer = window.setTimeout(() => {
+        this.showViewMenu.set(true);
+        this.viewHoverOpenTimer = undefined;
+      }, 150);
+    }
+  }
+
+  closeViewMenuHover(): void {
+    if (this.viewHoverOpenTimer) {
+      clearTimeout(this.viewHoverOpenTimer);
+      this.viewHoverOpenTimer = undefined;
+    }
+    if (this.showViewMenu()) {
+      this.viewHoverCloseTimer = window.setTimeout(() => {
+        this.showViewMenu.set(false);
+        this.viewHoverCloseTimer = undefined;
+      }, 150);
+    }
+  }
+
+  onViewMenuFocusIn(): void {
+    if (this.viewHoverCloseTimer) {
+      clearTimeout(this.viewHoverCloseTimer);
+      this.viewHoverCloseTimer = undefined;
+    }
+    this.showViewMenu.set(true);
+  }
+
+  onViewMenuFocusOut(): void {
+    if (this.viewHoverOpenTimer) {
+      clearTimeout(this.viewHoverOpenTimer);
+      this.viewHoverOpenTimer = undefined;
+    }
+    this.viewHoverCloseTimer = window.setTimeout(() => {
+      this.showViewMenu.set(false);
+      this.viewHoverCloseTimer = undefined;
+    }, 150);
+  }
+
+  onToggleOutOfBoundsPixels(): void {
+    this.settings.toggleShowOutOfBoundsPixels();
+    this.showViewMenu.set(false);
   }
 
   onStroke(): void {
@@ -1197,6 +1257,14 @@ export class EditorHeader {
     if (this.paletteHoverCloseTimer) {
       clearTimeout(this.paletteHoverCloseTimer);
       this.paletteHoverCloseTimer = undefined;
+    }
+    if (this.viewHoverOpenTimer) {
+      clearTimeout(this.viewHoverOpenTimer);
+      this.viewHoverOpenTimer = undefined;
+    }
+    if (this.viewHoverCloseTimer) {
+      clearTimeout(this.viewHoverCloseTimer);
+      this.viewHoverCloseTimer = undefined;
     }
   }
 

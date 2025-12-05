@@ -29,8 +29,6 @@ export class EditorDrawingService {
     color: string | null,
     options?: { eraserStrength?: number },
   ): boolean {
-    const buf = this.canvasState.getLayerBuffer(layerId);
-    if (!buf || buf.length === 0) return false;
     const w = Math.max(1, this.canvasState.canvasWidth());
     const h = Math.max(1, this.canvasState.canvasHeight());
     const half = Math.floor((Math.max(1, brushSize) - 1) / 2);
@@ -41,21 +39,8 @@ export class EditorDrawingService {
     const erasing = color === null;
     const eraserStrength = erasing ? (options?.eraserStrength ?? 100) : 0;
     const brushColor = color ?? '';
-    for (
-      let yy = Math.max(0, y - half);
-      yy <= Math.min(h - 1, y + half);
-      yy++
-    ) {
-      for (
-        let xx = Math.max(0, x - half);
-        xx <= Math.min(w - 1, x + half);
-        xx++
-      ) {
-        const idx = yy * w + xx;
-        const oldVal = buf[idx] || '';
-        const newVal = erasing
-          ? this.colorService.computeEraserValue(oldVal, eraserStrength)
-          : brushColor;
+    for (let yy = y - half; yy <= y + half; yy++) {
+      for (let xx = x - half; xx <= x + half; xx++) {
         if (
           sel &&
           !this.selectionService.isPixelWithinSelection(
@@ -68,8 +53,12 @@ export class EditorDrawingService {
         ) {
           continue;
         }
+        const oldVal = this.canvasState.getPixel(layerId, xx, yy);
+        const newVal = erasing
+          ? this.colorService.computeEraserValue(oldVal, eraserStrength)
+          : brushColor;
         if (oldVal !== newVal) {
-          buf[idx] = newVal;
+          this.canvasState.setPixel(layerId, xx, yy, newVal);
           changed = true;
         }
       }

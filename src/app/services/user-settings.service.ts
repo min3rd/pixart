@@ -11,6 +11,7 @@ export interface UserSettings {
   theme: 'light' | 'dark';
   lang: string;
   panels: PanelSizes;
+  showOutOfBoundsPixels: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +25,7 @@ export class UserSettingsService {
     null;
 
   readonly theme = computed(() => this._state().theme);
+  readonly showOutOfBoundsPixels = computed(() => this._state().showOutOfBoundsPixels);
 
   constructor() {
     const stored = this.readStoredSettings();
@@ -60,6 +62,16 @@ export class UserSettingsService {
     this.save();
   }
 
+  setShowOutOfBoundsPixels(value: boolean) {
+    this._state.update((s) => ({ ...s, showOutOfBoundsPixels: value }));
+    this.save();
+  }
+
+  toggleShowOutOfBoundsPixels() {
+    this._state.update((s) => ({ ...s, showOutOfBoundsPixels: !s.showOutOfBoundsPixels }));
+    this.save();
+  }
+
   private applyTheme(theme: 'light' | 'dark') {
     if (typeof document === 'undefined') return;
     const targets: Element[] = [document.documentElement];
@@ -83,6 +95,7 @@ export class UserSettingsService {
       theme: this.detectSystemTheme(),
       lang: 'en',
       panels: { left: 220, right: 260, bottom: 112 },
+      showOutOfBoundsPixels: true,
     };
   }
 
@@ -108,6 +121,7 @@ export class UserSettingsService {
         theme: parsed?.theme === 'dark' ? 'dark' : 'light',
         lang: parsed?.lang || 'en',
         panels: parsed?.panels || { left: 220, right: 260, bottom: 112 },
+        showOutOfBoundsPixels: parsed?.showOutOfBoundsPixels !== false,
       };
     } catch {
       return null;
