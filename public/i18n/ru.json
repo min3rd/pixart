@@ -180,8 +180,13 @@
         "color": "Цвет",
         "colorTooltip": "Выберите цвет текста",
         "preview": "Предпросмотр",
-        "previewPlaceholder": "Пример текста"
+        "previewPlaceholder": "Пример текста",
+        "dragHint": "Перетащите на холсте, чтобы создать текстовую область"
       }
     }
+  },
+  "common": {
+    "confirm": "Подтвердить",
+    "cancel": "Отмена"
   }
 }

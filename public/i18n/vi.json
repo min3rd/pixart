@@ -404,7 +404,8 @@
         "color": "Màu sắc",
         "colorTooltip": "Chọn màu văn bản",
         "preview": "Xem trước",
-        "previewPlaceholder": "Văn bản mẫu"
+        "previewPlaceholder": "Văn bản mẫu",
+        "dragHint": "Kéo trên canvas để tạo vùng văn bản"
       }
     },
     "layers": {
@@ -965,5 +966,9 @@
   "languageSelector": {
     "selectLanguage": "Chọn ngôn ngữ",
     "moreLanguages": "Thêm ngôn ngữ"
+  },
+  "common": {
+    "confirm": "Xác nhận",
+    "cancel": "Hủy"
   }
 }

@@ -404,7 +404,8 @@
         "color": "Color",
         "colorTooltip": "Seleccionar color del texto",
         "preview": "Vista previa",
-        "previewPlaceholder": "Texto de muestra"
+        "previewPlaceholder": "Texto de muestra",
+        "dragHint": "Arrastra en el lienzo para crear área de texto"
       }
     },
     "layers": {
@@ -965,5 +966,9 @@
   "languageSelector": {
     "selectLanguage": "Seleccionar idioma",
     "moreLanguages": "Más idiomas"
+  },
+  "common": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   }
 }
