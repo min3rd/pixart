@@ -180,8 +180,13 @@
         "color": "색상",
         "colorTooltip": "텍스트 색상 선택",
         "preview": "미리보기",
-        "previewPlaceholder": "샘플 텍스트"
+        "previewPlaceholder": "샘플 텍스트",
+        "dragHint": "캔버스에서 드래그하여 텍스트 영역 생성"
       }
     }
+  },
+  "common": {
+    "confirm": "확인",
+    "cancel": "취소"
   }
 }

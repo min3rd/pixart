@@ -180,8 +180,13 @@
         "color": "اللون",
         "colorTooltip": "حدد لون النص",
         "preview": "معاينة",
-        "previewPlaceholder": "نص نموذجي"
+        "previewPlaceholder": "نص نموذجي",
+        "dragHint": "اسحب على اللوحة لإنشاء منطقة نص"
       }
     }
+  },
+  "common": {
+    "confirm": "تأكيد",
+    "cancel": "إلغاء"
   }
 }

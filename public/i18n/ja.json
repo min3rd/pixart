@@ -180,8 +180,13 @@
         "color": "色",
         "colorTooltip": "テキストの色を選択",
         "preview": "プレビュー",
-        "previewPlaceholder": "サンプルテキスト"
+        "previewPlaceholder": "サンプルテキスト",
+        "dragHint": "キャンバス上でドラッグしてテキスト領域を作成"
       }
     }
+  },
+  "common": {
+    "confirm": "確認",
+    "cancel": "キャンセル"
   }
 }

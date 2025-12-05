@@ -404,7 +404,8 @@
         "color": "Couleur",
         "colorTooltip": "Sélectionner la couleur du texte",
         "preview": "Aperçu",
-        "previewPlaceholder": "Texte exemple"
+        "previewPlaceholder": "Texte exemple",
+        "dragHint": "Faites glisser sur le canevas pour créer une zone de texte"
       }
     },
     "layers": {
@@ -965,5 +966,9 @@
   "languageSelector": {
     "selectLanguage": "Sélectionner la langue",
     "moreLanguages": "Plus de langues"
+  },
+  "common": {
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
   }
 }

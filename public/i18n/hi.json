@@ -180,8 +180,13 @@
         "color": "रंग",
         "colorTooltip": "टेक्स्ट रंग चुनें",
         "preview": "पूर्वावलोकन",
-        "previewPlaceholder": "नमूना टेक्स्ट"
+        "previewPlaceholder": "नमूना टेक्स्ट",
+        "dragHint": "टेक्स्ट क्षेत्र बनाने के लिए कैनवास पर खींचें"
       }
     }
+  },
+  "common": {
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें"
   }
 }

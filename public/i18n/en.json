@@ -1,4 +1,8 @@
 {
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
   "menu": {
     "file": "File",
     "edit": "Edit",
@@ -404,7 +408,8 @@
         "color": "Color",
         "colorTooltip": "Select text color",
         "preview": "Preview",
-        "previewPlaceholder": "Sample Text"
+        "previewPlaceholder": "Sample Text",
+        "dragHint": "Drag on canvas to create text area"
       }
     },
     "layers": {

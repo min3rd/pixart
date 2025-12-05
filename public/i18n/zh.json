@@ -404,7 +404,8 @@
         "color": "颜色",
         "colorTooltip": "选择文字颜色",
         "preview": "预览",
-        "previewPlaceholder": "示例文字"
+        "previewPlaceholder": "示例文字",
+        "dragHint": "在画布上拖动以创建文本区域"
       }
     },
     "layers": {
@@ -965,5 +966,9 @@
   "languageSelector": {
     "selectLanguage": "选择语言",
     "moreLanguages": "更多语言"
+  },
+  "common": {
+    "confirm": "确认",
+    "cancel": "取消"
   }
 }

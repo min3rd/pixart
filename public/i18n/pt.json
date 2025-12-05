@@ -180,8 +180,13 @@
         "color": "Cor",
         "colorTooltip": "Selecionar cor do texto",
         "preview": "Pré-visualização",
-        "previewPlaceholder": "Texto de exemplo"
+        "previewPlaceholder": "Texto de exemplo",
+        "dragHint": "Arraste na tela para criar área de texto"
       }
     }
+  },
+  "common": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   }
 }
