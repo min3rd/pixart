@@ -54,9 +54,13 @@ export class EditorProjectService {
   exportProjectSnapshot() {
     const now = new Date().toISOString();
     const layers = this.layerService.layers().map((l) => ({ ...l }));
-    const buffers: Record<string, string[]> = {};
-    for (const [id, buf] of this.canvasState.getAllBuffers().entries()) {
-      buffers[id] = buf.slice();
+    const pixelMaps: Record<string, Record<string, string>> = {};
+    for (const [id, map] of this.canvasState.getAllPixelMaps().entries()) {
+      const pixelData: Record<string, string> = {};
+      for (const [key, color] of map.entries()) {
+        pixelData[key] = color;
+      }
+      pixelMaps[id] = pixelData;
     }
     const toolSnapshot = this.tools.snapshot();
     const bonesSnapshot = this.boneService.snapshot();
@@ -87,7 +91,7 @@ export class EditorProjectService {
         height: this.canvasState.canvasHeight(),
       },
       layers,
-      layerBuffers: buffers,
+      layerPixelMaps: pixelMaps,
       selectedLayerId: this.layerService.selectedLayerId(),
       currentTool: toolSnapshot.currentTool,
       brush: toolSnapshot.brush,
@@ -136,8 +140,30 @@ export class EditorProjectService {
         this.layerService.layers.set(layers);
       }
 
-      const newBuffers = new Map<string, string[]>();
-      if (parsed.layerBuffers && typeof parsed.layerBuffers === 'object') {
+      if (parsed.layerPixelMaps && typeof parsed.layerPixelMaps === 'object' && parsed.layerPixelMaps !== null) {
+        const newPixelMaps = new Map<string, Map<string, string>>();
+        for (const layerId of Object.keys(parsed.layerPixelMaps)) {
+          const pixelData = parsed.layerPixelMaps[layerId];
+          if (pixelData && typeof pixelData === 'object' && pixelData !== null) {
+            const pixelMap = new Map<string, string>();
+            for (const [key, color] of Object.entries(pixelData)) {
+              if (typeof color === 'string' && color.length > 0) {
+                const coordParts = key.split(',');
+                if (coordParts.length === 2) {
+                  const x = parseInt(coordParts[0], 10);
+                  const y = parseInt(coordParts[1], 10);
+                  if (!Number.isNaN(x) && !Number.isNaN(y)) {
+                    pixelMap.set(key, color);
+                  }
+                }
+              }
+            }
+            newPixelMaps.set(layerId, pixelMap);
+          }
+        }
+        this.canvasState.replaceAllPixelMaps(newPixelMaps);
+      } else if (parsed.layerBuffers && typeof parsed.layerBuffers === 'object' && parsed.layerBuffers !== null) {
+        const newBuffers = new Map<string, string[]>();
         for (const k of Object.keys(parsed.layerBuffers)) {
           const buf = parsed.layerBuffers[k];
           if (Array.isArray(buf)) {
@@ -150,8 +176,8 @@ export class EditorProjectService {
             newBuffers.set(k, next);
           }
         }
+        this.canvasState.replaceAllBuffers(newBuffers);
       }
-      this.canvasState.replaceAllBuffers(newBuffers);
       for (const l of this.layerService.layers()) {
         if (!this.canvasState.getLayerBuffer(l.id).length)
           this.canvasState.ensureLayerBuffer(
@@ -238,8 +264,8 @@ export class EditorProjectService {
         const s = parsed.selection as any;
         if (s && typeof s === 'object' && typeof s.x === 'number') {
           this.selectionService.selectionRect.set({
-            x: Math.max(0, Math.floor(s.x)),
-            y: Math.max(0, Math.floor(s.y)),
+            x: Math.floor(s.x),
+            y: Math.floor(s.y),
             width: Math.max(0, Math.floor(s.width || 0)),
             height: Math.max(0, Math.floor(s.height || 0)),
           });
