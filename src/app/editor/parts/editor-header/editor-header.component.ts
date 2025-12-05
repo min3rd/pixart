@@ -57,6 +57,7 @@ import {
   ImageSizeDialog,
   ImageSizeResult,
 } from '../../../shared/components/image-size-dialog/image-size-dialog';
+import { LanguageSelectorComponent } from '../../../shared/components/language-selector/language-selector.component';
 
 @Component({
   selector: 'pa-editor-header',
@@ -77,6 +78,7 @@ import {
     ContentAwareScaleDialog,
     FillSelectionDialog,
     ImageSizeDialog,
+    LanguageSelectorComponent,
   ],
   host: {
     class:
@@ -1268,7 +1270,7 @@ export class EditorHeader {
     }
   }
 
-  setLang(lang: 'en' | 'vi') {
+  setLang(lang: string) {
     this.settings.setLanguage(lang);
   }
 

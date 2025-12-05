@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "ไฟล์",
+    "edit": "แก้ไข",
+    "insert": "แทรก",
+    "tool": "เครื่องมือ",
+    "help": "ช่วยเหลือ",
+    "view": "มุมมอง",
+    "undo": "เลิกทำ",
+    "redo": "ทำซ้ำ",
+    "cut": "ตัด",
+    "copy": "คัดลอก",
+    "copyMerged": "คัดลอกรวม",
+    "paste": "วาง",
+    "pasteInPlace": "วางในที่เดิม",
+    "pasteInto": "วางลงใน",
+    "clear": "ล้าง",
+    "transform": "แปลงร่าง",
+    "fill": "เติมสี",
+    "freeTransform": "แปลงร่างอิสระ",
+    "scale": "ปรับขนาด",
+    "rotate": "หมุน",
+    "skew": "เอียง",
+    "distort": "บิดเบือน",
+    "perspective": "เปอร์สเปคทีฟ",
+    "warp": "บิดโค้ง",
+    "puppetWarp": "บิดโค้งหุ่นเชิด",
+    "contentAwareScale": "ปรับขนาดตามเนื้อหา",
+    "autoAlignLayers": "จัดเรียงเลเยอร์อัตโนมัติ",
+    "autoBlendLayers": "ผสานเลเยอร์อัตโนมัติ",
+    "flipHorizontal": "พลิกแนวนอน",
+    "flipVertical": "พลิกแนวตั้ง",
+    "rotate90CW": "หมุน 90° ตามเข็มนาฬิกา",
+    "rotate90CCW": "หมุน 90° ทวนเข็มนาฬิกา",
+    "rotate180": "หมุน 180°",
+    "fillSelection": "เติมสีพื้นที่เลือก",
+    "contentAwareFill": "เติมสีตามเนื้อหา",
+    "stroke": "เส้นขอบ",
+    "imageSize": "ขนาดภาพ",
+    "showOutOfBoundsPixels": "แสดงพิกเซลนอกขอบเขต",
+    "hideOutOfBoundsPixels": "ซ่อนพิกเซลนอกขอบเขต"
+  },
+  "badges": {
+    "title": "โปรแกรมแก้ไข 2D • Alpha",
+    "dev": "กำลังพัฒนา"
+  },
+  "tools": {
+    "selectLayer": "เลือกเลเยอร์",
+    "rectSelect": "เลือกรูปสี่เหลี่ยม",
+    "ellipseSelect": "เลือกรูปวงรี",
+    "lassoSelect": "เลือกอิสระ",
+    "eyedropper": "ดูดสี",
+    "fill": "เติมสี",
+    "eraser": "ยางลบ",
+    "line": "เส้น",
+    "pen": "ปากกา",
+    "lineToolOptions": "ตัวเลือกเครื่องมือเส้น",
+    "circle": "วงกลม",
+    "square": "สี่เหลี่ยม",
+    "brush": "แปรง",
+    "bone": "กระดูก",
+    "smartSelect": "เลือกอัจฉริยะ"
+  },
+  "layers": {
+    "title": "เลเยอร์",
+    "hide": "ซ่อน",
+    "show": "แสดง",
+    "delete": "ลบเลเยอร์",
+    "add": "เพิ่มเลเยอร์",
+    "pasted": "วางแล้ว",
+    "pastedInPlace": "วางในที่เดิมแล้ว",
+    "pastedInto": "วางลงในแล้ว"
+  },
+  "timeline": {
+    "title": "ไทม์ไลน์",
+    "animations": "แอนิเมชัน",
+    "addAnimation": "เพิ่มแอนิเมชัน",
+    "removeAnimation": "ลบแอนิเมชัน",
+    "renameAnimation": "เปลี่ยนชื่อแอนิเมชัน",
+    "addFrame": "เพิ่มเฟรม",
+    "deleteFrame": "ลบเฟรม",
+    "duplicateFrame": "ทำซ้ำเฟรม",
+    "play": "เล่น",
+    "stop": "หยุด",
+    "fps": "FPS",
+    "duration": "ความยาว"
+  },
+  "theme": {
+    "toggle": "เปลี่ยนธีม"
+  },
+  "canvas": {
+    "zoom": "ซูม",
+    "zoomIncrease": "ขยาย",
+    "zoomDecrease": "ย่อ",
+    "rotate": "หมุน",
+    "resetRotation": "รีเซ็ตการหมุน",
+    "size": "ขนาดผืนผ้าใบ",
+    "width": "ความกว้าง",
+    "height": "ความสูง",
+    "saved": "บันทึกแล้ว",
+    "unsaved": "ยังไม่บันทึก"
+  },
+  "file": {
+    "new": "สร้างใหม่",
+    "openFromComputer": "เปิดจากคอมพิวเตอร์",
+    "saveToComputer": "บันทึกลงคอมพิวเตอร์",
+    "saveLocal": "บันทึก"
+  },
+  "hotkeys": {
+    "title": "ปุ่มลัด",
+    "close": "ปิด",
+    "edit": "แก้ไข",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "reset": "รีเซ็ต"
+  },
+  "scale": {
+    "title": "ปรับขนาด",
+    "width": "ความกว้าง",
+    "height": "ความสูง",
+    "ok": "ตกลง",
+    "cancel": "ยกเลิก"
+  },
+  "rotate": {
+    "title": "หมุน",
+    "angle": "มุม",
+    "apply": "นำไปใช้",
+    "cancel": "ยกเลิก"
+  },
+  "modal": {
+    "close": "ปิด"
+  },
+  "palette": {
+    "title": "จานสี",
+    "createNew": "สร้างใหม่",
+    "addColor": "เพิ่มสี",
+    "removeColor": "ลบสี",
+    "cancel": "ยกเลิก",
+    "add": "เพิ่ม"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "เลือกภาษา",
+    "moreLanguages": "ภาษาอื่นๆ"
+  }
+}

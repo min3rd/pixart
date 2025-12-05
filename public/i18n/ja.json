@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "ファイル",
+    "edit": "編集",
+    "insert": "挿入",
+    "tool": "ツール",
+    "help": "ヘルプ",
+    "view": "表示",
+    "undo": "元に戻す",
+    "redo": "やり直し",
+    "cut": "切り取り",
+    "copy": "コピー",
+    "copyMerged": "結合してコピー",
+    "paste": "貼り付け",
+    "pasteInPlace": "同じ位置に貼り付け",
+    "pasteInto": "選択範囲内に貼り付け",
+    "clear": "消去",
+    "transform": "変形",
+    "fill": "塗りつぶし",
+    "freeTransform": "自由変形",
+    "scale": "拡大縮小",
+    "rotate": "回転",
+    "skew": "傾斜",
+    "distort": "ゆがみ",
+    "perspective": "遠近法",
+    "warp": "ワープ",
+    "puppetWarp": "パペットワープ",
+    "contentAwareScale": "コンテンツに応じた拡大・縮小",
+    "autoAlignLayers": "レイヤーを自動整列",
+    "autoBlendLayers": "レイヤーを自動合成",
+    "flipHorizontal": "水平方向に反転",
+    "flipVertical": "垂直方向に反転",
+    "rotate90CW": "90度回転（時計回り）",
+    "rotate90CCW": "90度回転（反時計回り）",
+    "rotate180": "180度回転",
+    "fillSelection": "選択範囲を塗りつぶす",
+    "contentAwareFill": "コンテンツに応じた塗りつぶし",
+    "stroke": "境界線",
+    "imageSize": "画像サイズ",
+    "showOutOfBoundsPixels": "境界外のピクセルを表示",
+    "hideOutOfBoundsPixels": "境界外のピクセルを非表示"
+  },
+  "badges": {
+    "title": "2Dエディター • Alpha",
+    "dev": "開発中"
+  },
+  "tools": {
+    "selectLayer": "レイヤーを選択",
+    "rectSelect": "長方形選択",
+    "ellipseSelect": "楕円形選択",
+    "lassoSelect": "なげなわ選択",
+    "eyedropper": "スポイト",
+    "fill": "塗りつぶし",
+    "eraser": "消しゴム",
+    "line": "直線",
+    "pen": "ペン",
+    "lineToolOptions": "直線ツールオプション",
+    "circle": "円形",
+    "square": "長方形",
+    "brush": "ブラシ",
+    "bone": "ボーン",
+    "smartSelect": "スマート選択"
+  },
+  "layers": {
+    "title": "レイヤー",
+    "hide": "非表示",
+    "show": "表示",
+    "delete": "レイヤーを削除",
+    "add": "レイヤーを追加",
+    "pasted": "貼り付け完了",
+    "pastedInPlace": "同じ位置に貼り付け完了",
+    "pastedInto": "選択範囲内に貼り付け完了"
+  },
+  "timeline": {
+    "title": "タイムライン",
+    "animations": "アニメーション",
+    "addAnimation": "アニメーションを追加",
+    "removeAnimation": "アニメーションを削除",
+    "renameAnimation": "アニメーション名を変更",
+    "addFrame": "フレームを追加",
+    "deleteFrame": "フレームを削除",
+    "duplicateFrame": "フレームを複製",
+    "play": "再生",
+    "stop": "停止",
+    "fps": "FPS",
+    "duration": "再生時間"
+  },
+  "theme": {
+    "toggle": "テーマを切り替え"
+  },
+  "canvas": {
+    "zoom": "ズーム",
+    "zoomIncrease": "拡大",
+    "zoomDecrease": "縮小",
+    "rotate": "回転",
+    "resetRotation": "回転をリセット",
+    "size": "キャンバスサイズ",
+    "width": "幅",
+    "height": "高さ",
+    "saved": "保存済み",
+    "unsaved": "未保存"
+  },
+  "file": {
+    "new": "新規",
+    "openFromComputer": "コンピューターから開く",
+    "saveToComputer": "コンピューターに保存",
+    "saveLocal": "保存"
+  },
+  "hotkeys": {
+    "title": "キーボードショートカット",
+    "close": "閉じる",
+    "edit": "編集",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "reset": "リセット"
+  },
+  "scale": {
+    "title": "拡大縮小",
+    "width": "幅",
+    "height": "高さ",
+    "ok": "OK",
+    "cancel": "キャンセル"
+  },
+  "rotate": {
+    "title": "回転",
+    "angle": "角度",
+    "apply": "適用",
+    "cancel": "キャンセル"
+  },
+  "modal": {
+    "close": "閉じる"
+  },
+  "palette": {
+    "title": "パレット",
+    "createNew": "新規",
+    "addColor": "色を追加",
+    "removeColor": "色を削除",
+    "cancel": "キャンセル",
+    "add": "追加"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "言語を選択",
+    "moreLanguages": "その他の言語"
+  }
+}

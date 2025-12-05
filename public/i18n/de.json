@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "Datei",
+    "edit": "Bearbeiten",
+    "insert": "Einfügen",
+    "tool": "Werkzeug",
+    "help": "Hilfe",
+    "view": "Ansicht",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "cut": "Ausschneiden",
+    "copy": "Kopieren",
+    "copyMerged": "Auf eine Ebene reduziert kopieren",
+    "paste": "Einfügen",
+    "pasteInPlace": "An Originalposition einfügen",
+    "pasteInto": "In Auswahl einfügen",
+    "clear": "Löschen",
+    "transform": "Transformieren",
+    "fill": "Füllen",
+    "freeTransform": "Frei transformieren",
+    "scale": "Skalieren",
+    "rotate": "Drehen",
+    "skew": "Neigen",
+    "distort": "Verzerren",
+    "perspective": "Perspektive",
+    "warp": "Verkrümmen",
+    "puppetWarp": "Formgitter",
+    "contentAwareScale": "Inhaltsbasiert skalieren",
+    "autoAlignLayers": "Ebenen automatisch ausrichten",
+    "autoBlendLayers": "Ebenen automatisch überblenden",
+    "flipHorizontal": "Horizontal spiegeln",
+    "flipVertical": "Vertikal spiegeln",
+    "rotate90CW": "90° im Uhrzeigersinn drehen",
+    "rotate90CCW": "90° gegen Uhrzeigersinn drehen",
+    "rotate180": "180° drehen",
+    "fillSelection": "Auswahl füllen",
+    "contentAwareFill": "Inhaltsbasiert füllen",
+    "stroke": "Kontur",
+    "imageSize": "Bildgröße",
+    "showOutOfBoundsPixels": "Pixel außerhalb anzeigen",
+    "hideOutOfBoundsPixels": "Pixel außerhalb ausblenden"
+  },
+  "badges": {
+    "title": "2D-Editor • Alpha",
+    "dev": "In Entwicklung"
+  },
+  "tools": {
+    "selectLayer": "Ebene auswählen",
+    "rectSelect": "Rechteckauswahl",
+    "ellipseSelect": "Ellipsenauswahl",
+    "lassoSelect": "Lasso-Auswahl",
+    "eyedropper": "Pipette",
+    "fill": "Füllen",
+    "eraser": "Radiergummi",
+    "line": "Linie",
+    "pen": "Zeichenstift",
+    "lineToolOptions": "Linienoptionen anzeigen",
+    "circle": "Kreis",
+    "square": "Rechteck",
+    "brush": "Pinsel",
+    "bone": "Knochen",
+    "smartSelect": "Intelligente Auswahl"
+  },
+  "layers": {
+    "title": "Ebenen",
+    "hide": "Ausblenden",
+    "show": "Einblenden",
+    "delete": "Ebene löschen",
+    "add": "Ebene hinzufügen",
+    "pasted": "Eingefügt",
+    "pastedInPlace": "An Originalposition eingefügt",
+    "pastedInto": "In Auswahl eingefügt"
+  },
+  "timeline": {
+    "title": "Zeitleiste",
+    "animations": "Animationen",
+    "addAnimation": "Animation hinzufügen",
+    "removeAnimation": "Animation entfernen",
+    "renameAnimation": "Animation umbenennen",
+    "addFrame": "Frame hinzufügen",
+    "deleteFrame": "Frame löschen",
+    "duplicateFrame": "Frame duplizieren",
+    "play": "Abspielen",
+    "stop": "Stoppen",
+    "fps": "FPS",
+    "duration": "Dauer"
+  },
+  "theme": {
+    "toggle": "Design wechseln"
+  },
+  "canvas": {
+    "zoom": "Zoom",
+    "zoomIncrease": "Vergrößern",
+    "zoomDecrease": "Verkleinern",
+    "rotate": "Drehen",
+    "resetRotation": "Drehung zurücksetzen",
+    "size": "Leinwandgröße",
+    "width": "Breite",
+    "height": "Höhe",
+    "saved": "Gespeichert",
+    "unsaved": "Nicht gespeichert"
+  },
+  "file": {
+    "new": "Neu",
+    "openFromComputer": "Vom Computer öffnen",
+    "saveToComputer": "Auf Computer speichern",
+    "saveLocal": "Speichern"
+  },
+  "hotkeys": {
+    "title": "Tastaturkürzel",
+    "close": "Schließen",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "reset": "Zurücksetzen"
+  },
+  "scale": {
+    "title": "Skalieren",
+    "width": "Breite",
+    "height": "Höhe",
+    "ok": "OK",
+    "cancel": "Abbrechen"
+  },
+  "rotate": {
+    "title": "Drehen",
+    "angle": "Winkel",
+    "apply": "Anwenden",
+    "cancel": "Abbrechen"
+  },
+  "modal": {
+    "close": "Schließen"
+  },
+  "palette": {
+    "title": "Palette",
+    "createNew": "Neu",
+    "addColor": "Farbe hinzufügen",
+    "removeColor": "Farbe entfernen",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "Sprache auswählen",
+    "moreLanguages": "Mehr Sprachen"
+  }
+}

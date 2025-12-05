@@ -1,0 +1,161 @@
+{
+  "menu": {
+    "file": "फ़ाइल",
+    "edit": "संपादित करें",
+    "insert": "सम्मिलित करें",
+    "tool": "उपकरण",
+    "help": "सहायता",
+    "view": "दृश्य",
+    "undo": "पूर्ववत करें",
+    "redo": "फिर से करें",
+    "cut": "काटें",
+    "copy": "कॉपी करें",
+    "copyMerged": "मर्ज की गई कॉपी",
+    "paste": "पेस्ट करें",
+    "pasteInPlace": "जगह पर पेस्ट करें",
+    "pasteInto": "अंदर पेस्ट करें",
+    "clear": "साफ़ करें",
+    "transform": "रूपांतरित करें",
+    "fill": "भरें",
+    "freeTransform": "मुक्त रूपांतरण",
+    "scale": "स्केल करें",
+    "rotate": "घुमाएं",
+    "skew": "तिरछा करें",
+    "distort": "विकृत करें",
+    "perspective": "परिप्रेक्ष्य",
+    "warp": "वार्प",
+    "puppetWarp": "कठपुतली वार्प",
+    "contentAwareScale": "सामग्री-जागरूक स्केल",
+    "autoAlignLayers": "लेयर्स को स्वचालित रूप से संरेखित करें",
+    "autoBlendLayers": "लेयर्स को स्वचालित रूप से मिश्रित करें",
+    "flipHorizontal": "क्षैतिज पलटें",
+    "flipVertical": "लंबवत पलटें",
+    "rotate90CW": "दक्षिणावर्त 90° घुमाएं",
+    "rotate90CCW": "वामावर्त 90° घुमाएं",
+    "rotate180": "180° घुमाएं",
+    "fillSelection": "चयन भरें",
+    "contentAwareFill": "सामग्री-जागरूक भरण",
+    "stroke": "स्ट्रोक",
+    "imageSize": "छवि का आकार",
+    "showOutOfBoundsPixels": "सीमा से बाहर पिक्सेल दिखाएं",
+    "hideOutOfBoundsPixels": "सीमा से बाहर पिक्सेल छिपाएं"
+  },
+  "badges": {
+    "title": "2D संपादक • अल्फा",
+    "dev": "विकास में"
+  },
+  "tools": {
+    "selectLayer": "लेयर चुनें",
+    "rectSelect": "आयताकार चयन",
+    "ellipseSelect": "दीर्घवृत्त चयन",
+    "lassoSelect": "लासो चयन",
+    "eyedropper": "आईड्रॉपर",
+    "fill": "भरें",
+    "eraser": "रबड़",
+    "line": "रेखा",
+    "pen": "कलम",
+    "lineToolOptions": "रेखा उपकरण विकल्प",
+    "circle": "वृत्त",
+    "square": "आयत",
+    "brush": "ब्रश",
+    "bone": "हड्डी",
+    "smartSelect": "स्मार्ट चयन"
+  },
+  "layers": {
+    "title": "लेयर्स",
+    "hide": "छिपाएं",
+    "show": "दिखाएं",
+    "delete": "लेयर हटाएं",
+    "add": "लेयर जोड़ें",
+    "pasted": "पेस्ट किया गया",
+    "pastedInPlace": "जगह पर पेस्ट किया गया",
+    "pastedInto": "अंदर पेस्ट किया गया"
+  },
+  "timeline": {
+    "title": "टाइमलाइन",
+    "animations": "एनिमेशन",
+    "addAnimation": "एनिमेशन जोड़ें",
+    "removeAnimation": "एनिमेशन हटाएं",
+    "renameAnimation": "एनिमेशन का नाम बदलें",
+    "addFrame": "फ्रेम जोड़ें",
+    "deleteFrame": "फ्रेम हटाएं",
+    "duplicateFrame": "फ्रेम दोहराएं",
+    "play": "चलाएं",
+    "stop": "रोकें",
+    "fps": "FPS",
+    "duration": "अवधि"
+  },
+  "theme": {
+    "toggle": "थीम बदलें"
+  },
+  "canvas": {
+    "zoom": "ज़ूम",
+    "zoomIncrease": "ज़ूम बढ़ाएं",
+    "zoomDecrease": "ज़ूम घटाएं",
+    "rotate": "घुमाएं",
+    "resetRotation": "घुमाव रीसेट करें",
+    "size": "कैनवास का आकार",
+    "width": "चौड़ाई",
+    "height": "ऊंचाई",
+    "saved": "सहेजा गया",
+    "unsaved": "सहेजा नहीं गया"
+  },
+  "file": {
+    "new": "नया",
+    "openFromComputer": "कंप्यूटर से खोलें",
+    "saveToComputer": "कंप्यूटर पर सहेजें",
+    "saveLocal": "सहेजें"
+  },
+  "hotkeys": {
+    "title": "कीबोर्ड शॉर्टकट",
+    "close": "बंद करें",
+    "edit": "संपादित करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "reset": "रीसेट करें"
+  },
+  "scale": {
+    "title": "स्केल करें",
+    "width": "चौड़ाई",
+    "height": "ऊंचाई",
+    "ok": "ठीक है",
+    "cancel": "रद्द करें"
+  },
+  "rotate": {
+    "title": "घुमाएं",
+    "angle": "कोण",
+    "apply": "लागू करें",
+    "cancel": "रद्द करें"
+  },
+  "modal": {
+    "close": "बंद करें"
+  },
+  "palette": {
+    "title": "पैलेट",
+    "createNew": "नया",
+    "addColor": "रंग जोड़ें",
+    "removeColor": "रंग हटाएं",
+    "cancel": "रद्द करें",
+    "add": "जोड़ें"
+  },
+  "languages": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh": "中文",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ja": "日本語",
+    "ko": "한국어",
+    "th": "ภาษาไทย",
+    "pt": "Português",
+    "it": "Italiano",
+    "ar": "العربية",
+    "hi": "हिन्दी"
+  },
+  "languageSelector": {
+    "selectLanguage": "भाषा चुनें",
+    "moreLanguages": "अधिक भाषाएं"
+  }
+}
