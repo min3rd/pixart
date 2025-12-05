@@ -273,7 +273,19 @@ export class EditorDocumentService {
   }
 
   loadProjectFromLocalStorage(): Observable<boolean> {
-    return this.projectService.loadProjectFromLocalStorage();
+    return this.projectService.loadProjectFromLocalStorage().pipe(
+      map((loaded) => {
+        if (loaded) {
+          // After loading project, sync canvas with current frame's data
+          const currentIndex = this.currentFrameIndex();
+          const currentFrame = this.frames()[currentIndex];
+          if (currentFrame && currentFrame.layers && currentFrame.buffers) {
+            this.applyFrameStateToCanvas(currentFrame.layers, currentFrame.buffers);
+          }
+        }
+        return loaded;
+      }),
+    );
   }
 
   exportProjectSnapshot() {
@@ -1013,15 +1025,7 @@ export class EditorDocumentService {
     if (!frame) return;
 
     if (frame.layers && frame.buffers) {
-      this.layerService.layers.set(structuredClone(frame.layers));
-
-      const newBuffers = new Map<string, string[]>();
-      for (const [key, value] of Object.entries(frame.buffers)) {
-        newBuffers.set(key, [...value]);
-      }
-      this.canvasState.replaceAllBuffers(newBuffers);
-      this.layerService.ensureValidSelection();
-      this.canvasState.incrementPixelsVersion();
+      this.applyFrameStateToCanvas(frame.layers, frame.buffers);
     } else {
       // Frame has no saved data - create empty state with default layer
       const defaultLayer = {
@@ -1047,6 +1051,18 @@ export class EditorDocumentService {
     }
 
     this.frameService.setCurrentFrame(frameIndex);
+  }
+
+  private applyFrameStateToCanvas(layers: any[], buffers: Record<string, string[]>) {
+    this.layerService.layers.set(structuredClone(layers));
+
+    const newBuffers = new Map<string, string[]>();
+    for (const [key, value] of Object.entries(buffers)) {
+      newBuffers.set(key, [...value]);
+    }
+    this.canvasState.replaceAllBuffers(newBuffers);
+    this.layerService.ensureValidSelection();
+    this.canvasState.incrementPixelsVersion();
   }
 
   playAnimation() {
