@@ -195,7 +195,7 @@ export class CanvasDrawService {
 
       const pixelMap = this.canvasState.getLayerPixelMap(layer.id);
       for (const [key, color] of pixelMap.entries()) {
-        const coords = this.parseCoordinateKey(key);
+        const coords = this.canvasState.parseCoordinateKey(key);
         if (!coords) continue;
         const { x, y } = coords;
         if (x < 0 || x >= w || y < 0 || y >= h) {
@@ -208,15 +208,6 @@ export class CanvasDrawService {
     }
 
     ctx.restore();
-  }
-
-  private parseCoordinateKey(key: string): { x: number; y: number } | null {
-    const parts = key.split(',');
-    if (parts.length !== 2) return null;
-    const x = parseInt(parts[0], 10);
-    const y = parseInt(parts[1], 10);
-    if (Number.isNaN(x) || Number.isNaN(y)) return null;
-    return { x, y };
   }
 
   private drawCanvasBoundsBorder(
