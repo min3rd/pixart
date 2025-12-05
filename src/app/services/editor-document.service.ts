@@ -1022,6 +1022,28 @@ export class EditorDocumentService {
       this.canvasState.replaceAllBuffers(newBuffers);
       this.layerService.ensureValidSelection();
       this.canvasState.incrementPixelsVersion();
+    } else {
+      // Frame has no saved data - create empty state with default layer
+      const defaultLayer = {
+        id: `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        type: 'layer' as const,
+        name: 'Layer 1',
+        visible: true,
+        locked: false,
+      };
+      this.layerService.layers.set([defaultLayer]);
+      
+      // Create empty buffer for the default layer
+      const canvasSize = this.canvasState.canvasWidth() * this.canvasState.canvasHeight();
+      const emptyBuffer = new Array(canvasSize).fill('');
+      const newBuffers = new Map<string, string[]>();
+      newBuffers.set(defaultLayer.id, emptyBuffer);
+      this.canvasState.replaceAllBuffers(newBuffers);
+      this.layerService.ensureValidSelection();
+      this.canvasState.incrementPixelsVersion();
+      
+      // Save this empty state to the frame so it has data now
+      this.frameService.saveFrameState(frame.id, [defaultLayer], { [defaultLayer.id]: emptyBuffer });
     }
 
     this.frameService.setCurrentFrame(frameIndex);
