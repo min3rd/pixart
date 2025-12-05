@@ -541,6 +541,8 @@
     "done": "Done",
     "pressKey": "Press key...",
     "conflictWith": "Conflicts with:",
+    "searchPlaceholder": "Search actions...",
+    "noResults": "No actions found",
     "category": {
       "file": "File",
       "edit": "Edit",

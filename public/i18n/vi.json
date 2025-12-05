@@ -544,6 +544,8 @@
     "done": "Hoàn tất",
     "pressKey": "Nhấn phím...",
     "conflictWith": "Trùng với:",
+    "searchPlaceholder": "Tìm kiếm chức năng...",
+    "noResults": "Không tìm thấy chức năng",
     "category": {
       "file": "Tệp",
       "edit": "Chỉnh sửa",
