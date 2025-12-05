@@ -59,7 +59,8 @@
     "square": "Retângulo",
     "brush": "Pincel",
     "bone": "Osso",
-    "smartSelect": "Seleção inteligente"
+    "smartSelect": "Seleção inteligente",
+    "text": "Texto"
   },
   "layers": {
     "title": "Camadas",
@@ -112,7 +113,10 @@
     "edit": "Editar",
     "save": "Salvar",
     "cancel": "Cancelar",
-    "reset": "Redefinir"
+    "reset": "Redefinir",
+    "action": {
+      "tool.text": "Ferramenta de texto"
+    }
   },
   "scale": {
     "title": "Escalar",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "Selecionar idioma",
     "moreLanguages": "Mais idiomas"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "Adicionar texto pixel à tela"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "Texto",
+        "content": "Conteúdo",
+        "placeholder": "Digite o texto...",
+        "font": "Fonte",
+        "fontTooltip": "Selecionar família de fontes pixel",
+        "size": "Tamanho",
+        "sizeTooltip": "Tamanho do texto em pixels (8-64)",
+        "color": "Cor",
+        "colorTooltip": "Selecionar cor do texto",
+        "preview": "Pré-visualização",
+        "previewPlaceholder": "Texto de exemplo"
+      }
+    }
   }
 }

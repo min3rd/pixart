@@ -59,7 +59,8 @@
     "square": "आयत",
     "brush": "ब्रश",
     "bone": "हड्डी",
-    "smartSelect": "स्मार्ट चयन"
+    "smartSelect": "स्मार्ट चयन",
+    "text": "टेक्स्ट"
   },
   "layers": {
     "title": "लेयर्स",
@@ -112,7 +113,10 @@
     "edit": "संपादित करें",
     "save": "सहेजें",
     "cancel": "रद्द करें",
-    "reset": "रीसेट करें"
+    "reset": "रीसेट करें",
+    "action": {
+      "tool.text": "टेक्स्ट टूल"
+    }
   },
   "scale": {
     "title": "स्केल करें",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "भाषा चुनें",
     "moreLanguages": "अधिक भाषाएं"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "कैनवास पर पिक्सेल टेक्स्ट जोड़ें"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "टेक्स्ट",
+        "content": "सामग्री",
+        "placeholder": "टेक्स्ट दर्ज करें...",
+        "font": "फ़ॉन्ट",
+        "fontTooltip": "पिक्सेल फ़ॉन्ट परिवार चुनें",
+        "size": "आकार",
+        "sizeTooltip": "टेक्स्ट आकार पिक्सेल में (8-64)",
+        "color": "रंग",
+        "colorTooltip": "टेक्स्ट रंग चुनें",
+        "preview": "पूर्वावलोकन",
+        "previewPlaceholder": "नमूना टेक्स्ट"
+      }
+    }
   }
 }

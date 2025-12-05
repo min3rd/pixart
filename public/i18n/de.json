@@ -59,7 +59,8 @@
     "square": "Rechteck",
     "brush": "Pinsel",
     "bone": "Knochen",
-    "smartSelect": "Intelligente Auswahl"
+    "smartSelect": "Intelligente Auswahl",
+    "text": "Text"
   },
   "layers": {
     "title": "Ebenen",
@@ -112,7 +113,10 @@
     "edit": "Bearbeiten",
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "reset": "Zurücksetzen"
+    "reset": "Zurücksetzen",
+    "action": {
+      "tool.text": "Textwerkzeug"
+    }
   },
   "scale": {
     "title": "Skalieren",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "Sprache auswählen",
     "moreLanguages": "Mehr Sprachen"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "Pixel-Text zur Leinwand hinzufügen"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "Text",
+        "content": "Inhalt",
+        "placeholder": "Text eingeben...",
+        "font": "Schriftart",
+        "fontTooltip": "Pixel-Schriftfamilie auswählen",
+        "size": "Größe",
+        "sizeTooltip": "Textgröße in Pixeln (8-64)",
+        "color": "Farbe",
+        "colorTooltip": "Textfarbe auswählen",
+        "preview": "Vorschau",
+        "previewPlaceholder": "Beispieltext"
+      }
+    }
   }
 }

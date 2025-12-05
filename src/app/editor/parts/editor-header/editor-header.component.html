@@ -1348,6 +1348,23 @@
               </span>
             }
           </button>
+          <button
+            id="menu-tool-text-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onSelectTool('text')"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('tool.text')"
+          >
+            <span>{{ "tools.text" | transloco }}</span>
+            @if (hotkeys.getBinding("tool.text")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("tool.text")!)
+                }}
+              </span>
+            }
+          </button>
         </div>
       }
     </div>

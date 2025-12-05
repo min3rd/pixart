@@ -59,7 +59,8 @@
     "square": "方形",
     "brush": "画笔",
     "bone": "骨骼",
-    "smartSelect": "智能选择"
+    "smartSelect": "智能选择",
+    "text": "文字"
   },
   "tooltips": {
     "menu": {
@@ -117,7 +118,8 @@
       "definePattern": "Create a repeatable pattern from selection",
       "stroke": "Add stroke border to selection",
       "defineBrush": "Create a custom brush from selection",
-      "defineShape": "Create a custom vector shape from selection"
+      "defineShape": "Create a custom vector shape from selection",
+      "text": "在画布上添加像素文字"
     },
     "panels": {
       "layers": "管理图层和属性",
@@ -390,6 +392,19 @@
         "modeAdd": "添加模式（Shift+拖动）",
         "modeSubtract": "减去模式（Alt+拖动）",
         "modeHint": "按住Shift添加，Alt减去"
+      },
+      "text": {
+        "title": "文字",
+        "content": "文字内容",
+        "placeholder": "输入文字...",
+        "font": "字体",
+        "fontTooltip": "选择像素字体",
+        "size": "大小",
+        "sizeTooltip": "文字大小（8-64像素）",
+        "color": "颜色",
+        "colorTooltip": "选择文字颜色",
+        "preview": "预览",
+        "previewPlaceholder": "示例文字"
       }
     },
     "layers": {
@@ -628,7 +643,8 @@
       "palette.createFromSelection": "从选区创建调色板",
       "palette.createFromLayer": "从图层创建调色板",
       "palette.manage": "管理调色板",
-      "view.toggleOutOfBoundsPixels": "切换边界外像素"
+      "view.toggleOutOfBoundsPixels": "切换边界外像素",
+      "tool.text": "文字工具"
     }
   },
   "pixelGeneration": {

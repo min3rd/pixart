@@ -59,7 +59,8 @@
     "square": "Прямоугольник",
     "brush": "Кисть",
     "bone": "Кость",
-    "smartSelect": "Умное выделение"
+    "smartSelect": "Умное выделение",
+    "text": "Текст"
   },
   "layers": {
     "title": "Слои",
@@ -112,7 +113,10 @@
     "edit": "Редактировать",
     "save": "Сохранить",
     "cancel": "Отмена",
-    "reset": "Сброс"
+    "reset": "Сброс",
+    "action": {
+      "tool.text": "Инструмент текста"
+    }
   },
   "scale": {
     "title": "Масштабирование",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "Выбрать язык",
     "moreLanguages": "Больше языков"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "Добавить пиксельный текст на холст"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "Текст",
+        "content": "Содержание",
+        "placeholder": "Введите текст...",
+        "font": "Шрифт",
+        "fontTooltip": "Выберите пиксельный шрифт",
+        "size": "Размер",
+        "sizeTooltip": "Размер текста в пикселях (8-64)",
+        "color": "Цвет",
+        "colorTooltip": "Выберите цвет текста",
+        "preview": "Предпросмотр",
+        "previewPlaceholder": "Пример текста"
+      }
+    }
   }
 }

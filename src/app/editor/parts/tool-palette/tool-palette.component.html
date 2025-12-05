@@ -1587,6 +1587,140 @@
           </div>
         </section>
       }
+      @case ("text") {
+        <section
+          id="palette-text-panel"
+          class="space-y-2 p-2"
+        >
+          <div id="palette-text-header" class="flex items-center gap-1">
+            <ng-icon id="palette-text-header-icon" name="bootstrapFonts" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
+            <span id="palette-text-header-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.text.title" | transloco }}</span>
+          </div>
+          <div id="palette-text-content-section" class="space-y-1">
+            <label
+              id="palette-text-content-label"
+              class="text-xs text-neutral-600 dark:text-neutral-400"
+              for="palette-text-content-input"
+            >
+              {{ "editor.tools.text.content" | transloco }}
+            </label>
+            <input
+              id="palette-text-content-input"
+              type="text"
+              [value]="tools.textContent()"
+              (input)="onTextContentInput($event)"
+              [placeholder]="'editor.tools.text.placeholder' | transloco"
+              class="w-full px-2 py-1 text-xs border border-neutral-300/70 rounded-sm bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+            />
+          </div>
+          <div id="palette-text-font-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+            <label
+              id="palette-text-font-label"
+              class="text-xs text-neutral-600 dark:text-neutral-400"
+              for="palette-text-font-select"
+            >
+              {{ "editor.tools.text.font" | transloco }}
+            </label>
+            <select
+              id="palette-text-font-select"
+              [value]="tools.textFontFamily()"
+              (change)="onTextFontFamilyChange($event)"
+              class="w-full px-2 py-1 text-xs border border-neutral-300/70 rounded-sm bg-white dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+              [paTooltip]="'editor.tools.text.fontTooltip' | transloco"
+            >
+              @for (font of pixelFonts; track font.id) {
+                <option
+                  id="palette-text-font-option-{{ font.id }}"
+                  [value]="font.id"
+                  [style.font-family]="font.id"
+                >
+                  {{ font.name }}
+                </option>
+              }
+            </select>
+          </div>
+          <div id="palette-text-size-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+            <div id="palette-text-size-header" class="flex items-center justify-between">
+              <label id="palette-text-size-label" class="text-xs text-neutral-600 dark:text-neutral-400" for="palette-text-size-range">
+                {{ "editor.tools.text.size" | transloco }}
+              </label>
+              <span id="palette-text-size-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">
+                {{ tools.textFontSize() }}{{ "editor.tools.units.px" | transloco }}
+              </span>
+            </div>
+            <div
+              id="palette-text-size-row"
+              class="grid grid-cols-[minmax(0,1fr),auto] items-center gap-2"
+              [paTooltip]="'editor.tools.text.sizeTooltip' | transloco"
+            >
+              <input
+                id="palette-text-size-range"
+                type="range"
+                min="8"
+                max="64"
+                [value]="tools.textFontSize()"
+                (input)="onTextFontSizeInput($event)"
+                class="w-full accent-blue-500"
+              />
+              <input
+                id="palette-text-size-number"
+                type="number"
+                min="8"
+                max="64"
+                [value]="tools.textFontSize()"
+                (input)="onTextFontSizeInput($event)"
+                [attr.aria-labelledby]="'palette-text-size-label'"
+                class="w-14 rounded-sm border border-neutral-300/70 bg-white px-1.5 py-0.5 text-xs text-right dark:border-neutral-700/70 dark:bg-neutral-900 dark:text-neutral-100"
+              />
+            </div>
+          </div>
+          <div id="palette-text-color-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+            <div id="palette-text-color-row" class="flex items-center gap-2" [paTooltip]="'editor.tools.text.colorTooltip' | transloco">
+              <label
+                id="palette-text-color-label"
+                class="text-xs text-neutral-600 dark:text-neutral-400"
+                for="palette-text-color-input"
+              >
+                {{ "editor.tools.text.color" | transloco }}
+              </label>
+              <div id="palette-text-color-picker" class="flex items-center gap-1">
+                <input
+                  id="palette-text-color-input"
+                  type="color"
+                  [value]="tools.textColor()"
+                  (input)="onTextColorInput($event)"
+                  class="h-7 w-8 cursor-pointer rounded-sm border border-neutral-300/70 bg-white p-0 dark:border-neutral-700/70 dark:bg-neutral-900"
+                />
+                <button
+                  type="button"
+                  id="palette-text-color-palette-btn"
+                  class="flex h-7 w-7 items-center justify-center rounded-sm border border-neutral-300/70 bg-neutral-100 hover:bg-neutral-200 dark:border-neutral-700/70 dark:bg-neutral-800 dark:hover:bg-neutral-700"
+                  (click)="showPalettePicker('text')"
+                  [paTooltip]="'palette.pickFromPalette' | transloco"
+                >
+                  <ng-icon id="palette-text-color-palette-icon" name="heroSwatchMini" class="h-4 w-4"></ng-icon>
+                </button>
+                <span id="palette-text-color-value" class="text-xs font-mono text-neutral-500 dark:text-neutral-400">{{ tools.textColor() }}</span>
+              </div>
+            </div>
+          </div>
+          <div id="palette-text-preview-section" class="space-y-1 border-t border-neutral-200/60 pt-2 dark:border-neutral-700/60">
+            <div id="palette-text-preview-header" class="flex items-center gap-1">
+              <ng-icon id="palette-text-preview-icon" name="heroEyeMini" class="h-3 w-3 text-neutral-500 dark:text-neutral-400"></ng-icon>
+              <span id="palette-text-preview-label" class="text-xs font-medium text-neutral-600 dark:text-neutral-400">{{ "editor.tools.text.preview" | transloco }}</span>
+            </div>
+            <div
+              id="palette-text-preview-box"
+              class="p-2 bg-neutral-50 dark:bg-neutral-800 rounded-sm border border-neutral-200 dark:border-neutral-700 min-h-8 overflow-hidden"
+              [style.font-family]="tools.textFontFamily()"
+              [style.font-size.px]="tools.textFontSize()"
+              [style.color]="tools.textColor()"
+            >
+              {{ tools.textContent() || ('editor.tools.text.previewPlaceholder' | transloco) }}
+            </div>
+          </div>
+        </section>
+      }
       @default {
         <section
           id="palette-empty-state"

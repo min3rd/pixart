@@ -59,7 +59,8 @@
     "square": "사각형",
     "brush": "브러시",
     "bone": "뼈대",
-    "smartSelect": "스마트 선택"
+    "smartSelect": "스마트 선택",
+    "text": "텍스트"
   },
   "layers": {
     "title": "레이어",
@@ -112,7 +113,10 @@
     "edit": "편집",
     "save": "저장",
     "cancel": "취소",
-    "reset": "초기화"
+    "reset": "초기화",
+    "action": {
+      "tool.text": "텍스트 도구"
+    }
   },
   "scale": {
     "title": "크기 조정",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "언어 선택",
     "moreLanguages": "더 많은 언어"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "캔버스에 픽셀 텍스트 추가"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "텍스트",
+        "content": "텍스트",
+        "placeholder": "텍스트 입력...",
+        "font": "글꼴",
+        "fontTooltip": "픽셀 글꼴 선택",
+        "size": "크기",
+        "sizeTooltip": "텍스트 크기 (8-64 픽셀)",
+        "color": "색상",
+        "colorTooltip": "텍스트 색상 선택",
+        "preview": "미리보기",
+        "previewPlaceholder": "샘플 텍스트"
+      }
+    }
   }
 }

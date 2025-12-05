@@ -59,7 +59,8 @@
     "square": "مستطيل",
     "brush": "فرشاة",
     "bone": "عظم",
-    "smartSelect": "تحديد ذكي"
+    "smartSelect": "تحديد ذكي",
+    "text": "نص"
   },
   "layers": {
     "title": "الطبقات",
@@ -112,7 +113,10 @@
     "edit": "تحرير",
     "save": "حفظ",
     "cancel": "إلغاء",
-    "reset": "إعادة ضبط"
+    "reset": "إعادة ضبط",
+    "action": {
+      "tool.text": "أداة النص"
+    }
   },
   "scale": {
     "title": "تحجيم",
@@ -157,5 +161,27 @@
   "languageSelector": {
     "selectLanguage": "اختر اللغة",
     "moreLanguages": "المزيد من اللغات"
+  },
+  "tooltips": {
+    "tools": {
+      "text": "إضافة نص بكسل إلى اللوحة"
+    }
+  },
+  "editor": {
+    "tools": {
+      "text": {
+        "title": "نص",
+        "content": "المحتوى",
+        "placeholder": "أدخل النص...",
+        "font": "الخط",
+        "fontTooltip": "حدد عائلة خط البكسل",
+        "size": "الحجم",
+        "sizeTooltip": "حجم النص بالبكسل (8-64)",
+        "color": "اللون",
+        "colorTooltip": "حدد لون النص",
+        "preview": "معاينة",
+        "previewPlaceholder": "نص نموذجي"
+      }
+    }
   }
 }
