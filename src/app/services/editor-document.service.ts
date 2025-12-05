@@ -304,6 +304,7 @@ export class EditorDocumentService {
   }
 
   saveProjectToLocalStorage(): boolean {
+    this.saveCurrentFrameState();
     return this.projectService.saveProjectToLocalStorage();
   }
 
