@@ -118,7 +118,7 @@ export class EditorCanvasStateService {
     }
   }
 
-  private parseCoordinateKey(key: string): { x: number; y: number } | null {
+  parseCoordinateKey(key: string): { x: number; y: number } | null {
     const parts = key.split(',');
     if (parts.length !== 2) return null;
     const x = parseInt(parts[0], 10);

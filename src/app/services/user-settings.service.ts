@@ -121,7 +121,7 @@ export class UserSettingsService {
         theme: parsed?.theme === 'dark' ? 'dark' : 'light',
         lang: parsed?.lang || 'en',
         panels: parsed?.panels || { left: 220, right: 260, bottom: 112 },
-        showOutOfBoundsPixels: parsed?.showOutOfBoundsPixels !== false,
+        showOutOfBoundsPixels: parsed?.showOutOfBoundsPixels ?? true,
       };
     } catch {
       return null;
