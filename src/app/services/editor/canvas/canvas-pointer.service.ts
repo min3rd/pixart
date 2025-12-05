@@ -189,9 +189,6 @@ export class CanvasPointerService {
     }
 
     if (state.selectionMoving && state.selectionMoveStart) {
-      if (logicalX < 0 || logicalX >= w || logicalY < 0 || logicalY >= h) {
-        return { hoverX, hoverY, mouseX, mouseY };
-      }
       const dx = logicalX - state.selectionMoveStart.x;
       const dy = logicalY - state.selectionMoveStart.y;
       if (dx !== 0 || dy !== 0) {
@@ -202,9 +199,6 @@ export class CanvasPointerService {
     }
 
     if (state.selectionContentMoving && state.selectionContentMoveStart) {
-      if (logicalX < 0 || logicalX >= w || logicalY < 0 || logicalY >= h) {
-        return { hoverX, hoverY, mouseX, mouseY };
-      }
       const dx = logicalX - state.selectionContentMoveStart.x;
       const dy = logicalY - state.selectionContentMoveStart.y;
       if (dx !== 0 || dy !== 0) {
