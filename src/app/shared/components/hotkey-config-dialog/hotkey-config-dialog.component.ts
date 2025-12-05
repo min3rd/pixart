@@ -5,6 +5,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -29,6 +30,9 @@ export class HotkeyConfigDialog {
   readonly capturedKey = signal<string>('');
   readonly conflictError = signal<string | null>(null);
   readonly searchTerm = signal<string>('');
+  private readonly activeLang = toSignal(this.transloco.langChanges$, {
+    initialValue: this.transloco.getActiveLang(),
+  });
 
   readonly groupedActions = computed(() => {
     const registrations = this.hotkeys.registrations();
@@ -43,30 +47,9 @@ export class HotkeyConfigDialog {
     return groups;
   });
 
-  private readonly searchableData = computed(() => {
-    const groups = this.groupedActions();
-    const categoryTranslations = new Map<string, string>();
-    const actionTranslations = new Map<string, string>();
-
-    for (const [category, actions] of groups.entries()) {
-      categoryTranslations.set(
-        category,
-        this.transloco.translate(`hotkeys.category.${category}`).toLowerCase(),
-      );
-      for (const action of actions) {
-        actionTranslations.set(
-          action.id,
-          this.transloco.translate(`hotkeys.action.${action.id}`).toLowerCase(),
-        );
-      }
-    }
-
-    return { groups, categoryTranslations, actionTranslations };
-  });
-
   readonly filteredGroupedActions = computed(() => {
-    const { groups, categoryTranslations, actionTranslations } =
-      this.searchableData();
+    this.activeLang();
+    const groups = this.groupedActions();
     const term = this.searchTerm().toLowerCase().trim();
 
     if (!term) {
@@ -76,8 +59,9 @@ export class HotkeyConfigDialog {
     const filteredGroups = new Map<string, HotkeyRegistration[]>();
 
     for (const [category, actions] of groups.entries()) {
-      const categoryName =
-        categoryTranslations.get(category) ?? category.toLowerCase();
+      const categoryName = this.transloco
+        .translate(`hotkeys.category.${category}`)
+        .toLowerCase();
       const categoryMatches = categoryName.includes(term);
 
       const filteredActions = actions.filter((action) => {
@@ -85,8 +69,9 @@ export class HotkeyConfigDialog {
           return true;
         }
 
-        const actionName =
-          actionTranslations.get(action.id) ?? action.id.toLowerCase();
+        const actionName = this.transloco
+          .translate(`hotkeys.action.${action.id}`)
+          .toLowerCase();
         const keyMatches = this.displayKey(action.currentKey)
           .toLowerCase()
           .includes(term);
