@@ -209,17 +209,15 @@ export class CanvasPointerService {
     }
 
     if (state.selectionDragging) {
-      const clampedX = Math.max(0, Math.min(w - 1, logicalX));
-      const clampedY = Math.max(0, Math.min(h - 1, logicalY));
       const tool = this.tools.currentTool();
       if (tool === 'lasso-select') {
-        this.document.addLassoPoint(clampedX, clampedY);
+        this.document.addLassoPoint(logicalX, logicalY);
       } else {
-        let endX = clampedX;
-        let endY = clampedY;
+        let endX = logicalX;
+        let endY = logicalY;
         if (ev.shiftKey && state.selectionStart) {
-          const dx = clampedX - state.selectionStart.x;
-          const dy = clampedY - state.selectionStart.y;
+          const dx = logicalX - state.selectionStart.x;
+          const dy = logicalY - state.selectionStart.y;
           const absDx = Math.abs(dx);
           const absDy = Math.abs(dy);
           const max = Math.max(absDx, absDy);
@@ -227,8 +225,6 @@ export class CanvasPointerService {
           const sy = dy >= 0 ? 1 : -1;
           endX = state.selectionStart.x + sx * max;
           endY = state.selectionStart.y + sy * max;
-          endX = Math.max(0, Math.min(endX, w - 1));
-          endY = Math.max(0, Math.min(endY, h - 1));
         }
         this.document.updateSelection(endX, endY);
       }
@@ -347,7 +343,7 @@ export class CanvasPointerService {
       const clickedInSelection = hasExistingSelection && callbacks.isPointInSelection(logicalX, logicalY);
       const isSelectTool = tool === 'rect-select' || tool === 'ellipse-select' || tool === 'lasso-select' || tool === 'smart-select';
 
-      if (clickedInSelection && insideCanvas && this.moveSelectionHotkeyActive()) {
+      if (clickedInSelection && this.moveSelectionHotkeyActive()) {
         const selectedLayer = this.document.selectedLayer();
         if (selectedLayer?.locked) return;
         this.document.beginMoveSelection('Move pixels');
@@ -358,7 +354,7 @@ export class CanvasPointerService {
         return;
       }
 
-      if (clickedInSelection && insideCanvas && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && isSelectTool) {
+      if (clickedInSelection && !ev.shiftKey && !ev.ctrlKey && !ev.altKey && isSelectTool) {
         callbacks.capturePointer(ev);
         this.document.beginMoveSelection('Move selection');
         state.selectionMoving = true;
@@ -382,7 +378,7 @@ export class CanvasPointerService {
         return;
       }
 
-      if (isSelectTool && insideCanvas && tool !== 'smart-select') {
+      if (isSelectTool && tool !== 'smart-select') {
         callbacks.capturePointer(ev);
         if (tool === 'lasso-select') {
           state.selectionStart = { x: logicalX, y: logicalY };

@@ -46,8 +46,8 @@ export class EditorSelectionService {
       if (p.y > maxY) maxY = p.y;
     }
     this.selectionRect.set({
-      x: Math.max(0, Math.floor(minX)),
-      y: Math.max(0, Math.floor(minY)),
+      x: Math.floor(minX),
+      y: Math.floor(minY),
       width: Math.max(1, Math.ceil(maxX - minX) + 1),
       height: Math.max(1, Math.ceil(maxY - minY) + 1),
     });
@@ -306,8 +306,8 @@ export class EditorSelectionService {
         this.clearSelection();
       } else {
         this.selectionRect.set({
-          x: Math.max(0, Math.floor(rr.x)),
-          y: Math.max(0, Math.floor(rr.y)),
+          x: Math.floor(rr.x),
+          y: Math.floor(rr.y),
           width: Math.max(0, Math.floor(rr.width)),
           height: Math.max(0, Math.floor(rr.height)),
         });
