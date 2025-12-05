@@ -1,11 +1,12 @@
-<div id="language-selector-container" class="flex items-center gap-0.5">
+<div id="language-selector-container" class="flex items-center">
   <button
     type="button"
     id="lang-en-toggle"
-    class="px-2 py-0.5 text-xs font-medium border border-r-0 rounded-l-sm transition-colors"
+    class="px-2 py-0.5 text-xs font-medium border rounded-l-sm transition-colors -mr-px"
     [class.bg-blue-600]="isCurrentLang('en')"
     [class.text-white]="isCurrentLang('en')"
     [class.border-blue-600]="isCurrentLang('en')"
+    [class.z-10]="isCurrentLang('en')"
     [class.bg-neutral-100]="!isCurrentLang('en')"
     [class.dark:bg-neutral-700]="!isCurrentLang('en')"
     [class.text-neutral-700]="!isCurrentLang('en')"
@@ -22,10 +23,11 @@
   <button
     type="button"
     id="lang-vi-toggle"
-    class="px-2 py-0.5 text-xs font-medium border border-r-0 transition-colors"
+    class="px-2 py-0.5 text-xs font-medium border transition-colors -mr-px"
     [class.bg-blue-600]="isCurrentLang('vi')"
     [class.text-white]="isCurrentLang('vi')"
     [class.border-blue-600]="isCurrentLang('vi')"
+    [class.z-10]="isCurrentLang('vi')"
     [class.bg-neutral-100]="!isCurrentLang('vi')"
     [class.dark:bg-neutral-700]="!isCurrentLang('vi')"
     [class.text-neutral-700]="!isCurrentLang('vi')"
@@ -46,6 +48,7 @@
     [class.bg-blue-600]="!isCurrentLang('en') && !isCurrentLang('vi')"
     [class.text-white]="!isCurrentLang('en') && !isCurrentLang('vi')"
     [class.border-blue-600]="!isCurrentLang('en') && !isCurrentLang('vi')"
+    [class.z-10]="!isCurrentLang('en') && !isCurrentLang('vi')"
     [class.bg-neutral-100]="isCurrentLang('en') || isCurrentLang('vi')"
     [class.dark:bg-neutral-700]="isCurrentLang('en') || isCurrentLang('vi')"
     [class.text-neutral-700]="isCurrentLang('en') || isCurrentLang('vi')"

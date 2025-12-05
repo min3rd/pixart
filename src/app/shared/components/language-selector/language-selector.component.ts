@@ -2,10 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   ElementRef,
   inject,
+  OnInit,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UserSettingsService } from '../../../services/user-settings.service';
 import { NgIcon } from '@ng-icons/core';
@@ -26,12 +29,14 @@ interface Language {
     '(document:keydown.escape)': 'onEscapeKey()',
   },
 })
-export class LanguageSelectorComponent {
+export class LanguageSelectorComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly settings = inject(UserSettingsService);
   private readonly elementRef = inject(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isDropdownOpen = signal(false);
+  readonly currentLang = signal(this.transloco.getActiveLang());
 
   readonly availableLanguages: Language[] = [
     { code: 'en', name: 'English' },
@@ -52,13 +57,19 @@ export class LanguageSelectorComponent {
 
   readonly primaryLanguages = ['en', 'vi'];
 
-  readonly currentLang = computed(() => this.transloco.getActiveLang());
-
   readonly otherLanguages = computed(() =>
     this.availableLanguages.filter(
       (lang) => !this.primaryLanguages.includes(lang.code)
     )
   );
+
+  ngOnInit(): void {
+    this.transloco.langChanges$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((lang) => {
+        this.currentLang.set(lang);
+      });
+  }
 
   onDocumentClick(event: MouseEvent): void {
     if (
