@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { EditorCanvasStateService } from '../editor-canvas-state.service';
 
 export interface SelectionRect {
   x: number;
@@ -9,9 +10,10 @@ export interface SelectionRect {
 
 @Injectable({ providedIn: 'root' })
 export class CanvasSelectionMoveService {
+  private readonly canvasState = inject(EditorCanvasStateService);
   private selectionContentMoving = false;
   private selectionContentMoveStart: { x: number; y: number } | null = null;
-  private movingContentBuffer: string[] | null = null;
+  private movingContentPixelMap: Map<string, string> | null = null;
   private movingContentOriginalRect: SelectionRect | null = null;
   private originalLayerId: string | null = null;
 
@@ -24,7 +26,23 @@ export class CanvasSelectionMoveService {
   }
 
   getMovingBuffer(): string[] | null {
-    return this.movingContentBuffer;
+    if (!this.movingContentPixelMap) return null;
+    const w = this.canvasState.canvasWidth();
+    const h = this.canvasState.canvasHeight();
+    const buf = new Array<string>(w * h).fill('');
+    for (const [key, color] of this.movingContentPixelMap.entries()) {
+      const coords = this.canvasState.parseCoordinateKey(key);
+      if (!coords) continue;
+      const { x, y } = coords;
+      if (x >= 0 && x < w && y >= 0 && y < h) {
+        buf[y * w + x] = color;
+      }
+    }
+    return buf;
+  }
+
+  getMovingPixelMap(): Map<string, string> | null {
+    return this.movingContentPixelMap;
   }
 
   getOriginalRect(): SelectionRect | null {
@@ -40,29 +58,25 @@ export class CanvasSelectionMoveService {
     y: number,
     selectionRect: SelectionRect,
     layerId: string,
-    layerBuffer: string[],
-    canvasWidth: number,
-    canvasHeight: number,
+    _layerBuffer: string[],
+    _canvasWidth: number,
+    _canvasHeight: number,
     isPointInSelection: (px: number, py: number) => boolean,
   ): void {
     this.selectionContentMoving = true;
     this.selectionContentMoveStart = { x, y };
     this.originalLayerId = layerId;
     this.movingContentOriginalRect = { ...selectionRect };
-    this.movingContentBuffer = [];
+    this.movingContentPixelMap = new Map<string, string>();
 
-    const w = canvasWidth;
-    const h = canvasHeight;
-
-    for (let py = 0; py < h; py++) {
-      for (let px = 0; px < w; px++) {
-        const idx = py * w + px;
-        if (isPointInSelection(px, py)) {
-          this.movingContentBuffer[idx] = layerBuffer[idx] || '';
-          layerBuffer[idx] = '';
-        } else {
-          this.movingContentBuffer[idx] = '';
-        }
+    const pixelMap = this.canvasState.getLayerPixelMap(layerId);
+    for (const [key, color] of pixelMap.entries()) {
+      const coords = this.canvasState.parseCoordinateKey(key);
+      if (!coords) continue;
+      const { x: px, y: py } = coords;
+      if (isPointInSelection(px, py)) {
+        this.movingContentPixelMap.set(key, color);
+        this.canvasState.deletePixel(layerId, px, py);
       }
     }
   }
@@ -72,34 +86,27 @@ export class CanvasSelectionMoveService {
   }
 
   endMove(
-    layerBuffer: string[],
+    _layerBuffer: string[],
     currentSelectionRect: SelectionRect,
-    canvasWidth: number,
-    canvasHeight: number,
+    _canvasWidth: number,
+    _canvasHeight: number,
   ): void {
     if (
-      !this.movingContentBuffer ||
-      !this.movingContentOriginalRect
+      !this.movingContentPixelMap ||
+      !this.movingContentOriginalRect ||
+      !this.originalLayerId
     )
       return;
 
-    const w = canvasWidth;
-    const h = canvasHeight;
     const dx = currentSelectionRect.x - this.movingContentOriginalRect.x;
     const dy = currentSelectionRect.y - this.movingContentOriginalRect.y;
 
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = y * w + x;
-        if (this.movingContentBuffer[idx]) {
-          const newX = x + dx;
-          const newY = y + dy;
-          if (newX >= 0 && newX < w && newY >= 0 && newY < h) {
-            const newIdx = newY * w + newX;
-            layerBuffer[newIdx] = this.movingContentBuffer[idx];
-          }
-        }
-      }
+    for (const [key, color] of this.movingContentPixelMap.entries()) {
+      const coords = this.canvasState.parseCoordinateKey(key);
+      if (!coords) continue;
+      const newX = coords.x + dx;
+      const newY = coords.y + dy;
+      this.canvasState.setPixel(this.originalLayerId, newX, newY, color);
     }
 
     this.clearState();
@@ -112,7 +119,7 @@ export class CanvasSelectionMoveService {
   private clearState(): void {
     this.selectionContentMoving = false;
     this.selectionContentMoveStart = null;
-    this.movingContentBuffer = null;
+    this.movingContentPixelMap = null;
     this.movingContentOriginalRect = null;
     this.originalLayerId = null;
   }
