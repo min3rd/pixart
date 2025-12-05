@@ -997,6 +997,65 @@
         </div>
       }
     </div>
+    <div
+      id="menu-view-wrapper"
+      class="relative"
+      (mouseenter)="openViewMenuHover()"
+      (mouseleave)="closeViewMenuHover()"
+    >
+      <button
+        type="button"
+        id="menu-view-button"
+        class="px-2 py-1 rounded-sm hover:bg-neutral-200 dark:hover:bg-neutral-700"
+        (click)="showViewMenu.set(!showViewMenu())"
+        [attr.aria-expanded]="showViewMenu()"
+        [paTooltip]="'tooltips.menu.view' | transloco"
+      >
+        {{ "menu.view" | transloco }}
+      </button>
+      @if (showViewMenu()) {
+        <div
+          id="menu-view-dropdown"
+          class="absolute mt-1 left-0 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded shadow-md z-50 w-64"
+          tabindex="0"
+          (focusin)="onViewMenuFocusIn()"
+          (focusout)="onViewMenuFocusOut()"
+        >
+          <button
+            id="menu-view-toggle-oob-pixels-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onToggleOutOfBoundsPixels()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('view.toggleOutOfBoundsPixels')"
+          >
+            <span id="menu-view-toggle-oob-pixels-label" class="flex items-center gap-2">
+              <ng-icon
+                id="menu-view-toggle-oob-pixels-check"
+                name="heroCheck"
+                class="w-4 h-4"
+                [class.invisible]="!settings.showOutOfBoundsPixels()"
+              ></ng-icon>
+              @if (settings.showOutOfBoundsPixels()) {
+                {{ "menu.hideOutOfBoundsPixels" | transloco }}
+              } @else {
+                {{ "menu.showOutOfBoundsPixels" | transloco }}
+              }
+            </span>
+            @if (hotkeys.getBinding("view.toggleOutOfBoundsPixels")) {
+              <span
+                id="menu-view-toggle-oob-pixels-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("view.toggleOutOfBoundsPixels")!
+                  )
+                }}
+              </span>
+            }
+          </button>
+        </div>
+      }
+    </div>
     <button
       type="button"
       id="menu-undo-button"

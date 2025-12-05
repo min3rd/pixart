@@ -5,6 +5,7 @@
     "insert": "Insert",
     "tool": "Tool",
     "help": "Help",
+    "view": "View",
     "undo": "Undo",
     "redo": "Redo",
     "cut": "Cut",
@@ -35,7 +36,9 @@
     "fillSelection": "Fill Selection",
     "contentAwareFill": "Content-Aware Fill",
     "stroke": "Stroke",
-    "imageSize": "Image Size"
+    "imageSize": "Image Size",
+    "showOutOfBoundsPixels": "Show Out-of-Bounds Pixels",
+    "hideOutOfBoundsPixels": "Hide Out-of-Bounds Pixels"
   },
   "badges": {
     "title": "2D Editor • Alpha",
@@ -65,6 +68,7 @@
       "insert": "Insert content",
       "tool": "Drawing and editing tools",
       "help": "Help and settings",
+      "view": "View options",
       "undo": "Undo last action",
       "redo": "Redo last undone action",
       "cut": "Cut selection to clipboard",
@@ -91,7 +95,8 @@
       "rotate90CW": "Rotate 90 degrees clockwise",
       "rotate90CCW": "Rotate 90 degrees counter-clockwise",
       "rotate180": "Rotate 180 degrees",
-      "stroke": "Add stroke to selection"
+      "stroke": "Add stroke to selection",
+      "showOutOfBoundsPixels": "Show pixels outside canvas bounds"
     },
     "tools": {
       "selectLayer": "Select and move layers",
@@ -620,7 +625,8 @@
       "palette.createNew": "Create New Palette",
       "palette.createFromSelection": "Create Palette from Selection",
       "palette.createFromLayer": "Create Palette from Layer",
-      "palette.manage": "Manage Palettes"
+      "palette.manage": "Manage Palettes",
+      "view.toggleOutOfBoundsPixels": "Toggle Out-of-Bounds Pixels"
     }
   },
   "pixelGeneration": {
