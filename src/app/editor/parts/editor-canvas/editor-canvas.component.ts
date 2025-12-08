@@ -1274,7 +1274,10 @@ export class EditorCanvas implements OnDestroy {
               const idx = logicalY * w + logicalX;
               if (idx >= 0 && idx < buffer.length && buffer[idx] && buffer[idx].length > 0) {
                 const textContent = layer.name.substring(TEXT_LAYER_PREFIX.length);
-                this.textSession.startEditSession(logicalX, logicalY, textContent);
+                const bounds = this.findLayerBounds(buffer, w, h);
+                if (bounds) {
+                  this.textSession.startEditSession(layer.id, bounds, textContent);
+                }
                 return;
               }
             }
@@ -1282,6 +1285,36 @@ export class EditorCanvas implements OnDestroy {
         }
       }
     }
+  }
+
+  private findLayerBounds(buffer: string[], canvasWidth: number, canvasHeight: number): { x: number; y: number; width: number; height: number } | null {
+    let minX = canvasWidth;
+    let minY = canvasHeight;
+    let maxX = -1;
+    let maxY = -1;
+
+    for (let y = 0; y < canvasHeight; y++) {
+      for (let x = 0; x < canvasWidth; x++) {
+        const idx = y * canvasWidth + x;
+        if (buffer[idx] && buffer[idx].length > 0) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+
+    if (maxX < 0 || maxY < 0) {
+      return null;
+    }
+
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX + 1,
+      height: maxY - minY + 1,
+    };
   }
 
   private addPenPoint(x: number, y: number) {
