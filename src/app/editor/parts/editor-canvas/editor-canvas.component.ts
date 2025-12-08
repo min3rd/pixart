@@ -1263,16 +1263,17 @@ export class EditorCanvas implements OnDestroy {
 
       const w = this.document.canvasWidth();
       const h = this.document.canvasHeight();
+      const TEXT_LAYER_PREFIX = 'Text: ';
       if (logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h) {
         const layers = this.document.getFlattenedLayers();
         for (const layer of layers) {
           if (!layer.visible || layer.locked) continue;
-          if (layer.name.startsWith('Text: ')) {
+          if (layer.name.startsWith(TEXT_LAYER_PREFIX)) {
             const buffer = this.document.getLayerBuffer(layer.id);
             if (buffer) {
               const idx = logicalY * w + logicalX;
-              if (buffer[idx] && buffer[idx].length > 0) {
-                const textContent = layer.name.substring(6);
+              if (idx >= 0 && idx < buffer.length && buffer[idx] && buffer[idx].length > 0) {
+                const textContent = layer.name.substring(TEXT_LAYER_PREFIX.length);
                 this.textSession.startEditSession(logicalX, logicalY, textContent);
                 return;
               }
