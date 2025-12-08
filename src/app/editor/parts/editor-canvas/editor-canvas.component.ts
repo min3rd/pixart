@@ -1244,9 +1244,43 @@ export class EditorCanvas implements OnDestroy {
     this.shapeConstrainUniform.set(false);
   }
 
-  onDoubleClick() {
+  onDoubleClick(ev: MouseEvent) {
     const tool = this.tools.currentTool();
-    if (tool === 'pen' && this.penDrawing()) this.finishPenPath();
+    if (tool === 'pen' && this.penDrawing()) {
+      this.finishPenPath();
+      return;
+    }
+
+    if (tool === 'text') {
+      const rect = this.canvasEl.nativeElement.getBoundingClientRect();
+      const currentScale = this.scale();
+      const currentPanX = this.panX();
+      const currentPanY = this.panY();
+      const visX = ev.clientX - rect.left;
+      const visY = ev.clientY - rect.top;
+      const logicalX = Math.floor((visX - currentPanX) / currentScale);
+      const logicalY = Math.floor((visY - currentPanY) / currentScale);
+
+      const w = this.document.canvasWidth();
+      const h = this.document.canvasHeight();
+      if (logicalX >= 0 && logicalX < w && logicalY >= 0 && logicalY < h) {
+        const layers = this.document.getFlattenedLayers();
+        for (const layer of layers) {
+          if (!layer.visible || layer.locked) continue;
+          if (layer.name.startsWith('Text: ')) {
+            const buffer = this.document.getLayerBuffer(layer.id);
+            if (buffer) {
+              const idx = logicalY * w + logicalX;
+              if (buffer[idx] && buffer[idx].length > 0) {
+                const textContent = layer.name.substring(6);
+                this.textSession.startEditSession(logicalX, logicalY, textContent);
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   private addPenPoint(x: number, y: number) {
