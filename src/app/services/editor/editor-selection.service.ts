@@ -1,7 +1,9 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { LogService } from '../logging/log.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorSelectionService {
+  private readonly logService = inject(LogService);
   readonly selectionRect = signal<{
     x: number;
     y: number;
@@ -26,6 +28,9 @@ export class EditorSelectionService {
       this.selectionPolygon.set(null);
       this.selectionRect.set({ x, y, width: 0, height: 0 });
     }
+    this.logService.log('selection', 'create_selection', {
+      parameters: { x, y, shape },
+    });
   }
 
   addLassoPoint(x: number, y: number) {
@@ -70,6 +75,7 @@ export class EditorSelectionService {
     this.selectionShape.set('rect');
     this.selectionPolygon.set(null);
     this.selectionMask.set(null);
+    this.logService.log('selection', 'clear_selection', {});
   }
 
   moveSelection(

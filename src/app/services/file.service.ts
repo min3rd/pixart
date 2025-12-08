@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { LogService } from './logging/log.service';
 
 export interface Pixel {
   x: number;
@@ -52,7 +53,7 @@ type FileHandle = any;
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
-  // Map project.id -> file handle so we can save back to same file when possible
+  private readonly logService = inject(LogService);
   private fileHandles = new Map<string, FileHandle>();
 
   constructor() {}
@@ -67,6 +68,9 @@ export class FileService {
       sprites: [],
       metadata: {},
     };
+    this.logService.log('file', 'create_project', {
+      parameters: { projectId: project.id, name: project.name },
+    });
     return project;
   }
 
@@ -98,8 +102,19 @@ export class FileService {
           this.fileHandles.set(projectId, fileHandle);
           return parsed;
         }),
+        tap((project) => {
+          if (project) {
+            this.logService.log('file', 'open_project', {
+              parameters: { projectId: project.id, name: project.name },
+            });
+          }
+        }),
         catchError((e) => {
           console.warn('Open project canceled or failed', e);
+          this.logService.log('file', 'open_project', {
+            status: 'failure',
+            error: e?.message || String(e),
+          });
           return of(null);
         }),
       );
@@ -108,6 +123,10 @@ export class FileService {
     return this.openProjectFromInputFile().pipe(
       catchError((e) => {
         console.warn('Open project from input file failed', e);
+        this.logService.log('file', 'open_project', {
+          status: 'failure',
+          error: e?.message || String(e),
+        });
         return of(null);
       }),
     );
@@ -169,6 +188,9 @@ export class FileService {
             switchMap(() => from(writable.close())),
             map(() => {
               project.modified = new Date().toISOString();
+              this.logService.log('file', 'save_project', {
+                parameters: { projectId: project.id, name: project.name },
+              });
               return true;
             }),
           ),
@@ -192,6 +214,9 @@ export class FileService {
       suggestedName || `${project.name || 'project'}.json`,
     );
     project.modified = new Date().toISOString();
+    this.logService.log('file', 'save_project', {
+      parameters: { projectId: project.id, name: project.name },
+    });
     return of(true);
   }
 
@@ -237,19 +262,27 @@ export class FileService {
     );
   }
 
-  /**
-   * Export project by returning JSON string or triggering a download (download preferred for file-based flow)
-   */
   exportProjectToDownload(project: Project, filename?: string): void {
     const contents = this.projectToJson(project);
     this.downloadString(
       contents,
       filename || `${project.name || 'project'}.json`,
     );
+    this.logService.log('file', 'export_project', {
+      parameters: { projectId: project.id, filename },
+    });
   }
 
   importProjectFromFile(file: File): Observable<Project | null> {
-    return this.openProjectFromFile(file);
+    return this.openProjectFromFile(file).pipe(
+      tap((project) => {
+        if (project) {
+          this.logService.log('file', 'import_project', {
+            parameters: { projectId: project.id, fileName: file.name },
+          });
+        }
+      }),
+    );
   }
 
   /**

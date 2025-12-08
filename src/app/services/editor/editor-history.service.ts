@@ -1,8 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HistoryEntry, ProjectSnapshot } from './history.types';
+import { LogService } from '../logging/log.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorHistoryService {
+  private readonly logService = inject(LogService);
   private undoStack: HistoryEntry[] = [];
   private redoStack: HistoryEntry[] = [];
   private historyLimit = 50;
@@ -36,6 +38,9 @@ export class EditorHistoryService {
     if (!this.canUndo()) return null;
     const entry = this.undoStack.pop() as HistoryEntry;
     this.undoVersion.update((v) => v + 1);
+    this.logService.log('history', 'undo', {
+      description: entry.description,
+    });
     return entry;
   }
 
@@ -43,6 +48,9 @@ export class EditorHistoryService {
     if (!this.canRedo()) return null;
     const entry = this.redoStack.pop() as HistoryEntry;
     this.redoVersion.update((v) => v + 1);
+    this.logService.log('history', 'redo', {
+      description: entry.description,
+    });
     return entry;
   }
 

@@ -1,8 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { FrameItem, LayerTreeItem } from './editor.types';
+import { LogService } from '../logging/log.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorFrameService {
+  private readonly logService = inject(LogService);
   readonly frames = signal<FrameItem[]>([
     { id: 'f1', name: 'Frame 1', duration: 100 },
   ]);
@@ -27,6 +29,9 @@ export class EditorFrameService {
       buffers: buffers ? this.deepCopyBuffers(buffers) : undefined,
     };
     this.frames.update((arr) => [...arr, frame]);
+    this.logService.log('frame', 'add_frame', {
+      parameters: { frameId: id, name: frame.name },
+    });
     return frame;
   }
 
@@ -53,6 +58,9 @@ export class EditorFrameService {
     ]);
 
     this.currentFrameIndex.set(index + 1);
+    this.logService.log('frame', 'duplicate_frame', {
+      parameters: { sourceFrameId: id, newFrameId: newId },
+    });
     return newFrame;
   }
 
@@ -64,6 +72,9 @@ export class EditorFrameService {
     if (this.currentFrameIndex() >= this.frames().length) {
       this.currentFrameIndex.set(Math.max(0, this.frames().length - 1));
     }
+    this.logService.log('frame', 'remove_frame', {
+      parameters: { frameId: id },
+    });
     return true;
   }
 
