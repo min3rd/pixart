@@ -1,4 +1,4 @@
-import { Injectable, Signal, computed, signal } from '@angular/core';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import {
   GroupItem,
   LayerItem,
@@ -6,9 +6,11 @@ import {
   isGroup,
   isLayer,
 } from './editor.types';
+import { LogService } from '../logging/log.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorLayerService {
+  private readonly logService = inject(LogService);
   readonly layers = signal<LayerTreeItem[]>([
     { id: 'l1', name: 'Layer 1', visible: true, locked: false, type: 'layer' },
   ]);
@@ -23,6 +25,9 @@ export class EditorLayerService {
   selectLayer(id: string) {
     this.selectedLayerId.set(id);
     this.selectedLayerIds.set(new Set([id]));
+    this.logService.log('layer', 'select_layer', {
+      parameters: { layerId: id },
+    });
   }
 
   toggleLayerSelection(id: string, multi = false) {
@@ -140,6 +145,9 @@ export class EditorLayerService {
       });
     };
     this.layers.set(updateName(this.layers()));
+    this.logService.log('layer', 'rename_layer', {
+      parameters: { layerId: id, newName },
+    });
   }
 
   toggleGroupExpanded(id: string) {
@@ -170,6 +178,10 @@ export class EditorLayerService {
       });
     };
     this.layers.set(toggleVis(this.layers()));
+    const item = this.findItemById(this.layers(), id);
+    this.logService.log('layer', 'toggle_visibility', {
+      parameters: { layerId: id, visible: item?.visible },
+    });
   }
 
   toggleLayerLock(id: string) {
@@ -185,6 +197,10 @@ export class EditorLayerService {
       });
     };
     this.layers.set(toggleLock(this.layers()));
+    const item = this.findItemById(this.layers(), id);
+    this.logService.log('layer', 'toggle_lock', {
+      parameters: { layerId: id, locked: item?.locked },
+    });
   }
 
   addLayer(name?: string): LayerItem {
@@ -200,16 +216,31 @@ export class EditorLayerService {
     this.layers.update((arr) => [item, ...arr]);
     this.selectedLayerId.set(item.id);
     this.selectedLayerIds.set(new Set([item.id]));
+    this.logService.log('layer', 'add_layer', {
+      parameters: { layerId: id, name: item.name },
+    });
     return item;
   }
 
   removeLayer(id: string): boolean {
     const flatLayers = this.flattenLayers(this.layers());
     if (flatLayers.length <= 1) {
+      this.logService.log('layer', 'remove_layer', {
+        status: 'failure',
+        parameters: { layerId: id },
+        error: 'Cannot remove the last layer',
+      });
       return false;
     }
     const item = this.findItemById(this.layers(), id);
-    if (!item) return false;
+    if (!item) {
+      this.logService.log('layer', 'remove_layer', {
+        status: 'failure',
+        parameters: { layerId: id },
+        error: 'Layer not found',
+      });
+      return false;
+    }
     const next = this.removeItemById(this.layers(), id);
     this.layers.set(next);
     const currentSelectedIds = this.selectedLayerIds();
@@ -227,6 +258,9 @@ export class EditorLayerService {
       }
       this.selectedLayerIds.set(newSelectedIds);
     }
+    this.logService.log('layer', 'remove_layer', {
+      parameters: { layerId: id },
+    });
     return true;
   }
 
@@ -238,6 +272,9 @@ export class EditorLayerService {
     const [item] = arr.splice(fromIndex, 1);
     arr.splice(toIndex, 0, item);
     this.layers.set(arr);
+    this.logService.log('layer', 'reorder_layers', {
+      parameters: { fromIndex, toIndex },
+    });
     return true;
   }
 
@@ -268,6 +305,9 @@ export class EditorLayerService {
     this.layers.set(updatedLayers);
     this.selectedLayerId.set(groupId);
     this.selectedLayerIds.set(new Set([groupId]));
+    this.logService.log('layer', 'group_layers', {
+      parameters: { groupId, layerIds },
+    });
     return newGroup;
   }
 
@@ -282,6 +322,9 @@ export class EditorLayerService {
       this.selectedLayerId.set(firstChildId);
       this.selectedLayerIds.set(new Set([firstChildId]));
     }
+    this.logService.log('layer', 'ungroup_layers', {
+      parameters: { groupId },
+    });
     return true;
   }
 
