@@ -14,7 +14,7 @@
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
       (pointerleave)="onPointerLeave()"
-      (dblclick)="onDoubleClick()"
+      (dblclick)="onDoubleClick($event)"
       (contextmenu)="onCanvasContextMenu($event)"
     ></canvas>
 
@@ -61,7 +61,7 @@
             (click)="commitTextSession()"
             [attr.title]="'common.confirm' | transloco"
           >
-            <ng-icon name="heroIconsCheckMini" class="w-4 h-4"></ng-icon>
+            <ng-icon name="heroCheckMini" class="w-4 h-4"></ng-icon>
           </button>
           <button
             id="editor-canvas-text-cancel"
@@ -70,7 +70,7 @@
             (click)="cancelTextSession()"
             [attr.title]="'common.cancel' | transloco"
           >
-            <ng-icon name="heroIconsXMarkMini" class="w-4 h-4"></ng-icon>
+            <ng-icon name="heroXMarkMini" class="w-4 h-4"></ng-icon>
           </button>
         </div>
       </div>
