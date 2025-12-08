@@ -156,7 +156,6 @@ export class EditorTextSessionService {
     if (!ctx) return null;
 
     ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, renderWidth, renderHeight);
 
     ctx.font = `${fontSize}px "${fontFamily}", monospace`;
     ctx.fillStyle = color;
@@ -231,7 +230,8 @@ export class EditorTextSessionService {
     try {
       await document.fonts.load(`16px "${fontFamily}"`);
       await document.fonts.ready;
-    } catch {
+    } catch (error) {
+      console.warn(`Failed to load font "${fontFamily}", using fallback:`, error);
     }
   }
 }
