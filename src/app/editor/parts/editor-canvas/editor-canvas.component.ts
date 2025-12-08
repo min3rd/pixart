@@ -1032,8 +1032,8 @@ export class EditorCanvas implements OnDestroy {
     this.textSession.updateTextContent(target.value);
   }
 
-  commitTextSession(): void {
-    this.textSession.commitText();
+  async commitTextSession(): Promise<void> {
+    await this.textSession.commitText();
   }
 
   cancelTextSession(): void {

@@ -42,11 +42,20 @@ export class EditorTextSessionService {
   });
 
   startTextSession(x: number, y: number, width: number, height: number): void {
+    const canvasWidth = this.canvasState.canvasWidth();
+    const canvasHeight = this.canvasState.canvasHeight();
+
+    const clampedX = Math.max(0, Math.min(Math.floor(x), canvasWidth - 1));
+    const clampedY = Math.max(0, Math.min(Math.floor(y), canvasHeight - 1));
+
+    const maxWidth = canvasWidth - clampedX;
+    const maxHeight = canvasHeight - clampedY;
+
     const bounds: TextBounds = {
-      x: Math.floor(x),
-      y: Math.floor(y),
-      width: Math.max(10, Math.floor(width)),
-      height: Math.max(10, Math.floor(height)),
+      x: clampedX,
+      y: clampedY,
+      width: Math.max(10, Math.min(Math.floor(width), maxWidth)),
+      height: Math.max(10, Math.min(Math.floor(height), maxHeight)),
     };
     this.textBounds.set(bounds);
     this.currentText.set('');
@@ -79,7 +88,7 @@ export class EditorTextSessionService {
     this.textBounds.set(bounds);
   }
 
-  commitText(): LayerItem | null {
+  async commitText(): Promise<LayerItem | null> {
     if (!this.isActive()) return null;
 
     const bounds = this.textBounds();
@@ -94,7 +103,7 @@ export class EditorTextSessionService {
     const fontSize = this.tools.textFontSize();
     const color = this.tools.textColor();
 
-    const newLayer = this.createTextLayer(text, fontFamily, fontSize, color, bounds);
+    const newLayer = await this.createTextLayer(text, fontFamily, fontSize, color, bounds);
 
     this.resetSession();
 
@@ -112,36 +121,52 @@ export class EditorTextSessionService {
     this.isEditing.set(false);
   }
 
-  private createTextLayer(
+  private async createTextLayer(
     text: string,
     fontFamily: string,
     fontSize: number,
     color: string,
     bounds: TextBounds,
-  ): LayerItem | null {
+  ): Promise<LayerItem | null> {
+    await this.ensureFontLoaded(fontFamily);
+
+    const measureCanvas = document.createElement('canvas');
+    const measureCtx = measureCanvas.getContext('2d');
+    if (!measureCtx) return null;
+
+    measureCtx.font = `${fontSize}px "${fontFamily}", monospace`;
+    const lines = text.split('\n');
+    const lineHeight = Math.ceil(fontSize * 1.2);
+
+    let maxWidth = bounds.width;
+    for (const line of lines) {
+      const metrics = measureCtx.measureText(line);
+      maxWidth = Math.max(maxWidth, Math.ceil(metrics.width) + 2);
+    }
+    const textHeight = Math.ceil(lineHeight * lines.length) + 2;
+
+    const renderWidth = Math.max(bounds.width, maxWidth);
+    const renderHeight = Math.max(bounds.height, textHeight);
+
     const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = bounds.width;
-    offscreenCanvas.height = bounds.height;
+    offscreenCanvas.width = renderWidth;
+    offscreenCanvas.height = renderHeight;
 
     const ctx = offscreenCanvas.getContext('2d');
     if (!ctx) return null;
 
     ctx.imageSmoothingEnabled = false;
-    ctx.fillStyle = 'transparent';
-    ctx.fillRect(0, 0, bounds.width, bounds.height);
+    ctx.clearRect(0, 0, renderWidth, renderHeight);
 
-    ctx.font = `${fontSize}px "${fontFamily}"`;
+    ctx.font = `${fontSize}px "${fontFamily}", monospace`;
     ctx.fillStyle = color;
     ctx.textBaseline = 'top';
-
-    const lines = text.split('\n');
-    const lineHeight = fontSize * 1.2;
 
     for (let i = 0; i < lines.length; i++) {
       ctx.fillText(lines[i], 0, i * lineHeight);
     }
 
-    const imageData = ctx.getImageData(0, 0, bounds.width, bounds.height);
+    const imageData = ctx.getImageData(0, 0, renderWidth, renderHeight);
 
     this.document.saveSnapshot('Add text');
 
@@ -162,8 +187,8 @@ export class EditorTextSessionService {
 
     if (!buffer) return null;
 
-    for (let py = 0; py < bounds.height; py++) {
-      for (let px = 0; px < bounds.width; px++) {
+    for (let py = 0; py < renderHeight; py++) {
+      for (let px = 0; px < renderWidth; px++) {
         const destX = bounds.x + px;
         const destY = bounds.y + py;
 
@@ -171,7 +196,7 @@ export class EditorTextSessionService {
           continue;
         }
 
-        const srcIdx = (py * bounds.width + px) * 4;
+        const srcIdx = (py * renderWidth + px) * 4;
         const r = imageData.data[srcIdx];
         const g = imageData.data[srcIdx + 1];
         const b = imageData.data[srcIdx + 2];
@@ -196,5 +221,17 @@ export class EditorTextSessionService {
     this.canvasState.setCanvasSaved(false);
 
     return newLayer;
+  }
+
+  private async ensureFontLoaded(fontFamily: string): Promise<void> {
+    if (typeof document === 'undefined' || !document.fonts) {
+      return;
+    }
+
+    try {
+      await document.fonts.load(`16px "${fontFamily}"`);
+      await document.fonts.ready;
+    } catch {
+    }
   }
 }
