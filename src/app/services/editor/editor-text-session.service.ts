@@ -45,17 +45,30 @@ export class EditorTextSessionService {
     const canvasWidth = this.canvasState.canvasWidth();
     const canvasHeight = this.canvasState.canvasHeight();
 
-    const clampedX = Math.max(0, Math.min(Math.floor(x), canvasWidth - 1));
-    const clampedY = Math.max(0, Math.min(Math.floor(y), canvasHeight - 1));
+    let clampedX = Math.floor(x);
+    let clampedY = Math.floor(y);
+
+    if (clampedX < 0 || clampedX >= canvasWidth || clampedY < 0 || clampedY >= canvasHeight) {
+      clampedX = 0;
+      clampedY = 0;
+    }
 
     const maxWidth = canvasWidth - clampedX;
     const maxHeight = canvasHeight - clampedY;
 
+    const effectiveWidth = maxWidth < 10 ? canvasWidth : Math.max(10, Math.min(Math.floor(width), maxWidth));
+    const effectiveHeight = maxHeight < 10 ? canvasHeight : Math.max(10, Math.min(Math.floor(height), maxHeight));
+
+    if (maxWidth < 10 || maxHeight < 10) {
+      clampedX = 0;
+      clampedY = 0;
+    }
+
     const bounds: TextBounds = {
       x: clampedX,
       y: clampedY,
-      width: Math.max(10, Math.min(Math.floor(width), maxWidth)),
-      height: Math.max(10, Math.min(Math.floor(height), maxHeight)),
+      width: effectiveWidth,
+      height: effectiveHeight,
     };
     this.textBounds.set(bounds);
     this.currentText.set('');
@@ -128,25 +141,33 @@ export class EditorTextSessionService {
     color: string,
     bounds: TextBounds,
   ): Promise<LayerItem | null> {
-    await this.ensureFontLoaded(fontFamily);
+    const fontLoaded = await this.ensureFontLoaded(fontFamily);
+    const effectiveFont = fontLoaded ? `"${fontFamily}"` : 'monospace';
 
-    const measureCanvas = document.createElement('canvas');
-    const measureCtx = measureCanvas.getContext('2d');
-    if (!measureCtx) return null;
+    console.log('[TextTool] Creating text layer:', { text, fontFamily, fontSize, color, bounds, fontLoaded, effectiveFont });
 
-    measureCtx.font = `${fontSize}px "${fontFamily}", monospace`;
     const lines = text.split('\n');
     const lineHeight = Math.ceil(fontSize * 1.2);
 
-    let maxWidth = bounds.width;
+    const measureCanvas = document.createElement('canvas');
+    measureCanvas.width = 1000;
+    measureCanvas.height = 100;
+    const measureCtx = measureCanvas.getContext('2d');
+    if (!measureCtx) return null;
+
+    measureCtx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
+
+    let maxWidth = 1;
     for (const line of lines) {
       const metrics = measureCtx.measureText(line);
-      maxWidth = Math.max(maxWidth, Math.ceil(metrics.width) + 2);
+      maxWidth = Math.max(maxWidth, Math.ceil(metrics.width) + 4);
     }
-    const textHeight = Math.ceil(lineHeight * lines.length) + 2;
+    const textHeight = Math.ceil(lineHeight * lines.length) + 4;
 
-    const renderWidth = Math.max(bounds.width, maxWidth);
-    const renderHeight = Math.max(bounds.height, textHeight);
+    const renderWidth = Math.max(maxWidth, 10);
+    const renderHeight = Math.max(textHeight, fontSize + 4);
+
+    console.log('[TextTool] Render dimensions:', { renderWidth, renderHeight, maxWidth, textHeight });
 
     const offscreenCanvas = document.createElement('canvas');
     offscreenCanvas.width = renderWidth;
@@ -157,15 +178,24 @@ export class EditorTextSessionService {
 
     ctx.imageSmoothingEnabled = false;
 
-    ctx.font = `${fontSize}px "${fontFamily}", monospace`;
+    ctx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
     ctx.fillStyle = color;
     ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
 
     for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], 0, i * lineHeight);
+      ctx.fillText(lines[i], 2, 2 + i * lineHeight);
     }
 
     const imageData = ctx.getImageData(0, 0, renderWidth, renderHeight);
+
+    let nonZeroPixels = 0;
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      if (imageData.data[i + 3] > 0) {
+        nonZeroPixels++;
+      }
+    }
+    console.log('[TextTool] Image data:', { totalPixels: imageData.data.length / 4, nonZeroPixels, renderWidth, renderHeight });
 
     this.document.saveSnapshot('Add text');
 
@@ -181,11 +211,14 @@ export class EditorTextSessionService {
     const canvasWidth = this.canvasState.canvasWidth();
     const canvasHeight = this.canvasState.canvasHeight();
 
+    console.log('[TextTool] Canvas dimensions:', { canvasWidth, canvasHeight, boundsX: bounds.x, boundsY: bounds.y });
+
     this.canvasState.ensureLayerBuffer(layerId, canvasWidth, canvasHeight);
     const buffer = this.canvasState.getLayerBuffer(layerId);
 
     if (!buffer) return null;
 
+    let pixelsCopied = 0;
     for (let py = 0; py < renderHeight; py++) {
       for (let px = 0; px < renderWidth; px++) {
         const destX = bounds.x + px;
@@ -202,6 +235,7 @@ export class EditorTextSessionService {
         const a = imageData.data[srcIdx + 3];
 
         if (a > 0) {
+          pixelsCopied++;
           const destIdx = destY * canvasWidth + destX;
           if (a >= 255) {
             buffer[destIdx] = `rgb(${r},${g},${b})`;
@@ -211,6 +245,8 @@ export class EditorTextSessionService {
         }
       }
     }
+
+    console.log('[TextTool] Pixels copied to buffer:', pixelsCopied);
 
     this.layerService.layers.update((arr) => [newLayer, ...arr]);
     this.layerService.selectedLayerId.set(layerId);
@@ -222,16 +258,19 @@ export class EditorTextSessionService {
     return newLayer;
   }
 
-  private async ensureFontLoaded(fontFamily: string): Promise<void> {
+  private async ensureFontLoaded(fontFamily: string): Promise<boolean> {
     if (typeof document === 'undefined' || !document.fonts) {
-      return;
+      return false;
     }
 
     try {
       await document.fonts.load(`16px "${fontFamily}"`);
       await document.fonts.ready;
+      const loaded = document.fonts.check(`16px "${fontFamily}"`);
+      return loaded;
     } catch (error) {
       console.warn(`Failed to load font "${fontFamily}", using fallback:`, error);
+      return false;
     }
   }
 }
