@@ -27,10 +27,12 @@ import { SquareToolService } from './tools/square-tool.service';
 import { BoneToolService } from './tools/bone-tool.service';
 import { SmartSelectToolService } from './tools/smart-select-tool.service';
 import { TextToolService, VALID_PIXEL_FONTS } from './tools/text-tool.service';
+import { LogService } from './logging/log.service';
 
 @Injectable({ providedIn: 'root' })
 export class EditorToolsService {
   private readonly STORAGE_KEY = 'pixart.editor.settings.v1';
+  private readonly logService = inject(LogService);
   private historyAdapter?: ToolHistoryAdapter;
 
   private readonly selectLayerTool = inject(SelectLayerToolService);
@@ -148,6 +150,9 @@ export class EditorToolsService {
     this.historyAdapter?.('currentTool', prev, id);
     this.currentTool.set(id);
     this.saveToStorage();
+    this.logService.log('tool', 'select_tool', {
+      parameters: { toolId: id, previousTool: prev },
+    });
   }
 
   setFillColor(color: string) {

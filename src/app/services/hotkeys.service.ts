@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
+import { LogService } from './logging/log.service';
 
 export interface HotkeyAction {
   id: string;
@@ -21,6 +22,7 @@ interface StoredHotkeys {
 @Injectable({ providedIn: 'root' })
 export class HotkeysService {
   private readonly STORAGE_KEY = 'pixart.hotkeys.v1';
+  private readonly logService = inject(LogService);
   private readonly actions = new Map<string, HotkeyAction>();
   private readonly customBindings = signal<Map<string, string>>(new Map());
 
@@ -140,6 +142,9 @@ export class HotkeysService {
           if (binding === key) {
             event.preventDefault();
             event.stopPropagation();
+            this.logService.log('keyboard', 'hotkey_execute', {
+              parameters: { actionId, key, category: action.category },
+            });
             action.handler();
             break;
           }
