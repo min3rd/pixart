@@ -144,8 +144,6 @@ export class EditorTextSessionService {
     const fontLoaded = await this.ensureFontLoaded(fontFamily);
     const effectiveFont = fontLoaded ? `"${fontFamily}"` : 'monospace';
 
-    console.log('[TextTool] Creating text layer:', { text, fontFamily, fontSize, color, bounds, fontLoaded, effectiveFont });
-
     const lines = text.split('\n');
     const lineHeight = Math.ceil(fontSize * 1.2);
 
@@ -167,8 +165,6 @@ export class EditorTextSessionService {
     const renderWidth = Math.max(maxWidth, 10);
     const renderHeight = Math.max(textHeight, fontSize + 4);
 
-    console.log('[TextTool] Render dimensions:', { renderWidth, renderHeight, maxWidth, textHeight });
-
     const offscreenCanvas = document.createElement('canvas');
     offscreenCanvas.width = renderWidth;
     offscreenCanvas.height = renderHeight;
@@ -189,14 +185,6 @@ export class EditorTextSessionService {
 
     const imageData = ctx.getImageData(0, 0, renderWidth, renderHeight);
 
-    let nonZeroPixels = 0;
-    for (let i = 0; i < imageData.data.length; i += 4) {
-      if (imageData.data[i + 3] > 0) {
-        nonZeroPixels++;
-      }
-    }
-    console.log('[TextTool] Image data:', { totalPixels: imageData.data.length / 4, nonZeroPixels, renderWidth, renderHeight });
-
     this.document.saveSnapshot('Add text');
 
     const layerId = `layer_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -211,14 +199,11 @@ export class EditorTextSessionService {
     const canvasWidth = this.canvasState.canvasWidth();
     const canvasHeight = this.canvasState.canvasHeight();
 
-    console.log('[TextTool] Canvas dimensions:', { canvasWidth, canvasHeight, boundsX: bounds.x, boundsY: bounds.y });
-
     this.canvasState.ensureLayerBuffer(layerId, canvasWidth, canvasHeight);
     const buffer = this.canvasState.getLayerBuffer(layerId);
 
     if (!buffer) return null;
 
-    let pixelsCopied = 0;
     for (let py = 0; py < renderHeight; py++) {
       for (let px = 0; px < renderWidth; px++) {
         const destX = bounds.x + px;
@@ -235,7 +220,6 @@ export class EditorTextSessionService {
         const a = imageData.data[srcIdx + 3];
 
         if (a > 0) {
-          pixelsCopied++;
           const destIdx = destY * canvasWidth + destX;
           if (a >= 255) {
             buffer[destIdx] = `rgb(${r},${g},${b})`;
@@ -246,7 +230,7 @@ export class EditorTextSessionService {
       }
     }
 
-    console.log('[TextTool] Pixels copied to buffer:', pixelsCopied);
+    this.canvasState.setLayerBuffer(layerId, buffer);
 
     this.layerService.layers.update((arr) => [newLayer, ...arr]);
     this.layerService.selectedLayerId.set(layerId);
