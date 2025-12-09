@@ -31,9 +31,12 @@ export class TextToPixelConverterService {
     const lines = options.text.split('\n');
     const lineHeight = Math.ceil(scaledFontSize * 1.2);
 
+    const maxExpectedWidth = Math.min(scaledFontSize * options.text.length * 1.5, 8000);
+    const maxExpectedHeight = Math.min(scaledFontSize * lines.length * 2, 2000);
+    
     const measureCanvas = document.createElement('canvas');
-    measureCanvas.width = 4000;
-    measureCanvas.height = 400;
+    measureCanvas.width = maxExpectedWidth;
+    measureCanvas.height = maxExpectedHeight;
     const measureCtx = measureCanvas.getContext('2d');
     if (!measureCtx) return null;
 
@@ -105,19 +108,25 @@ export class TextToPixelConverterService {
     const targetImageData = targetCtx.createImageData(targetWidth, targetHeight);
     const targetData = targetImageData.data;
 
+    const blockWidth = Math.ceil(scaleX);
+    const blockHeight = Math.ceil(scaleY);
+    const totalSamples = blockWidth * blockHeight;
+
     for (let ty = 0; ty < targetHeight; ty++) {
+      const srcStartY = Math.floor(ty * scaleY);
+      const srcEndY = Math.min(srcStartY + blockHeight, sourceHeight);
+      
       for (let tx = 0; tx < targetWidth; tx++) {
         let r = 0, g = 0, b = 0, a = 0;
-        let count = 0;
+        let validSamples = 0;
 
         const srcStartX = Math.floor(tx * scaleX);
-        const srcEndX = Math.min(Math.ceil((tx + 1) * scaleX), sourceWidth);
-        const srcStartY = Math.floor(ty * scaleY);
-        const srcEndY = Math.min(Math.ceil((ty + 1) * scaleY), sourceHeight);
+        const srcEndX = Math.min(srcStartX + blockWidth, sourceWidth);
 
         for (let sy = srcStartY; sy < srcEndY; sy++) {
+          const rowIdx = sy * sourceWidth * 4;
           for (let sx = srcStartX; sx < srcEndX; sx++) {
-            const srcIdx = (sy * sourceWidth + sx) * 4;
+            const srcIdx = rowIdx + sx * 4;
             const srcAlpha = sourceData[srcIdx + 3];
             
             if (srcAlpha > 0) {
@@ -125,17 +134,17 @@ export class TextToPixelConverterService {
               g += sourceData[srcIdx + 1] * srcAlpha;
               b += sourceData[srcIdx + 2] * srcAlpha;
               a += srcAlpha;
-              count++;
+              validSamples++;
             }
           }
         }
 
         const targetIdx = (ty * targetWidth + tx) * 4;
-        if (a > 0) {
+        if (a > 0 && validSamples > 0) {
           targetData[targetIdx] = Math.round(r / a);
           targetData[targetIdx + 1] = Math.round(g / a);
           targetData[targetIdx + 2] = Math.round(b / a);
-          targetData[targetIdx + 3] = Math.round(a / count);
+          targetData[targetIdx + 3] = Math.round(a / validSamples);
         } else {
           targetData[targetIdx] = 0;
           targetData[targetIdx + 1] = 0;
