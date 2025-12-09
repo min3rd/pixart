@@ -4,6 +4,7 @@ import { EditorToolsService } from '../editor-tools.service';
 import { EditorCanvasStateService } from './editor-canvas-state.service';
 import { EditorLayerService } from './editor-layer.service';
 import { LayerItem, isLayer } from './editor.types';
+import { TextToPixelConverterService } from './text-to-pixel-converter.service';
 
 export interface TextBounds {
   x: number;
@@ -24,6 +25,7 @@ export class EditorTextSessionService {
   private readonly tools = inject(EditorToolsService);
   private readonly canvasState = inject(EditorCanvasStateService);
   private readonly layerService = inject(EditorLayerService);
+  private readonly textConverter = inject(TextToPixelConverterService);
 
   readonly isActive = signal<boolean>(false);
   readonly textBounds = signal<TextBounds | null>(null);
@@ -141,49 +143,16 @@ export class EditorTextSessionService {
     color: string,
     bounds: TextBounds,
   ): Promise<LayerItem | null> {
-    const fontLoaded = await this.ensureFontLoaded(fontFamily);
-    const effectiveFont = fontLoaded ? `"${fontFamily}"` : 'monospace';
+    const result = await this.textConverter.renderTextToPixels({
+      text,
+      fontFamily,
+      fontSize,
+      color,
+    });
 
-    const lines = text.split('\n');
-    const lineHeight = Math.ceil(fontSize * 1.2);
+    if (!result) return null;
 
-    const measureCanvas = document.createElement('canvas');
-    measureCanvas.width = 1000;
-    measureCanvas.height = 100;
-    const measureCtx = measureCanvas.getContext('2d');
-    if (!measureCtx) return null;
-
-    measureCtx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
-
-    let maxWidth = 1;
-    for (const line of lines) {
-      const metrics = measureCtx.measureText(line);
-      maxWidth = Math.max(maxWidth, Math.ceil(metrics.width) + 4);
-    }
-    const textHeight = Math.ceil(lineHeight * lines.length) + 4;
-
-    const renderWidth = Math.max(maxWidth, 10);
-    const renderHeight = Math.max(textHeight, fontSize + 4);
-
-    const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = renderWidth;
-    offscreenCanvas.height = renderHeight;
-
-    const ctx = offscreenCanvas.getContext('2d');
-    if (!ctx) return null;
-
-    ctx.imageSmoothingEnabled = false;
-
-    ctx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
-    ctx.fillStyle = color;
-    ctx.textBaseline = 'top';
-    ctx.textAlign = 'left';
-
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], 2, 2 + i * lineHeight);
-    }
-
-    const imageData = ctx.getImageData(0, 0, renderWidth, renderHeight);
+    const { width: renderWidth, height: renderHeight, imageData } = result;
 
     this.document.saveSnapshot('Edit text');
 
@@ -253,49 +222,16 @@ export class EditorTextSessionService {
     color: string,
     bounds: TextBounds,
   ): Promise<LayerItem | null> {
-    const fontLoaded = await this.ensureFontLoaded(fontFamily);
-    const effectiveFont = fontLoaded ? `"${fontFamily}"` : 'monospace';
+    const result = await this.textConverter.renderTextToPixels({
+      text,
+      fontFamily,
+      fontSize,
+      color,
+    });
 
-    const lines = text.split('\n');
-    const lineHeight = Math.ceil(fontSize * 1.2);
+    if (!result) return null;
 
-    const measureCanvas = document.createElement('canvas');
-    measureCanvas.width = 1000;
-    measureCanvas.height = 100;
-    const measureCtx = measureCanvas.getContext('2d');
-    if (!measureCtx) return null;
-
-    measureCtx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
-
-    let maxWidth = 1;
-    for (const line of lines) {
-      const metrics = measureCtx.measureText(line);
-      maxWidth = Math.max(maxWidth, Math.ceil(metrics.width) + 4);
-    }
-    const textHeight = Math.ceil(lineHeight * lines.length) + 4;
-
-    const renderWidth = Math.max(maxWidth, 10);
-    const renderHeight = Math.max(textHeight, fontSize + 4);
-
-    const offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = renderWidth;
-    offscreenCanvas.height = renderHeight;
-
-    const ctx = offscreenCanvas.getContext('2d');
-    if (!ctx) return null;
-
-    ctx.imageSmoothingEnabled = false;
-
-    ctx.font = `${fontSize}px ${effectiveFont}, sans-serif`;
-    ctx.fillStyle = color;
-    ctx.textBaseline = 'top';
-    ctx.textAlign = 'left';
-
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], 2, 2 + i * lineHeight);
-    }
-
-    const imageData = ctx.getImageData(0, 0, renderWidth, renderHeight);
+    const { width: renderWidth, height: renderHeight, imageData } = result;
 
     this.document.saveSnapshot('Add text');
 
@@ -354,19 +290,4 @@ export class EditorTextSessionService {
     return newLayer;
   }
 
-  private async ensureFontLoaded(fontFamily: string): Promise<boolean> {
-    if (typeof document === 'undefined' || !document.fonts) {
-      return false;
-    }
-
-    try {
-      await document.fonts.load(`16px "${fontFamily}"`);
-      await document.fonts.ready;
-      const loaded = document.fonts.check(`16px "${fontFamily}"`);
-      return loaded;
-    } catch (error) {
-      console.warn(`Failed to load font "${fontFamily}", using fallback:`, error);
-      return false;
-    }
-  }
 }
