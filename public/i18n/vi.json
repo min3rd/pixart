@@ -38,7 +38,8 @@
     "stroke": "Viền",
     "imageSize": "Kích thước bản vẽ",
     "showOutOfBoundsPixels": "Hiện pixel ngoài vùng",
-    "hideOutOfBoundsPixels": "Ẩn pixel ngoài vùng"
+    "hideOutOfBoundsPixels": "Ẩn pixel ngoài vùng",
+    "logViewer": "Xem log"
   },
   "badges": {
     "title": "Trình biên tập 2D • Alpha",
@@ -70,6 +71,7 @@
       "tool": "Công cụ vẽ và chỉnh sửa",
       "help": "Trợ giúp và cài đặt",
       "view": "Tùy chọn hiển thị",
+      "logViewer": "Mở màn hình theo dõi log realtime",
       "undo": "Hoàn tác thao tác cuối",
       "redo": "Làm lại thao tác vừa hoàn tác",
       "cut": "Cắt vùng chọn vào clipboard",
@@ -970,5 +972,23 @@
   "common": {
     "confirm": "Xác nhận",
     "cancel": "Hủy"
+  },
+  "logViewer": {
+    "title": "Xem log",
+    "search": "Tìm kiếm log...",
+    "filterCategory": "Lọc theo danh mục",
+    "filterStatus": "Lọc theo trạng thái",
+    "copyEntry": "Sao chép",
+    "copyAll": "Sao chép tất cả",
+    "saveLogs": "Lưu log",
+    "replay": "Tái hiện",
+    "timestamp": "Thời gian",
+    "category": "Danh mục",
+    "action": "Hành động",
+    "status": "Trạng thái",
+    "duration": "Thời lượng",
+    "noLogs": "Chưa có log",
+    "allCategories": "Tất cả",
+    "allStatuses": "Tất cả"
   }
 }
