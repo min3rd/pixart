@@ -42,7 +42,8 @@
     "stroke": "Stroke",
     "imageSize": "Image Size",
     "showOutOfBoundsPixels": "Show Out-of-Bounds Pixels",
-    "hideOutOfBoundsPixels": "Hide Out-of-Bounds Pixels"
+    "hideOutOfBoundsPixels": "Hide Out-of-Bounds Pixels",
+    "logViewer": "Log Viewer"
   },
   "badges": {
     "title": "2D Editor \u2022 Alpha",
@@ -74,6 +75,7 @@
       "tool": "Drawing and editing tools",
       "help": "Help and settings",
       "view": "View options",
+      "logViewer": "Open realtime log viewer",
       "undo": "Undo last action",
       "redo": "Redo last undone action",
       "cut": "Cut selection to clipboard",
@@ -970,5 +972,27 @@
   "languageSelector": {
     "selectLanguage": "Select language",
     "moreLanguages": "More languages"
+  },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "logViewer": {
+    "title": "Log Viewer",
+    "search": "Search logs...",
+    "filterCategory": "Filter by category",
+    "filterStatus": "Filter by status",
+    "copyEntry": "Copy",
+    "copyAll": "Copy All",
+    "saveLogs": "Save Logs",
+    "replay": "Replay",
+    "timestamp": "Timestamp",
+    "category": "Category",
+    "action": "Action",
+    "status": "Status",
+    "duration": "Duration",
+    "noLogs": "No logs available",
+    "allCategories": "All",
+    "allStatuses": "All"
   }
 }

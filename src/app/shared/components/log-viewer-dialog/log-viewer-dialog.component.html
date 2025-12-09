@@ -1,0 +1,239 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'logViewer.title' | transloco"
+  [size]="'lg'"
+  [modalId]="'log-viewer-dialog'"
+  [showCloseButton]="false"
+  (onClose)="close()"
+>
+  <div id="log-viewer-content" class="space-y-4">
+    <div id="log-viewer-controls" class="flex gap-2 flex-wrap">
+      <input
+        type="text"
+        id="log-viewer-search-input"
+        class="flex-1 min-w-[200px] px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-800 text-sm"
+        [placeholder]="'logViewer.search' | transloco"
+        [value]="searchTerm()"
+        #searchInput
+        (input)="onSearchChange(searchInput.value)"
+      />
+
+      <select
+        id="log-viewer-category-select"
+        class="px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-800 text-sm"
+        [value]="selectedCategory()"
+        #categorySelect
+        (change)="onCategoryChange(categorySelect.value)"
+      >
+        @for (category of categories; track category) {
+          <option [id]="'log-viewer-category-option-' + category" [value]="category">
+            @if (category === 'all') {
+              {{ 'logViewer.allCategories' | transloco }}
+            } @else {
+              {{ category }}
+            }
+          </option>
+        }
+      </select>
+
+      <select
+        id="log-viewer-status-select"
+        class="px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-800 text-sm"
+        [value]="selectedStatus()"
+        #statusSelect
+        (change)="onStatusChange(statusSelect.value)"
+      >
+        @for (status of statuses; track status) {
+          <option [id]="'log-viewer-status-option-' + status" [value]="status">
+            @if (status === 'all') {
+              {{ 'logViewer.allStatuses' | transloco }}
+            } @else {
+              {{ status }}
+            }
+          </option>
+        }
+      </select>
+    </div>
+
+    <div id="log-viewer-actions" class="flex gap-2">
+      <button
+        type="button"
+        id="log-viewer-copy-all-button"
+        class="px-3 py-2 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-sm text-sm flex items-center gap-2"
+        (click)="copyAll()"
+      >
+        <ng-icon id="log-viewer-copy-all-icon" name="heroDocumentDuplicate" class="w-4 h-4"></ng-icon>
+        <span id="log-viewer-copy-all-text">{{ 'logViewer.copyAll' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        id="log-viewer-save-button"
+        class="px-3 py-2 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-sm text-sm flex items-center gap-2"
+        (click)="saveLogs()"
+      >
+        <ng-icon id="log-viewer-save-icon" name="heroArrowDownTray" class="w-4 h-4"></ng-icon>
+        <span id="log-viewer-save-text">{{ 'logViewer.saveLogs' | transloco }}</span>
+      </button>
+    </div>
+
+    <div
+      id="log-viewer-logs-container"
+      class="max-h-[500px] overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded-sm"
+    >
+      @if (filteredLogs().length === 0) {
+        <div
+          id="log-viewer-no-logs"
+          class="text-center py-8 text-neutral-500 dark:text-neutral-400"
+        >
+          {{ 'logViewer.noLogs' | transloco }}
+        </div>
+      } @else {
+        <div id="log-viewer-logs-list" class="divide-y divide-neutral-200 dark:divide-neutral-700">
+          @for (log of filteredLogs(); track log.id) {
+            <div
+              [id]="'log-entry-' + log.id"
+              class="p-3 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+            >
+              <div [id]="'log-entry-header-' + log.id" class="flex items-start justify-between gap-2 mb-2">
+                <div [id]="'log-entry-info-' + log.id" class="flex-1 min-w-0">
+                  <div [id]="'log-entry-title-' + log.id" class="flex items-center gap-2 flex-wrap">
+                    <span
+                      [id]="'log-entry-category-' + log.id"
+                      class="px-2 py-0.5 text-xs font-medium rounded-sm"
+                      [class.bg-blue-100]="log.category === 'file'"
+                      [class.dark:bg-blue-900/30]="log.category === 'file'"
+                      [class.text-blue-800]="log.category === 'file'"
+                      [class.dark:text-blue-300]="log.category === 'file'"
+                      [class.bg-green-100]="log.category === 'layer'"
+                      [class.dark:bg-green-900/30]="log.category === 'layer'"
+                      [class.text-green-800]="log.category === 'layer'"
+                      [class.dark:text-green-300]="log.category === 'layer'"
+                      [class.bg-purple-100]="log.category === 'drawing'"
+                      [class.dark:bg-purple-900/30]="log.category === 'drawing'"
+                      [class.text-purple-800]="log.category === 'drawing'"
+                      [class.dark:text-purple-300]="log.category === 'drawing'"
+                      [class.bg-amber-100]="log.category === 'tool'"
+                      [class.dark:bg-amber-900/30]="log.category === 'tool'"
+                      [class.text-amber-800]="log.category === 'tool'"
+                      [class.dark:text-amber-300]="log.category === 'tool'"
+                      [class.bg-neutral-100]="!['file', 'layer', 'drawing', 'tool'].includes(log.category)"
+                      [class.dark:bg-neutral-700]="!['file', 'layer', 'drawing', 'tool'].includes(log.category)"
+                      [class.text-neutral-800]="!['file', 'layer', 'drawing', 'tool'].includes(log.category)"
+                      [class.dark:text-neutral-300]="!['file', 'layer', 'drawing', 'tool'].includes(log.category)"
+                    >
+                      {{ log.category }}
+                    </span>
+
+                    <span
+                      [id]="'log-entry-status-' + log.id"
+                      class="px-2 py-0.5 text-xs font-medium rounded-sm"
+                      [class.bg-green-100]="log.status === 'success'"
+                      [class.dark:bg-green-900/30]="log.status === 'success'"
+                      [class.text-green-800]="log.status === 'success'"
+                      [class.dark:text-green-300]="log.status === 'success'"
+                      [class.bg-red-100]="log.status === 'failure'"
+                      [class.dark:bg-red-900/30]="log.status === 'failure'"
+                      [class.text-red-800]="log.status === 'failure'"
+                      [class.dark:text-red-300]="log.status === 'failure'"
+                      [class.bg-amber-100]="log.status === 'pending'"
+                      [class.dark:bg-amber-900/30]="log.status === 'pending'"
+                      [class.text-amber-800]="log.status === 'pending'"
+                      [class.dark:text-amber-300]="log.status === 'pending'"
+                    >
+                      {{ log.status }}
+                    </span>
+
+                    <span
+                      [id]="'log-entry-action-' + log.id"
+                      class="font-medium text-sm"
+                    >
+                      {{ log.action }}
+                    </span>
+                  </div>
+
+                  <div [id]="'log-entry-meta-' + log.id" class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                    <span [id]="'log-entry-timestamp-' + log.id">
+                      {{ formatTimestamp(log.timestamp) }}
+                    </span>
+                    @if (log.duration) {
+                      <span [id]="'log-entry-duration-' + log.id" class="ml-2">
+                        • {{ formatDuration(log.duration) }}
+                      </span>
+                    }
+                  </div>
+
+                  @if (log.description) {
+                    <div
+                      [id]="'log-entry-description-' + log.id"
+                      class="text-sm text-neutral-600 dark:text-neutral-400 mt-1"
+                    >
+                      {{ log.description }}
+                    </div>
+                  }
+
+                  @if (log.parameters) {
+                    <details [id]="'log-entry-details-' + log.id" class="mt-1">
+                      <summary
+                        [id]="'log-entry-details-summary-' + log.id"
+                        class="text-xs text-neutral-500 dark:text-neutral-400 cursor-pointer hover:text-neutral-700 dark:hover:text-neutral-300"
+                      >
+                        Parameters
+                      </summary>
+                      <pre
+                        [id]="'log-entry-parameters-' + log.id"
+                        class="text-xs bg-neutral-100 dark:bg-neutral-900 p-2 rounded-sm mt-1 overflow-x-auto"
+                      >{{ log.parameters | json }}</pre>
+                    </details>
+                  }
+
+                  @if (log.error) {
+                    <div
+                      [id]="'log-entry-error-' + log.id"
+                      class="text-sm text-red-600 dark:text-red-400 mt-1 font-mono"
+                    >
+                      {{ log.error }}
+                    </div>
+                  }
+                </div>
+
+                <div [id]="'log-entry-actions-' + log.id" class="flex gap-1">
+                  <button
+                    type="button"
+                    [id]="'log-entry-copy-button-' + log.id"
+                    class="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-sm"
+                    (click)="copyEntry(log)"
+                    [title]="'logViewer.copyEntry' | transloco"
+                  >
+                    <ng-icon [id]="'log-entry-copy-icon-' + log.id" name="heroClipboard" class="w-4 h-4"></ng-icon>
+                  </button>
+
+                  <button
+                    type="button"
+                    [id]="'log-entry-replay-button-' + log.id"
+                    class="p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-sm"
+                    (click)="replayLog(log)"
+                    [title]="'logViewer.replay' | transloco"
+                  >
+                    <ng-icon [id]="'log-entry-replay-icon-' + log.id" name="heroPlay" class="w-4 h-4"></ng-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div id="log-viewer-footer" class="flex justify-end gap-2 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+    <button
+      type="button"
+      id="log-viewer-close-button"
+      class="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-sm text-sm"
+      (click)="close()"
+    >
+      {{ 'common.cancel' | transloco }}
+    </button>
+  </div>
+</pa-modal>
