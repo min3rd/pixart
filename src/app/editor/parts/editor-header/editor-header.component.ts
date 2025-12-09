@@ -58,6 +58,7 @@ import {
   ImageSizeResult,
 } from '../../../shared/components/image-size-dialog/image-size-dialog';
 import { LanguageSelectorComponent } from '../../../shared/components/language-selector/language-selector.component';
+import { LogViewerDialog } from '../../../shared/components/log-viewer-dialog/log-viewer-dialog.component';
 
 @Component({
   selector: 'pa-editor-header',
@@ -79,6 +80,7 @@ import { LanguageSelectorComponent } from '../../../shared/components/language-s
     FillSelectionDialog,
     ImageSizeDialog,
     LanguageSelectorComponent,
+    LogViewerDialog,
   ],
   host: {
     class:
@@ -116,6 +118,7 @@ export class EditorHeader {
   readonly showViewMenu = signal(false);
   readonly insertImageDialog = viewChild(InsertImageDialog);
   readonly hotkeyConfigDialog = viewChild(HotkeyConfigDialog);
+  readonly logViewerDialog = viewChild(LogViewerDialog);
   readonly scaleDialog = viewChild(ScaleDialog);
   readonly rotateDialog = viewChild(RotateDialog);
   readonly skewDialog = viewChild(SkewDialog);
@@ -788,6 +791,13 @@ export class EditorHeader {
       defaultKey: 'ctrl+shift+o',
       handler: () => this.onToggleOutOfBoundsPixels(),
     });
+
+    this.hotkeys.register({
+      id: 'help.logViewer',
+      category: 'help',
+      defaultKey: 'ctrl+shift+l',
+      handler: () => this.onOpenLogViewer(),
+    });
   }
 
   onPaletteCreateNew(): void {
@@ -1205,6 +1215,14 @@ export class EditorHeader {
   onConfigureHotkeys() {
     this.showHelpMenu.set(false);
     const dialog = this.hotkeyConfigDialog();
+    if (dialog) {
+      dialog.open();
+    }
+  }
+
+  onOpenLogViewer() {
+    this.showHelpMenu.set(false);
+    const dialog = this.logViewerDialog();
     if (dialog) {
       dialog.open();
     }

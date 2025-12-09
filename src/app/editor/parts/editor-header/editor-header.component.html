@@ -1399,6 +1399,32 @@
           >
             {{ "hotkeys.title" | transloco }}
           </button>
+          <button
+            id="menu-help-log-viewer-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onOpenLogViewer()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('help.logViewer')"
+            [paTooltip]="'tooltips.menu.logViewer' | transloco"
+          >
+            <div id="menu-help-log-viewer-content" class="flex items-center gap-2">
+              <ng-icon
+                id="menu-help-log-viewer-icon"
+                name="heroDocumentText"
+                class="w-4 h-4"
+              ></ng-icon>
+              <span id="menu-help-log-viewer-label">{{ "menu.logViewer" | transloco }}</span>
+            </div>
+            @if (hotkeys.getBinding("help.logViewer")) {
+              <span
+                id="menu-help-log-viewer-shortcut"
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(hotkeys.getBinding("help.logViewer")!)
+                }}
+              </span>
+            }
+          </button>
         </div>
       }
     </div>
@@ -1464,3 +1490,5 @@
   (onConfirm)="handleImageSizeConfirm($event)"
   (onCancel)="handleImageSizeCancel()"
 />
+
+<pa-log-viewer-dialog />
