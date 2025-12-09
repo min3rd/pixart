@@ -4,7 +4,6 @@ import {
   inject,
   signal,
   computed,
-  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -92,14 +91,6 @@ export class LogViewerDialog {
     'pending',
   ];
 
-  constructor() {
-    effect(() => {
-      if (this.isOpen()) {
-        this.logService.recentLogs();
-      }
-    });
-  }
-
   open(): void {
     this.isOpen.set(true);
   }
@@ -122,14 +113,18 @@ export class LogViewerDialog {
 
   copyEntry(log: LogEntry): void {
     const text = this.formatLogEntry(log);
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch((error) => {
+      console.error('Failed to copy log entry to clipboard', error);
+    });
   }
 
   copyAll(): void {
     const text = this.filteredLogs()
       .map((log) => this.formatLogEntry(log))
       .join('\n\n');
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch((error) => {
+      console.error('Failed to copy all logs to clipboard', error);
+    });
   }
 
   saveLogs(): void {
