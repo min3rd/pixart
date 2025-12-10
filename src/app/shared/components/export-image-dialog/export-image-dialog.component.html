@@ -1,0 +1,108 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'exportImage.title' | transloco"
+  [size]="'sm'"
+  [modalId]="'export-image-dialog'"
+  (onClose)="handleCancel()"
+>
+  <div id="export-image-dialog-content" class="space-y-4">
+    <div
+      id="export-image-description"
+      class="text-sm text-neutral-600 dark:text-neutral-400"
+    >
+      {{ "exportImage.description" | transloco }}
+    </div>
+
+    <div id="export-image-format-section">
+      <label
+        for="export-image-format-select"
+        id="export-image-format-label"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+      >
+        {{ "exportImage.formatLabel" | transloco }}
+      </label>
+      <select
+        id="export-image-format-select"
+        [value]="format()"
+        (change)="onFormatChange($event)"
+        class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+      >
+        @for (option of formatOptions; track option.value) {
+          <option [value]="option.value" [id]="'export-image-format-' + option.value">
+            {{ option.key | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div id="export-image-region-section">
+      <label
+        for="export-image-region-select"
+        id="export-image-region-label"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+      >
+        {{ "exportImage.regionLabel" | transloco }}
+      </label>
+      <select
+        id="export-image-region-select"
+        [value]="region()"
+        (change)="onRegionChange($event)"
+        class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-sm bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
+      >
+        @for (option of regionOptions; track option.value) {
+          <option [value]="option.value" [id]="'export-image-region-' + option.value">
+            {{ option.key | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (showQualitySlider()) {
+      <div id="export-image-quality-section">
+        <label
+          for="export-image-quality-slider"
+          id="export-image-quality-label"
+          class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+        >
+          {{ "exportImage.qualityLabel" | transloco }}: {{ quality() }}%
+        </label>
+        <input
+          type="range"
+          id="export-image-quality-slider"
+          min="1"
+          max="100"
+          step="1"
+          [value]="quality()"
+          (input)="onQualityChange($event)"
+          class="w-full"
+        />
+      </div>
+    }
+
+    <div
+      id="export-image-info"
+      class="pt-2 border-t border-neutral-200 dark:border-neutral-700 text-xs text-neutral-500 dark:text-neutral-400"
+    >
+      {{ "exportImage.info" | transloco }}
+    </div>
+  </div>
+
+  <div modal-footer id="export-image-dialog-actions" class="flex gap-2">
+    <button
+      type="button"
+      id="export-image-dialog-confirm-button"
+      (click)="handleConfirm()"
+      class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-sm"
+    >
+      {{ "exportImage.export" | transloco }}
+    </button>
+    <button
+      type="button"
+      id="export-image-dialog-cancel-button"
+      (click)="handleCancel()"
+      class="flex-1 px-4 py-2 bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500 text-neutral-900 dark:text-neutral-100 rounded-sm"
+    >
+      {{ "exportImage.cancel" | transloco }}
+    </button>
+  </div>
+</pa-modal>

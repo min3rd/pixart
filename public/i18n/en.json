@@ -458,7 +458,8 @@
     "new": "New",
     "openFromComputer": "Open from computer",
     "saveToComputer": "Save to computer",
-    "saveLocal": "Save"
+    "saveLocal": "Save",
+    "exportImage": "Export Image..."
   },
   "insert": {
     "insertImage": "Insert Image",
@@ -994,5 +995,25 @@
     "noLogs": "No logs available",
     "allCategories": "All",
     "allStatuses": "All"
+  },
+  "exportImage": {
+    "title": "Export Image",
+    "description": "Export your artwork to PNG, JPEG, or BMP format with custom options",
+    "formatLabel": "Export Format",
+    "format": {
+      "png": "PNG (Portable Network Graphics)",
+      "jpeg": "JPEG (Joint Photographic Experts Group)",
+      "bmp": "BMP (Bitmap)"
+    },
+    "regionLabel": "Export Region",
+    "region": {
+      "all": "All Layers",
+      "current": "Current Layer Only",
+      "visible": "Visible Layers Only"
+    },
+    "qualityLabel": "JPEG Quality",
+    "info": "Pixel art quality is preserved with nearest-neighbor rendering (no smoothing)",
+    "export": "Export",
+    "cancel": "Cancel"
   }
 }
