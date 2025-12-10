@@ -454,7 +454,8 @@
     "new": "Tạo mới",
     "openFromComputer": "Mở từ máy tính",
     "saveToComputer": "Lưu về máy tính",
-    "saveLocal": "Lưu"
+    "saveLocal": "Lưu",
+    "exportImage": "Xuất ảnh..."
   },
   "insert": {
     "insertImage": "Chèn ảnh",
@@ -990,5 +991,25 @@
     "noLogs": "Chưa có log",
     "allCategories": "Tất cả",
     "allStatuses": "Tất cả"
+  },
+  "exportImage": {
+    "title": "Xuất ảnh",
+    "description": "Xuất tác phẩm của bạn sang định dạng PNG, JPEG hoặc BMP với các tùy chọn tùy chỉnh",
+    "formatLabel": "Định dạng xuất",
+    "format": {
+      "png": "PNG (Portable Network Graphics)",
+      "jpeg": "JPEG (Joint Photographic Experts Group)",
+      "bmp": "BMP (Bitmap)"
+    },
+    "regionLabel": "Vùng xuất",
+    "region": {
+      "all": "Tất cả các layer",
+      "current": "Chỉ layer hiện tại",
+      "visible": "Chỉ các layer hiển thị"
+    },
+    "qualityLabel": "Chất lượng JPEG",
+    "info": "Chất lượng pixel art được bảo toàn với kết xuất nearest-neighbor (không làm mờ)",
+    "export": "Xuất",
+    "cancel": "Hủy"
   }
 }

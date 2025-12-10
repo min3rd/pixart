@@ -59,6 +59,11 @@ import {
 } from '../../../shared/components/image-size-dialog/image-size-dialog';
 import { LanguageSelectorComponent } from '../../../shared/components/language-selector/language-selector.component';
 import { LogViewerDialog } from '../../../shared/components/log-viewer-dialog/log-viewer-dialog.component';
+import {
+  ExportImageDialog,
+  ExportImageResult,
+} from '../../../shared/components/export-image-dialog/export-image-dialog.component';
+import { EditorExportService } from '../../../services/editor/editor-export.service';
 
 @Component({
   selector: 'pa-editor-header',
@@ -81,6 +86,7 @@ import { LogViewerDialog } from '../../../shared/components/log-viewer-dialog/lo
     ImageSizeDialog,
     LanguageSelectorComponent,
     LogViewerDialog,
+    ExportImageDialog,
   ],
   host: {
     class:
@@ -107,6 +113,7 @@ export class EditorHeader {
   readonly defineShapeService = inject(DefineShapeService);
   readonly strokeService = inject(EditorStrokeService);
   readonly paletteService = inject(PaletteService);
+  readonly exportService = inject(EditorExportService);
   readonly showFileMenu = signal(false);
   readonly showEditMenu = signal(false);
   readonly showInsertMenu = signal(false);
@@ -127,6 +134,7 @@ export class EditorHeader {
   readonly contentAwareScaleDialog = viewChild(ContentAwareScaleDialog);
   readonly fillSelectionDialog = viewChild(FillSelectionDialog);
   readonly imageSizeDialog = viewChild(ImageSizeDialog);
+  readonly exportImageDialog = viewChild(ExportImageDialog);
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
   readonly onDefinePatternToggle = output<void>();
@@ -440,6 +448,13 @@ export class EditorHeader {
       category: 'file',
       defaultKey: 'ctrl+shift+s',
       handler: () => this.onSaveToComputer(),
+    });
+
+    this.hotkeys.register({
+      id: 'file.exportImage',
+      category: 'file',
+      defaultKey: 'ctrl+shift+e',
+      handler: () => this.onExportImage(),
     });
 
     this.hotkeys.register({
@@ -1595,4 +1610,34 @@ export class EditorHeader {
     this.document.rotateLayer180();
     this.showTransformMenu.set(false);
   }
+
+  onExportImage() {
+    this.showFileMenu.set(false);
+    const dialog = this.exportImageDialog();
+    if (dialog) {
+      dialog.open();
+    }
+  }
+
+  async handleExportImageConfirm(result: ExportImageResult) {
+    const currentLayerId = this.document.selectedLayerId();
+    const blob = await this.exportService.exportImage({
+      format: result.format,
+      region: result.region,
+      quality: result.quality,
+      currentLayerId: currentLayerId || undefined,
+    });
+
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      a.download = `pixart-export-${timestamp}.${result.format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  handleExportImageCancel() {}
 }

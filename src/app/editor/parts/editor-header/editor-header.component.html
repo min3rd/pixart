@@ -123,6 +123,29 @@
               </span>
             }
           </button>
+          <div
+            id="menu-file-divider-2"
+            class="border-t border-neutral-100 dark:border-neutral-700"
+          ></div>
+          <button
+            id="menu-file-export-image-action"
+            class="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center justify-between"
+            (click)="onExportImage()"
+            [attr.aria-keyshortcuts]="hotkeys.getBinding('file.exportImage')"
+          >
+            <span>{{ "file.exportImage" | transloco }}</span>
+            @if (hotkeys.getBinding("file.exportImage")) {
+              <span
+                class="text-xs text-neutral-500 dark:text-neutral-400 font-mono"
+              >
+                {{
+                  hotkeys.keyStringToDisplay(
+                    hotkeys.getBinding("file.exportImage")!
+                  )
+                }}
+              </span>
+            }
+          </button>
         </div>
       }
     </div>
@@ -1492,3 +1515,8 @@
 />
 
 <pa-log-viewer-dialog />
+
+<pa-export-image-dialog
+  (onConfirm)="handleExportImageConfirm($event)"
+  (onCancel)="handleExportImageCancel()"
+/>
