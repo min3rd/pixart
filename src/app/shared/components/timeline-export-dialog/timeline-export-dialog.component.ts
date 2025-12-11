@@ -76,7 +76,8 @@ export class TimelineExportDialog {
     this.range.set('all');
     this.framePattern.set('frame-{frame}');
     this.fromFrame.set(1);
-    this.toFrame.set(this.totalFrames());
+    const total = this.totalFrames();
+    this.toFrame.set(Math.max(1, total));
     this.spritesheetColumns.set(8);
     this.spritesheetPadding.set(0);
     this.isOpen.set(true);
@@ -87,7 +88,7 @@ export class TimelineExportDialog {
   }
 
   handleConfirm() {
-    this.exportService.exportTimeline({
+    const options = {
       format: this.format(),
       range: this.range(),
       framePattern: this.framePattern(),
@@ -95,17 +96,10 @@ export class TimelineExportDialog {
       toFrame: this.toFrame(),
       spritesheetColumns: this.spritesheetColumns(),
       spritesheetPadding: this.spritesheetPadding(),
-    });
+    };
 
-    this.onConfirm.emit({
-      format: this.format(),
-      range: this.range(),
-      framePattern: this.framePattern(),
-      fromFrame: this.fromFrame(),
-      toFrame: this.toFrame(),
-      spritesheetColumns: this.spritesheetColumns(),
-      spritesheetPadding: this.spritesheetPadding(),
-    });
+    this.exportService.exportTimeline(options);
+    this.onConfirm.emit(options);
     this.close();
   }
 
@@ -131,21 +125,33 @@ export class TimelineExportDialog {
 
   onFromFrameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.fromFrame.set(Number.parseInt(input.value, 10));
+    const value = Number.parseInt(input.value, 10);
+    if (!Number.isNaN(value)) {
+      this.fromFrame.set(Math.max(1, Math.min(value, this.totalFrames())));
+    }
   }
 
   onToFrameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.toFrame.set(Number.parseInt(input.value, 10));
+    const value = Number.parseInt(input.value, 10);
+    if (!Number.isNaN(value)) {
+      this.toFrame.set(Math.max(1, Math.min(value, this.totalFrames())));
+    }
   }
 
   onColumnsChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.spritesheetColumns.set(Number.parseInt(input.value, 10));
+    const value = Number.parseInt(input.value, 10);
+    if (!Number.isNaN(value)) {
+      this.spritesheetColumns.set(Math.max(1, Math.min(value, 20)));
+    }
   }
 
   onPaddingChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.spritesheetPadding.set(Number.parseInt(input.value, 10));
+    const value = Number.parseInt(input.value, 10);
+    if (!Number.isNaN(value)) {
+      this.spritesheetPadding.set(Math.max(0, Math.min(value, 10)));
+    }
   }
 }
