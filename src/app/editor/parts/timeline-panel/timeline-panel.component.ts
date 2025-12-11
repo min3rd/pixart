@@ -10,6 +10,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -18,22 +19,25 @@ import {
   heroStop,
   heroPlus,
   heroEllipsisVertical,
+  heroArrowDownTray,
 } from '@ng-icons/heroicons/outline';
 import { EditorDocumentService } from '../../../services/editor-document.service';
 import { HotkeysService } from '../../../services/hotkeys.service';
+import { TimelineExportDialog } from '../../../shared/components/timeline-export-dialog/timeline-export-dialog.component';
 
 @Component({
   selector: 'pa-timeline-panel',
   templateUrl: './timeline-panel.component.html',
   styleUrls: ['./timeline-panel.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, TranslocoPipe, NgIconComponent],
+  imports: [CommonModule, TranslocoPipe, NgIconComponent, TimelineExportDialog],
   providers: [
     provideIcons({
       heroPlay,
       heroStop,
       heroPlus,
       heroEllipsisVertical,
+      heroArrowDownTray,
     }),
   ],
   host: {
@@ -48,6 +52,8 @@ export class TimelinePanel implements AfterViewInit {
   readonly contextMenuX = signal(0);
   readonly contextMenuY = signal(0);
   readonly contextMenuFrameId = signal<string | null>(null);
+
+  readonly timelineExportDialog = viewChild(TimelineExportDialog);
 
   @ViewChild('contextMenuEl')
   contextMenuEl?: ElementRef<HTMLDivElement>;
@@ -108,6 +114,15 @@ export class TimelinePanel implements AfterViewInit {
             this.document.removeFrame(frameId);
           }
         }
+      },
+    });
+
+    this.hotkeys.register({
+      id: 'file.exportTimeline',
+      category: 'file',
+      defaultKey: 'ctrl+shift+t',
+      handler: () => {
+        this.exportFrames();
       },
     });
   }
@@ -242,6 +257,21 @@ export class TimelinePanel implements AfterViewInit {
       }
     }
     return result;
+  }
+
+  exportFrames() {
+    const dialog = this.timelineExportDialog();
+    if (dialog) {
+      dialog.open();
+    }
+  }
+
+  handleExportConfirm() {
+    this.closeContextMenu();
+  }
+
+  handleExportCancel() {
+    this.closeContextMenu();
   }
 
   getShortcut(hotkeyId: string): string | null {
