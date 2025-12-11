@@ -233,41 +233,53 @@ export class EditorTimelineExportService {
     if (colorStr.startsWith('rgb(')) {
       const match = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
       if (match) {
-        return {
-          r: parseInt(match[1], 10),
-          g: parseInt(match[2], 10),
-          b: parseInt(match[3], 10),
-          a: 255,
-        };
+        const r = parseInt(match[1], 10);
+        const g = parseInt(match[2], 10);
+        const b = parseInt(match[3], 10);
+        if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) {
+          return { r, g, b, a: 255 };
+        }
       }
     } else if (colorStr.startsWith('rgba(')) {
       const match = colorStr.match(
         /rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/,
       );
       if (match) {
-        return {
-          r: parseInt(match[1], 10),
-          g: parseInt(match[2], 10),
-          b: parseInt(match[3], 10),
-          a: Math.round(parseFloat(match[4]) * 255),
-        };
+        const r = parseInt(match[1], 10);
+        const g = parseInt(match[2], 10);
+        const b = parseInt(match[3], 10);
+        const alpha = parseFloat(match[4]);
+        if (
+          !Number.isNaN(r) &&
+          !Number.isNaN(g) &&
+          !Number.isNaN(b) &&
+          !Number.isNaN(alpha)
+        ) {
+          return { r, g, b, a: Math.round(alpha * 255) };
+        }
       }
     } else if (colorStr.startsWith('#')) {
       const hex = colorStr.slice(1);
       if (hex.length === 6) {
-        return {
-          r: parseInt(hex.slice(0, 2), 16),
-          g: parseInt(hex.slice(2, 4), 16),
-          b: parseInt(hex.slice(4, 6), 16),
-          a: 255,
-        };
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) {
+          return { r, g, b, a: 255 };
+        }
       } else if (hex.length === 8) {
-        return {
-          r: parseInt(hex.slice(0, 2), 16),
-          g: parseInt(hex.slice(2, 4), 16),
-          b: parseInt(hex.slice(4, 6), 16),
-          a: parseInt(hex.slice(6, 8), 16),
-        };
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        const a = parseInt(hex.slice(6, 8), 16);
+        if (
+          !Number.isNaN(r) &&
+          !Number.isNaN(g) &&
+          !Number.isNaN(b) &&
+          !Number.isNaN(a)
+        ) {
+          return { r, g, b, a };
+        }
       }
     }
     return null;
