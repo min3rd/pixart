@@ -20,10 +20,10 @@ import { EditorDocumentService } from '../../../services/editor-document.service
 export interface TimelineExportResult {
   format: TimelineExportFormat;
   range: TimelineExportRange;
-  framePattern: string;
   fromFrame: number;
   toFrame: number;
   spritesheetColumns: number;
+  spritesheetRows: number;
   spritesheetPadding: number;
 }
 
@@ -39,10 +39,10 @@ export class TimelineExportDialog {
   readonly isOpen = signal(false);
   readonly format = signal<TimelineExportFormat>('png');
   readonly range = signal<TimelineExportRange>('all');
-  readonly framePattern = signal<string>('frame-{frame}');
   readonly fromFrame = signal<number>(1);
   readonly toFrame = signal<number>(1);
   readonly spritesheetColumns = signal<number>(8);
+  readonly spritesheetRows = signal<number>(1);
   readonly spritesheetPadding = signal<number>(0);
 
   readonly exportService = inject(EditorTimelineExportService);
@@ -52,9 +52,6 @@ export class TimelineExportDialog {
   readonly onCancel = output<void>();
 
   readonly showCustomRange = computed(() => this.range() === 'custom');
-  readonly showSpriteSheetOptions = computed(
-    () => this.format() === 'spritesheet',
-  );
   readonly totalFrames = computed(() => this.document.frames().length);
 
   readonly formatOptions: { value: TimelineExportFormat; key: string }[] = [
@@ -62,7 +59,6 @@ export class TimelineExportDialog {
     { value: 'jpeg', key: 'timeline.exportDialog.formatJpeg' },
     { value: 'bmp', key: 'timeline.exportDialog.formatBmp' },
     { value: 'gif', key: 'timeline.exportDialog.formatGif' },
-    { value: 'spritesheet', key: 'timeline.exportDialog.formatSpritesheet' },
   ];
 
   readonly rangeOptions: { value: TimelineExportRange; key: string }[] = [
@@ -74,11 +70,11 @@ export class TimelineExportDialog {
   open() {
     this.format.set('png');
     this.range.set('all');
-    this.framePattern.set('frame-{frame}');
     this.fromFrame.set(1);
     const total = this.totalFrames();
     this.toFrame.set(Math.max(1, total));
     this.spritesheetColumns.set(8);
+    this.spritesheetRows.set(Math.ceil(total / 8));
     this.spritesheetPadding.set(0);
     this.isOpen.set(true);
   }
@@ -91,10 +87,10 @@ export class TimelineExportDialog {
     const options = {
       format: this.format(),
       range: this.range(),
-      framePattern: this.framePattern(),
       fromFrame: this.fromFrame(),
       toFrame: this.toFrame(),
       spritesheetColumns: this.spritesheetColumns(),
+      spritesheetRows: this.spritesheetRows(),
       spritesheetPadding: this.spritesheetPadding(),
     };
 
@@ -118,11 +114,6 @@ export class TimelineExportDialog {
     this.range.set(select.value as TimelineExportRange);
   }
 
-  onFramePatternChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.framePattern.set(input.value);
-  }
-
   onFromFrameChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const value = Number.parseInt(input.value, 10);
@@ -144,6 +135,14 @@ export class TimelineExportDialog {
     const value = Number.parseInt(input.value, 10);
     if (!Number.isNaN(value)) {
       this.spritesheetColumns.set(Math.max(1, Math.min(value, 20)));
+    }
+  }
+
+  onRowsChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = Number.parseInt(input.value, 10);
+    if (!Number.isNaN(value)) {
+      this.spritesheetRows.set(Math.max(1, Math.min(value, 20)));
     }
   }
 

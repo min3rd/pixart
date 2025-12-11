@@ -2,16 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { EditorDocumentService } from '../editor-document.service';
 import { LogService } from '../logging/log.service';
 
-export type TimelineExportFormat = 'png' | 'jpeg' | 'bmp' | 'gif' | 'spritesheet';
+export type TimelineExportFormat = 'png' | 'jpeg' | 'bmp' | 'gif';
 export type TimelineExportRange = 'all' | 'current' | 'custom';
 
 export interface TimelineExportOptions {
   format: TimelineExportFormat;
   range: TimelineExportRange;
-  framePattern: string;
   fromFrame: number;
   toFrame: number;
   spritesheetColumns?: number;
+  spritesheetRows?: number;
   spritesheetPadding?: number;
 }
 
@@ -33,11 +33,7 @@ export class EditorTimelineExportService {
       return;
     }
 
-    if (options.format === 'spritesheet') {
-      this.exportAsSpriteSheet(frames, options, startTime);
-    } else {
-      this.exportAsIndividualFrames(frames, options, startTime);
-    }
+    this.exportAsSpriteSheet(frames, options, startTime);
   }
 
   private getFramesToExport(options: TimelineExportOptions): any[] {
@@ -62,49 +58,6 @@ export class EditorTimelineExportService {
     }
   }
 
-  private exportAsIndividualFrames(
-    frames: any[],
-    options: TimelineExportOptions,
-    startTime: number,
-  ): void {
-    const canvasWidth = this.document.canvasWidth();
-    const canvasHeight = this.document.canvasHeight();
-    const allFrames = this.document.frames();
-
-    const frameIndexMap = new Map(allFrames.map((f, i) => [f, i]));
-
-    frames.forEach((frame, localIndex) => {
-      const canvas = this.renderFrameToCanvas(
-        frame,
-        canvasWidth,
-        canvasHeight,
-      );
-      if (!canvas) return;
-
-      const mimeType = this.getMimeType(options.format);
-      const actualFrameIndex = frameIndexMap.get(frame);
-      const frameNumber =
-        actualFrameIndex !== undefined ? actualFrameIndex + 1 : localIndex + 1;
-      const fileName = this.formatFrameName(options.framePattern, frameNumber);
-
-      canvas.toBlob((blob) => {
-        if (blob) {
-          this.downloadBlob(blob, `${fileName}.${options.format}`);
-        }
-      }, mimeType);
-    });
-
-    this.logService.log('export', 'export_timeline', {
-      description: 'Timeline exported as individual frames',
-      parameters: {
-        format: options.format,
-        frameCount: frames.length,
-      },
-      status: 'success',
-      duration: Math.round(performance.now() - startTime),
-    });
-  }
-
   private exportAsSpriteSheet(
     frames: any[],
     options: TimelineExportOptions,
@@ -113,8 +66,8 @@ export class EditorTimelineExportService {
     const canvasWidth = this.document.canvasWidth();
     const canvasHeight = this.document.canvasHeight();
     const columns = options.spritesheetColumns || 8;
+    const rows = options.spritesheetRows || Math.ceil(frames.length / columns);
     const padding = options.spritesheetPadding || 0;
-    const rows = Math.ceil(frames.length / columns);
 
     const sheetWidth = columns * canvasWidth + (columns - 1) * padding;
     const sheetHeight = rows * canvasHeight + (rows - 1) * padding;
@@ -151,15 +104,24 @@ export class EditorTimelineExportService {
       ctx.drawImage(frameCanvas, x, y);
     });
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        this.downloadBlob(blob, 'spritesheet.png');
-      }
-    }, 'image/png');
+    const mimeType = this.getMimeType(options.format);
+    const fileExtension = options.format;
+    const fileName = `spritesheet.${fileExtension}`;
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          this.downloadBlob(blob, fileName);
+        }
+      },
+      mimeType,
+      options.format === 'jpeg' ? 0.95 : undefined,
+    );
 
     this.logService.log('export', 'export_timeline', {
       description: 'Timeline exported as sprite sheet',
       parameters: {
+        format: options.format,
         frameCount: frames.length,
         columns,
         rows,
@@ -312,10 +274,6 @@ export class EditorTimelineExportService {
       default:
         return 'image/png';
     }
-  }
-
-  private formatFrameName(pattern: string, frameNumber: number): string {
-    return pattern.replace(/{frame}/g, frameNumber.toString().padStart(3, '0'));
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
