@@ -91,35 +91,9 @@
       </div>
     }
 
-    @if (!showSpriteSheetOptions()) {
-      <div id="frame-pattern-section" class="flex flex-col gap-2">
-        <label
-          for="frame-pattern-input"
-          id="frame-pattern-label"
-          class="text-sm font-medium"
-        >
-          {{ "timeline.exportDialog.framePattern" | transloco }}
-        </label>
-        <input
-          id="frame-pattern-input"
-          type="text"
-          [value]="framePattern()"
-          (input)="onFramePatternChange($event)"
-          placeholder="frame-{frame}"
-          class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
-        />
-        <p
-          id="frame-pattern-hint"
-          class="text-xs text-neutral-500 dark:text-neutral-400"
-        >
-          {{ "timeline.exportDialog.framePatternHint" | transloco }}
-        </p>
-      </div>
-    }
-
-    @if (showSpriteSheetOptions()) {
-      <div id="spritesheet-options-section" class="flex flex-col gap-4">
-        <div id="spritesheet-columns-section" class="flex flex-col gap-2">
+    <div id="spritesheet-options-section" class="flex flex-col gap-4">
+      <div id="spritesheet-grid-section" class="flex gap-4">
+        <div id="spritesheet-columns-section" class="flex-1 flex flex-col gap-2">
           <label
             for="spritesheet-columns-input"
             id="spritesheet-columns-label"
@@ -137,26 +111,44 @@
             class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
           />
         </div>
-        <div id="spritesheet-padding-section" class="flex flex-col gap-2">
+        <div id="spritesheet-rows-section" class="flex-1 flex flex-col gap-2">
           <label
-            for="spritesheet-padding-input"
-            id="spritesheet-padding-label"
+            for="spritesheet-rows-input"
+            id="spritesheet-rows-label"
             class="text-sm font-medium"
           >
-            {{ "timeline.exportDialog.spritesheetPadding" | transloco }}
+            {{ "timeline.exportDialog.spritesheetRows" | transloco }}
           </label>
           <input
-            id="spritesheet-padding-input"
+            id="spritesheet-rows-input"
             type="number"
-            [value]="spritesheetPadding()"
-            (input)="onPaddingChange($event)"
-            [min]="0"
-            [max]="10"
+            [value]="spritesheetRows()"
+            (input)="onRowsChange($event)"
+            [min]="1"
+            [max]="20"
             class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
           />
         </div>
       </div>
-    }
+      <div id="spritesheet-padding-section" class="flex flex-col gap-2">
+        <label
+          for="spritesheet-padding-input"
+          id="spritesheet-padding-label"
+          class="text-sm font-medium"
+        >
+          {{ "timeline.exportDialog.spritesheetPadding" | transloco }}
+        </label>
+        <input
+          id="spritesheet-padding-input"
+          type="number"
+          [value]="spritesheetPadding()"
+          (input)="onPaddingChange($event)"
+          [min]="0"
+          [max]="10"
+          class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+        />
+      </div>
+    </div>
 
     <div id="dialog-actions" class="flex justify-end gap-2 mt-4">
       <button
