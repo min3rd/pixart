@@ -71,6 +71,8 @@ export class EditorTimelineExportService {
     const canvasHeight = this.document.canvasHeight();
     const allFrames = this.document.frames();
 
+    const frameIndexMap = new Map(allFrames.map((f, i) => [f, i]));
+
     frames.forEach((frame, localIndex) => {
       const canvas = this.renderFrameToCanvas(
         frame,
@@ -80,9 +82,9 @@ export class EditorTimelineExportService {
       if (!canvas) return;
 
       const mimeType = this.getMimeType(options.format);
-      const actualFrameIndex = allFrames.indexOf(frame);
+      const actualFrameIndex = frameIndexMap.get(frame);
       const frameNumber =
-        actualFrameIndex !== -1 ? actualFrameIndex + 1 : localIndex + 1;
+        actualFrameIndex !== undefined ? actualFrameIndex + 1 : localIndex + 1;
       const fileName = this.formatFrameName(options.framePattern, frameNumber);
 
       canvas.toBlob((blob) => {
