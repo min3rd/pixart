@@ -69,8 +69,9 @@ export class EditorTimelineExportService {
   ): void {
     const canvasWidth = this.document.canvasWidth();
     const canvasHeight = this.document.canvasHeight();
+    const allFrames = this.document.frames();
 
-    frames.forEach((frame, index) => {
+    frames.forEach((frame, localIndex) => {
       const canvas = this.renderFrameToCanvas(
         frame,
         canvasWidth,
@@ -79,7 +80,10 @@ export class EditorTimelineExportService {
       if (!canvas) return;
 
       const mimeType = this.getMimeType(options.format);
-      const fileName = this.formatFrameName(options.framePattern, index + 1);
+      const actualFrameIndex = allFrames.indexOf(frame);
+      const frameNumber =
+        actualFrameIndex !== -1 ? actualFrameIndex + 1 : localIndex + 1;
+      const fileName = this.formatFrameName(options.framePattern, frameNumber);
 
       canvas.toBlob((blob) => {
         if (blob) {
@@ -170,7 +174,12 @@ export class EditorTimelineExportService {
     width: number,
     height: number,
   ): HTMLCanvasElement | null {
-    if (!frame || !frame.layers || !frame.buffers) {
+    if (
+      !frame ||
+      !Array.isArray(frame.layers) ||
+      !frame.buffers ||
+      typeof frame.buffers !== 'object'
+    ) {
       return null;
     }
 
@@ -190,20 +199,78 @@ export class EditorTimelineExportService {
       if (!layer.visible) continue;
 
       const buf = frame.buffers[layer.id];
-      if (!buf || buf.length !== width * height) continue;
+      if (!Array.isArray(buf) || buf.length !== width * height) continue;
 
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const col = buf[y * width + x];
-          if (col && col.length) {
-            ctx.fillStyle = col;
-            ctx.fillRect(x, y, 1, 1);
+      const imageData = ctx.createImageData(width, height);
+      const data = imageData.data;
+
+      for (let i = 0; i < buf.length; i++) {
+        const col = buf[i];
+        if (col && col.length) {
+          const color = this.parseColor(col);
+          if (color) {
+            const idx = i * 4;
+            data[idx] = color.r;
+            data[idx + 1] = color.g;
+            data[idx + 2] = color.b;
+            data[idx + 3] = color.a;
           }
         }
       }
+
+      ctx.putImageData(imageData, 0, 0);
     }
 
     return canvas;
+  }
+
+  private parseColor(colorStr: string): {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  } | null {
+    if (colorStr.startsWith('rgb(')) {
+      const match = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (match) {
+        return {
+          r: parseInt(match[1], 10),
+          g: parseInt(match[2], 10),
+          b: parseInt(match[3], 10),
+          a: 255,
+        };
+      }
+    } else if (colorStr.startsWith('rgba(')) {
+      const match = colorStr.match(
+        /rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/,
+      );
+      if (match) {
+        return {
+          r: parseInt(match[1], 10),
+          g: parseInt(match[2], 10),
+          b: parseInt(match[3], 10),
+          a: Math.round(parseFloat(match[4]) * 255),
+        };
+      }
+    } else if (colorStr.startsWith('#')) {
+      const hex = colorStr.slice(1);
+      if (hex.length === 6) {
+        return {
+          r: parseInt(hex.slice(0, 2), 16),
+          g: parseInt(hex.slice(2, 4), 16),
+          b: parseInt(hex.slice(4, 6), 16),
+          a: 255,
+        };
+      } else if (hex.length === 8) {
+        return {
+          r: parseInt(hex.slice(0, 2), 16),
+          g: parseInt(hex.slice(2, 4), 16),
+          b: parseInt(hex.slice(4, 6), 16),
+          a: parseInt(hex.slice(6, 8), 16),
+        };
+      }
+    }
+    return null;
   }
 
   private flattenLayers(items: any[]): any[] {
