@@ -64,6 +64,7 @@ import {
   ExportImageResult,
 } from '../../../shared/components/export-image-dialog/export-image-dialog.component';
 import { EditorExportService } from '../../../services/editor/editor-export.service';
+import { TimelineExportDialog } from '../../../shared/components/timeline-export-dialog/timeline-export-dialog.component';
 
 @Component({
   selector: 'pa-editor-header',
@@ -87,6 +88,7 @@ import { EditorExportService } from '../../../services/editor/editor-export.serv
     LanguageSelectorComponent,
     LogViewerDialog,
     ExportImageDialog,
+    TimelineExportDialog,
   ],
   host: {
     class:
@@ -135,6 +137,7 @@ export class EditorHeader {
   readonly fillSelectionDialog = viewChild(FillSelectionDialog);
   readonly imageSizeDialog = viewChild(ImageSizeDialog);
   readonly exportImageDialog = viewChild(ExportImageDialog);
+  readonly timelineExportDialog = viewChild(TimelineExportDialog);
   readonly fillSelectionService = inject(FillSelectionService);
   readonly onContentAwareFillToggle = output<void>();
   readonly onDefinePatternToggle = output<void>();
@@ -1640,4 +1643,16 @@ export class EditorHeader {
   }
 
   handleExportImageCancel() {}
+
+  onExportTimeline() {
+    this.showFileMenu.set(false);
+    const dialog = this.timelineExportDialog();
+    if (dialog) {
+      dialog.open();
+    }
+  }
+
+  handleExportTimelineConfirm() {}
+
+  handleExportTimelineCancel() {}
 }

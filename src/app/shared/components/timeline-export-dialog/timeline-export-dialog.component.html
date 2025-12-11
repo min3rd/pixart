@@ -1,0 +1,181 @@
+<pa-modal
+  [isOpen]="isOpen()"
+  [title]="'timeline.exportDialog.title' | transloco"
+  [size]="'md'"
+  [modalId]="'timeline-export-dialog'"
+  (onClose)="handleCancel()"
+>
+  <div id="timeline-export-form" class="flex flex-col gap-4 p-4">
+    <div id="format-section" class="flex flex-col gap-2">
+      <label
+        for="export-format-select"
+        id="export-format-label"
+        class="text-sm font-medium"
+      >
+        {{ "timeline.exportDialog.format" | transloco }}
+      </label>
+      <select
+        id="export-format-select"
+        class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+        [value]="format()"
+        (change)="onFormatChange($event)"
+      >
+        @for (opt of formatOptions; track opt.value) {
+          <option [value]="opt.value" [id]="'format-option-' + opt.value">
+            {{ opt.key | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div id="range-section" class="flex flex-col gap-2">
+      <label
+        for="export-range-select"
+        id="export-range-label"
+        class="text-sm font-medium"
+      >
+        {{ "timeline.exportDialog.range" | transloco }}
+      </label>
+      <select
+        id="export-range-select"
+        class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+        [value]="range()"
+        (change)="onRangeChange($event)"
+      >
+        @for (opt of rangeOptions; track opt.value) {
+          <option [value]="opt.value" [id]="'range-option-' + opt.value">
+            {{ opt.key | transloco }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (showCustomRange()) {
+      <div id="custom-range-section" class="flex gap-4">
+        <div id="from-frame-section" class="flex-1 flex flex-col gap-2">
+          <label
+            for="from-frame-input"
+            id="from-frame-label"
+            class="text-sm font-medium"
+          >
+            {{ "timeline.exportDialog.fromFrame" | transloco }}
+          </label>
+          <input
+            id="from-frame-input"
+            type="number"
+            [value]="fromFrame()"
+            (input)="onFromFrameChange($event)"
+            [min]="1"
+            [max]="totalFrames()"
+            class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+          />
+        </div>
+        <div id="to-frame-section" class="flex-1 flex flex-col gap-2">
+          <label
+            for="to-frame-input"
+            id="to-frame-label"
+            class="text-sm font-medium"
+          >
+            {{ "timeline.exportDialog.toFrame" | transloco }}
+          </label>
+          <input
+            id="to-frame-input"
+            type="number"
+            [value]="toFrame()"
+            (input)="onToFrameChange($event)"
+            [min]="1"
+            [max]="totalFrames()"
+            class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+          />
+        </div>
+      </div>
+    }
+
+    @if (!showSpriteSheetOptions()) {
+      <div id="frame-pattern-section" class="flex flex-col gap-2">
+        <label
+          for="frame-pattern-input"
+          id="frame-pattern-label"
+          class="text-sm font-medium"
+        >
+          {{ "timeline.exportDialog.framePattern" | transloco }}
+        </label>
+        <input
+          id="frame-pattern-input"
+          type="text"
+          [value]="framePattern()"
+          (input)="onFramePatternChange($event)"
+          placeholder="frame-{frame}"
+          class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+        />
+        <p
+          id="frame-pattern-hint"
+          class="text-xs text-neutral-500 dark:text-neutral-400"
+        >
+          {{ "timeline.exportDialog.framePatternHint" | transloco }}
+        </p>
+      </div>
+    }
+
+    @if (showSpriteSheetOptions()) {
+      <div id="spritesheet-options-section" class="flex flex-col gap-4">
+        <div id="spritesheet-columns-section" class="flex flex-col gap-2">
+          <label
+            for="spritesheet-columns-input"
+            id="spritesheet-columns-label"
+            class="text-sm font-medium"
+          >
+            {{ "timeline.exportDialog.spritesheetColumns" | transloco }}
+          </label>
+          <input
+            id="spritesheet-columns-input"
+            type="number"
+            [value]="spritesheetColumns()"
+            (input)="onColumnsChange($event)"
+            [min]="1"
+            [max]="20"
+            class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+          />
+        </div>
+        <div id="spritesheet-padding-section" class="flex flex-col gap-2">
+          <label
+            for="spritesheet-padding-input"
+            id="spritesheet-padding-label"
+            class="text-sm font-medium"
+          >
+            {{ "timeline.exportDialog.spritesheetPadding" | transloco }}
+          </label>
+          <input
+            id="spritesheet-padding-input"
+            type="number"
+            [value]="spritesheetPadding()"
+            (input)="onPaddingChange($event)"
+            [min]="0"
+            [max]="10"
+            class="px-2 py-1.5 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900"
+          />
+        </div>
+      </div>
+    }
+
+    <div id="dialog-actions" class="flex justify-end gap-2 mt-4">
+      <button
+        id="cancel-button"
+        type="button"
+        class="px-4 py-2 text-sm rounded-sm border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700"
+        (click)="handleCancel()"
+      >
+        {{ "timeline.exportDialog.cancel" | transloco }}
+      </button>
+      <button
+        id="export-button"
+        type="button"
+        class="px-4 py-2 text-sm rounded-sm bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+        (click)="handleConfirm()"
+      >
+        <ng-icon name="heroArrowDownTray" size="16"></ng-icon>
+        <span>{{ "timeline.exportDialog.export" | transloco }}</span>
+      </button>
+    </div>
+  </div>
+</pa-modal>
