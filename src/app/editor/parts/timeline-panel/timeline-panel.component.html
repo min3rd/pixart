@@ -38,7 +38,21 @@
       />
     </div>
 
-    <div id="timeline-add-frame-btn" class="ml-auto">
+    <div id="timeline-export-btn" class="ml-auto mr-2">
+      <button
+        id="export-frames-btn"
+        type="button"
+        (click)="exportFrames()"
+        class="px-2 py-1 text-xs rounded-sm bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 flex items-center gap-1"
+        [title]="'timeline.exportFrames' | transloco"
+        aria-keyshortcuts="Ctrl+Shift+T"
+      >
+        <ng-icon name="heroArrowDownTray" size="14" />
+        <span>{{ "timeline.exportFrames" | transloco }}</span>
+      </button>
+    </div>
+
+    <div id="timeline-add-frame-btn">
       <button
         id="add-frame-btn"
         type="button"
@@ -161,3 +175,8 @@
     </div>
   }
 </div>
+
+<pa-timeline-export-dialog
+  (onConfirm)="handleExportConfirm()"
+  (onCancel)="handleExportCancel()"
+/>
